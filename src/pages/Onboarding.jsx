@@ -1,63 +1,139 @@
 import { RiUserAddLine, RiEyeLine, RiEditLine, RiDeleteBinLine, RiSendPlaneLine } from 'react-icons/ri';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AddOnboardingModal from '../components/AddOnboardingModal';
+import ViewOnboardingModal from '../components/ViewOnboardingModal';
+import EditOnboardingModal from '../components/EditOnboardingModal';
+import { onboardingAPI } from '../services/api';
 
 const Onboarding = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedOnboarding, setSelectedOnboarding] = useState(null);
   const [activeFilter, setActiveFilter] = useState('All');
-  const [onboardings, setOnboardings] = useState([
-    {
-      id: 'ONB-001',
-      artistName: 'Neha Kakkar',
-      startDate: '2026-01-15',
-      source: 'Open Inbound',
-      tier: 'Tier 1',
-      spoc: 'Vishal Onkar',
-      status: 'Contact Established'
-    },
-    {
-      id: 'ONB-002',
-      artistName: 'Badshah',
-      startDate: '2026-01-10',
-      source: 'Special-Curated',
-      tier: 'Tier 2',
-      spoc: 'Soumini Paul',
-      status: 'Review for L2'
-    },
-    {
-      id: 'ONB-003',
-      artistName: 'Arijit Singh',
-      startDate: '2026-01-05',
-      source: 'Personal Reference',
-      tier: 'Tier 1',
-      spoc: 'Aayan De',
-      status: 'Closed Won'
-    },
-    {
-      id: 'ONB-004',
-      artistName: 'Shreya Ghoshal',
-      startDate: '2026-01-18',
-      source: 'Personal Reference',
-      tier: 'Tier 1',
-      spoc: 'Joshua Singh',
-      status: 'SPOC Assigned'
-    },
-    {
-      id: 'ONB-005',
-      artistName: 'Sunidhi Chauhan',
-      startDate: '2026-01-08',
-      source: 'Personal Reference',
-      tier: 'Tier 1',
-      spoc: 'Rahul Sharma',
-      status: 'Cold Storage'
-    },
-  ]);
+  const [onboardings, setOnboardings] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchOnboardings();
+  }, []);
+
+  const fetchOnboardings = async () => {
+    try {
+      setLoading(true);
+      const response = await onboardingAPI.getAll();
+      if (response.success) {
+        setOnboardings(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching onboardings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddOnboarding = async (formData) => {
+    try {
+      const response = await onboardingAPI.create({
+        member: formData.member,
+        description: formData.description,
+        spoc: formData.spoc,
+        etaClosure: formData.etaClosure,
+        notes: formData.notes,
+        status: 'contact-established'
+      });
+      
+      if (response.success) {
+        await fetchOnboardings();
+        setIsModalOpen(false);
+        // Don't show alert, let the modal flow continue
+        return response.data._id; // Return the created onboarding ID
+      }
+    } catch (error) {
+      console.error('Error creating onboarding:', error);
+      alert('Failed to create onboarding');
+    }
+  };
+
+  const handleDeleteOnboarding = async (onboardingId) => {
+    if (window.confirm('Are you sure you want to delete this onboarding?')) {
+      try {
+        const response = await onboardingAPI.delete(onboardingId);
+        if (response.success) {
+          await fetchOnboardings();
+          alert('Onboarding deleted successfully');
+        }
+      } catch (error) {
+        console.error('Error deleting onboarding:', error);
+        alert('Failed to delete onboarding');
+      }
+    }
+  };
+
+  const handleViewOnboarding = (onboarding) => {
+    setSelectedOnboarding(onboarding);
+    setIsViewModalOpen(true);
+  };
+
+  const handleEditOnboarding = (onboarding) => {
+    setSelectedOnboarding(onboarding);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateOnboarding = async (updatedData) => {
+    try {
+      const response = await onboardingAPI.update(selectedOnboarding._id, updatedData);
+      if (response.success) {
+        await fetchOnboardings();
+        setIsEditModalOpen(false);
+        setSelectedOnboarding(null);
+        alert('Onboarding updated successfully');
+      }
+    } catch (error) {
+      console.error('Error updating onboarding:', error);
+      alert('Failed to update onboarding');
+    }
+  };
+      
+  const getStatusColor = (status) => {
+    const statusMap = {
+      'contact-established': 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
+      'spoc-assigned': 'bg-purple-500/20 text-purple-400 border border-purple-500/30',
+      'review-l2': 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
+      'closed-won': 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
+      'closed-lost': 'bg-red-500/20 text-red-400 border border-red-500/30'
+    };
+    return statusMap[status] || 'bg-gray-500/20 text-gray-400 border border-gray-500/30';
+  };
+
+  const getTierColor = (tier) => {
+    return tier === 'premium' 
+      ? 'bg-amber-600 text-white'
+      : tier === 'basic'
+      ? 'bg-blue-600 text-white'
+      : 'bg-gray-600 text-white';
+  };
+
+  const formatStatus = (status) => {
+    const statusMap = {
+      'contact-established': 'Contact Established',
+      'spoc-assigned': 'SPOC Assigned',
+      'review-l2': 'Review for L2',
+      'closed-won': 'Closed Won',
+      'closed-lost': 'Closed Lost'
+    };
+    return statusMap[status] || status;
+  };
+
+  const filteredOnboardings = activeFilter === 'All' 
+    ? onboardings 
+    : onboardings.filter(o => formatStatus(o.status) === activeFilter);
 
   const stats = [
-    { number: '5', label: 'Total Onboarding', icon: RiUserAddLine, bgColor: 'bg-blue-900/30', iconBg: 'bg-blue-600' },
-    { number: '3', label: 'In Progress', icon: RiUserAddLine, bgColor: 'bg-orange-900/30', iconBg: 'bg-orange-600' },
-    { number: '1', label: 'Closed Won', icon: RiUserAddLine, bgColor: 'bg-emerald-900/30', iconBg: 'bg-emerald-600' },
-    { number: '1', label: 'Cold Storage', icon: RiUserAddLine, bgColor: 'bg-purple-900/30', iconBg: 'bg-purple-600' },
+    { number: onboardings.length.toString(), label: 'Total Onboarding', icon: RiUserAddLine, bgColor: 'bg-blue-900/30', iconBg: 'bg-blue-600' },
+    { number: onboardings.filter(o => ['contact-established', 'spoc-assigned', 'review-l2'].includes(o.status)).length.toString(), label: 'In Progress', icon: RiUserAddLine, bgColor: 'bg-orange-900/30', iconBg: 'bg-orange-600' },
+    { number: onboardings.filter(o => o.status === 'closed-won').length.toString(), label: 'Closed Won', icon: RiUserAddLine, bgColor: 'bg-emerald-900/30', iconBg: 'bg-emerald-600' },
+    { number: onboardings.filter(o => o.status === 'closed-lost').length.toString(), label: 'Closed Lost', icon: RiUserAddLine, bgColor: 'bg-purple-900/30', iconBg: 'bg-purple-600' },
   ];
 
   const filters = [
@@ -66,64 +142,8 @@ const Onboarding = () => {
     'Contact Established',
     'Review for L2',
     'Closed Won',
-    'Closed Lost',
-    'Cold Storage'
+    'Closed Lost'
   ];
-
-  const handleAddOnboarding = (data) => {
-    const newOnboarding = {
-      id: `ONB-${String(onboardings.length + 1).padStart(3, '0')}`,
-      artistName: data.member,
-      startDate: new Date().toISOString().split('T')[0],
-      source: 'Open Inbound',
-      tier: 'Tier 1',
-      spoc: data.spoc,
-      status: 'SPOC Assigned'
-    };
-    setOnboardings([...onboardings, newOnboarding]);
-    setIsModalOpen(false);
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Contact Established':
-        return 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
-      case 'Review for L2':
-        return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
-      case 'Closed Won':
-        return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-      case 'SPOC Assigned':
-        return 'bg-purple-500/20 text-purple-400 border border-purple-500/30';
-      case 'Cold Storage':
-        return 'bg-purple-500/20 text-purple-400 border border-purple-500/30';
-      default:
-        return 'bg-gray-500/20 text-gray-400 border border-gray-500/30';
-    }
-  };
-
-  const getTierColor = (tier) => {
-    return tier === 'Tier 1' 
-      ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-      : 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
-  };
-
-  const getSourceColor = (source) => {
-    switch (source) {
-      case 'Open Inbound':
-        return 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
-      case 'Special-Curated':
-        return 'bg-purple-500/20 text-purple-400 border border-purple-500/30';
-      case 'Personal Reference':
-        return 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
-      default:
-        return 'bg-gray-500/20 text-gray-400 border border-gray-500/30';
-    }
-  };
-
-  // Filter onboardings based on active filter
-  const filteredOnboardings = activeFilter === 'All' 
-    ? onboardings 
-    : onboardings.filter(item => item.status === activeFilter);
 
   return (
     <div className="p-6">
@@ -205,57 +225,107 @@ const Onboarding = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-700/50">
-            {filteredOnboardings.map((item) => (
-              <tr key={item.id} className="hover:bg-[#243447] transition-colors">
-                <td className="px-4 py-2.5">
-                  <span className="text-blue-400 font-medium text-xs">{item.id}</span>
-                </td>
-                <td className="px-4 py-2.5">
-                  <span className="text-white font-medium text-xs">{item.artistName}</span>
-                </td>
-                <td className="px-4 py-2.5">
-                  <span className="text-gray-300 text-xs">{item.startDate}</span>
-                </td>
-                <td className="px-4 py-2.5">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium inline-block ${getSourceColor(item.source)}`}>
-                    {item.source}
-                  </span>
-                </td>
-                <td className="px-4 py-2.5">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium inline-block ${getTierColor(item.tier)}`}>
-                    {item.tier}
-                  </span>
-                </td>
-                <td className="px-4 py-2.5">
-                  <span className="text-gray-300 text-xs">{item.spoc}</span>
-                </td>
-                <td className="px-4 py-2.5">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium inline-block ${getStatusColor(item.status)}`}>
-                    {item.status}
-                  </span>
-                </td>
-                <td className="px-4 py-2.5">
-                  <div className="flex items-center space-x-2">
-                    <button className="text-gray-400 hover:text-blue-400 transition-colors">
-                      <RiEyeLine className="text-base" />
-                    </button>
-                    <button className="text-gray-400 hover:text-blue-400 transition-colors">
-                      <RiEditLine className="text-base" />
-                    </button>
-                    <button className="text-gray-400 hover:text-blue-400 transition-colors">
-                      <RiDeleteBinLine className="text-base" />
-                    </button>
-                    <button className="text-gray-400 hover:text-blue-400 transition-colors">
-                      <RiSendPlaneLine className="text-base" />
-                    </button>
-                  </div>
+            {loading ? (
+              <tr>
+                <td colSpan="8" className="px-4 py-8 text-center text-gray-400">
+                  Loading onboardings...
                 </td>
               </tr>
-            ))}
+            ) : filteredOnboardings.length === 0 ? (
+              <tr>
+                <td colSpan="8" className="px-4 py-8 text-center text-gray-400">
+                  No onboardings found. Click "Add New Onboarding" to create one.
+                </td>
+              </tr>
+            ) : (
+              filteredOnboardings.map((item) => {
+                const taskId = `ONB-${item._id?.slice(-4).toUpperCase()}`;
+                const startDate = new Date(item.createdAt).toISOString().split('T')[0];
+                const memberName = item.member?.name || 'N/A';
+                const source = item.member?.source || 'N/A';
+                const tier = item.member?.membershipType || 'basic';
+                
+                return (
+                  <tr key={item._id} className="hover:bg-[#243447] transition-colors">
+                    <td className="px-4 py-2.5">
+                      <span className="text-blue-400 font-medium text-xs">{taskId}</span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className="text-white font-medium text-xs">{memberName}</span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className="text-gray-300 text-xs">{startDate}</span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className="text-gray-300 text-xs">{source}</span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium inline-block ${getTierColor(tier)}`}>
+                        {tier === 'premium' ? 'Tier 1' : tier === 'basic' ? 'Tier 2' : 'Tier 3'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className="text-gray-300 text-xs">{item.spoc}</span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium inline-block ${getStatusColor(item.status)}`}>
+                        {formatStatus(item.status)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <div className="flex items-center space-x-1">
+                        <button 
+                          onClick={() => handleViewOnboarding(item)}
+                          className="text-gray-400 hover:text-blue-400 transition-colors p-1"
+                        >
+                          <RiEyeLine className="text-base" />
+                        </button>
+                        <button 
+                          onClick={() => handleEditOnboarding(item)}
+                          className="text-gray-400 hover:text-blue-400 transition-colors p-1"
+                        >
+                          <RiEditLine className="text-base" />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteOnboarding(item._id)}
+                          className="text-gray-400 hover:text-red-400 transition-colors p-1"
+                        >
+                          <RiDeleteBinLine className="text-base" />
+                        </button>
+                        <button className="text-gray-400 hover:text-green-400 transition-colors p-1">
+                          <RiSendPlaneLine className="text-base" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
 
+
+      {/* View Onboarding Modal */}
+      <ViewOnboardingModal
+        isOpen={isViewModalOpen}
+        onClose={() => {
+          setIsViewModalOpen(false);
+          setSelectedOnboarding(null);
+        }}
+        onboarding={selectedOnboarding}
+      />
+
+      {/* Edit Onboarding Modal */}
+      <EditOnboardingModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedOnboarding(null);
+        }}
+        onboarding={selectedOnboarding}
+        onSubmit={handleUpdateOnboarding}
+      />
       {/* Add Onboarding Modal */}
       <AddOnboardingModal
         isOpen={isModalOpen}

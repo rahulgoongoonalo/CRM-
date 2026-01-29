@@ -1,8 +1,51 @@
-import { RiMenuLine, RiSearchLine, RiNotification3Line } from 'react-icons/ri';
-import { useState } from 'react';
+import { RiMenuLine, RiSearchLine, RiNotification3Line, RiLogoutBoxLine } from 'react-icons/ri';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Header = ({ onMenuClick }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const dropdownRef = useRef(null);
+
+  const handleLogout = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Logout clicked');
+    logout();
+    setShowDropdown(false);
+    setTimeout(() => {
+      navigate('/login', { replace: true });
+    }, 100);
+  };
+
+  const getInitials = (name) => {
+    return name
+      ?.split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || 'U';
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDropdown]);
 
   return (
     <header className="bg-slate-800 border-b border-slate-700 px-6 py-3">
@@ -40,11 +83,37 @@ const Header = ({ onMenuClick }) => {
           </button>
 
           {/* User Profile */}
-          <div className="flex items-center space-x-3 bg-blue-600 px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">
-            <div className="bg-blue-500 text-white font-bold text-sm w-8 h-8 rounded-full flex items-center justify-center">
-              AD
+          <div className="relative" ref={dropdownRef}>
+            <div 
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="flex items-center space-x-3 bg-blue-600 px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-700 transition-colors"
+            >
+              <div className="bg-blue-500 text-white font-bold text-sm w-8 h-8 rounded-full flex items-center justify-center">
+                {getInitials(user?.name)}
+              </div>
+              <div className="text-left">
+                <span className="text-white text-sm font-medium block">{user?.name || 'User'}</span>
+                <span className="text-blue-200 text-xs capitalize">{user?.role || 'staff'}</span>
+              </div>
             </div>
-            <span className="text-white text-sm font-medium">Administrator</span>
+
+            {/* Dropdown Menu */}
+            {showDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-[100] border border-gray-200">
+                <div className="px-3 py-2 border-b border-gray-100">
+                  <p className="text-xs text-gray-500">Signed in as</p>
+                  <p className="text-sm font-semibold text-gray-700 truncate">{user?.email}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 flex items-center space-x-2 transition-colors font-medium"
+                >
+                  <RiLogoutBoxLine className="text-lg" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

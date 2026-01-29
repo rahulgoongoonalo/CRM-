@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { RiSearchLine, RiEyeLine, RiEditLine, RiAddLine } from 'react-icons/ri';
+import { useState, useEffect } from 'react';
+import { RiSearchLine, RiEyeLine, RiEditLine, RiAddLine, RiDeleteBinLine } from 'react-icons/ri';
 import AddMemberModal from '../components/AddMemberModal';
-import MemberDetailModal from '../components/MemberDetailModal';
+import ViewMemberModal from '../components/ViewMemberModal';
 import EditMemberModal from '../components/EditMemberModal';
+import { membersAPI } from '../services/api';
 
 const MemberManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -13,140 +14,64 @@ const MemberManagement = () => {
   const [selectedMember, setSelectedMember] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [members, setMembers] = useState([
-    {
-      id: 1,
-      name: 'Sunidhi Chauhan',
-      email: 'scofficial@gmail.com',
-      avatar: 'SC',
-      iprsId: 'IPR4556B',
-      category: 'Premier',
-      talentRole: 'Singer, Music Composer',
-      tier: 'Tier 1',
-      source: 'Personal Reference',
-      status: 'Active',
-    },
-    {
-      id: 2,
-      name: 'Arijit Singh',
-      email: 'arijit.official@gmail.com',
-      avatar: 'AS',
-      iprsId: 'IPR7823A',
-      category: 'Premier',
-      talentRole: 'Singer, Composer',
-      tier: 'Tier 1',
-      source: 'Curated Artist',
-      status: 'Active',
-    },
-    {
-      id: 3,
-      name: 'Shreya Ghoshal',
-      email: 'shreya.music@gmail.com',
-      avatar: 'SG',
-      iprsId: 'IPR9012C',
-      category: 'Premier',
-      talentRole: 'Singer',
-      tier: 'Tier 1',
-      source: 'Open Inbound',
-      status: 'Active',
-    },
-    {
-      id: 4,
-      name: 'Badshah',
-      email: 'badshah.rap@gmail.com',
-      avatar: 'BD',
-      iprsId: 'IPR3456D',
-      category: 'Elite',
-      talentRole: 'Rapper, Composer',
-      tier: 'Tier 2',
-      source: 'Special Curated',
-      status: 'On Hold',
-    },
-    {
-      id: 5,
-      name: 'Neha Kakkar',
-      email: 'neha.singer@gmail.com',
-      avatar: 'NK',
-      iprsId: 'IPR5678E',
-      category: 'Premier',
-      talentRole: 'Singer',
-      tier: 'Tier 1',
-      source: 'Open Inbound',
-      status: 'Pending',
-    },
-    {
-      id: 6,
-      name: 'Vishal Dadlani',
-      email: 'vishal.music@gmail.com',
-      avatar: 'VD',
-      iprsId: 'IPR6789F',
-      category: 'Premier',
-      talentRole: 'Singer, Composer',
-      tier: 'Tier 1',
-      source: 'Curated Artist',
-      status: 'Active',
-    },
-    {
-      id: 7,
-      name: 'Neeti Mohan',
-      email: 'neeti.singer@gmail.com',
-      avatar: 'NM',
-      iprsId: 'IPR7890G',
-      category: 'Premier',
-      talentRole: 'Singer',
-      tier: 'Tier 2',
-      source: 'Personal Reference',
-      status: 'Active',
-    },
-    {
-      id: 8,
-      name: 'Armaan Malik',
-      email: 'armaan.music@gmail.com',
-      avatar: 'AM',
-      iprsId: 'IPR8901H',
-      category: 'Premier',
-      talentRole: 'Singer',
-      tier: 'Tier 1',
-      source: 'Open Inbound',
-      status: 'Active',
-    },
-    {
-      id: 9,
-      name: 'Yo Yo Honey Singh',
-      email: 'yoyo.rapper@gmail.com',
-      avatar: 'YY',
-      iprsId: 'IPR9012I',
-      category: 'Elite',
-      talentRole: 'Rapper, Music Producer',
-      tier: 'Tier 1',
-      source: 'Special Curated',
-      status: 'On Hold',
-    },
-    {
-      id: 10,
-      name: 'Tulsi Kumar',
-      email: 'tulsi.singer@gmail.com',
-      avatar: 'TK',
-      iprsId: 'IPR0123J',
-      category: 'Premier',
-      talentRole: 'Singer',
-      tier: 'Tier 2',
-      source: 'Personal Reference',
-      status: 'Active',
-    },
-  ]);
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch members from backend
+  useEffect(() => {
+    fetchMembers();
+  }, []);
+
+  const fetchMembers = async () => {
+    try {
+      setLoading(true);
+      const response = await membersAPI.getAll();
+      if (response.success) {
+        setMembers(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching members:', error);
+      setError('Failed to load members');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const itemsPerPage = 5;
 
   // Filter members based on search query, status, and tier
   const filteredMembers = members.filter((member) => {
     const matchesSearch = 
-      member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.iprsId.toLowerCase().includes(searchQuery.toLowerCase());
+      member.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.email?.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesStatus = statusFilter === 'All Status' || member.status === statusFilter;
-    const matchesTier = tierFilter === 'All Tiers' || member.tier === tierFilter;
+    // Map status filter to backend enum values
+    let matchesStatus = true;
+    if (statusFilter !== 'All Status') {
+      const filterStatus = statusFilter.toLowerCase();
+      const memberStatus = member.status?.toLowerCase();
+      
+      if (filterStatus === 'active') {
+        matchesStatus = memberStatus === 'active';
+      } else if (filterStatus === 'on hold') {
+        matchesStatus = memberStatus === 'inactive';
+      } else if (filterStatus === 'pending') {
+        matchesStatus = memberStatus === 'pending';
+      }
+    }
+    
+    // Map tier filter to membership type
+    let matchesTier = true;
+    if (tierFilter !== 'All Tiers') {
+      if (tierFilter === 'Tier 1') {
+        matchesTier = member.membershipType === 'premium';
+      } else if (tierFilter === 'Tier 2') {
+        matchesTier = member.membershipType === 'basic';
+      } else if (tierFilter === 'Tier 3') {
+        matchesTier = member.membershipType === 'vip';
+      }
+    }
     
     return matchesSearch && matchesStatus && matchesTier;
   });
@@ -168,52 +93,133 @@ const MemberManagement = () => {
     setCurrentPage(1);
   };
 
-  const handleAddMember = (newMemberData) => {
-    const newMember = {
-      id: members.length + 1,
-      name: newMemberData.fullName,
-      email: newMemberData.email,
-      avatar: newMemberData.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2),
-      iprsId: `IPR${Math.floor(1000 + Math.random() * 9000)}${String.fromCharCode(65 + Math.floor(Math.random() * 26))}`,
-      category: newMemberData.category,
-      talentRole: newMemberData.talentRole,
-      tier: newMemberData.tier,
-      source: newMemberData.source,
-      status: newMemberData.status,
-    };
-    
-    setMembers([newMember, ...members]);
-    setIsModalOpen(false);
+  const handleAddMember = async (newMemberData) => {
+    try {
+      // Map status values to match backend enum
+      let backendStatus = newMemberData.status?.toLowerCase() || 'pending';
+      if (backendStatus === 'on hold') {
+        backendStatus = 'inactive';
+      }
+
+      const memberPayload = {
+        name: newMemberData.fullName,
+        email: newMemberData.email,
+        phone: newMemberData.contactNumber,
+        alternateNumber: newMemberData.alternateNumber,
+        address: newMemberData.country,
+        aliasName: newMemberData.aliasName,
+        category: newMemberData.category,
+        tier: newMemberData.tier,
+        talentRole: newMemberData.talentRole,
+        talentType: newMemberData.talentType,
+        genre: newMemberData.genre,
+        source: newMemberData.source,
+        spoc: newMemberData.spoc,
+        biography: newMemberData.biography,
+        bankName: newMemberData.bankName,
+        accountNumber: newMemberData.accountNumber,
+        ifscCode: newMemberData.ifscCode,
+        panNumber: newMemberData.panNumber,
+        aadharNumber: newMemberData.aadharNumber,
+        membershipType: newMemberData.tier?.toLowerCase().includes('tier 1') ? 'premium' : 
+                       newMemberData.tier?.toLowerCase().includes('tier 2') ? 'basic' : 'vip',
+        status: backendStatus
+      };
+
+      const response = await membersAPI.create(memberPayload);
+      
+      if (response.success) {
+        alert('Member added successfully!');
+        fetchMembers(); // Refresh the list
+        setIsModalOpen(false);
+      }
+    } catch (error) {
+      console.error('Error adding member:', error);
+      alert(error.response?.data?.message || 'Failed to add member. Please try again.');
+    }
   };
 
   const handleViewMember = (member) => {
-    setSelectedMember(member);
+    // Add IPRS ID and tier for display
+    const iprsId = `IPR${member._id?.slice(-4).toUpperCase()}` || 'N/A';
+    const tier = member.membershipType === 'premium' ? 'Tier 1' : 
+                member.membershipType === 'basic' ? 'Tier 2' : 'Tier 3';
+    
+    const transformedMember = {
+      ...member,
+      iprsId,
+      tier
+    };
+    
+    setSelectedMember(transformedMember);
     setIsDetailModalOpen(true);
   };
 
-  const handleEditMember = (updatedData) => {
-    setMembers(members.map(member => 
-      member.id === updatedData.id 
-        ? { 
-            ...member, 
-            name: updatedData.fullName,
-            email: updatedData.email,
-            category: updatedData.category,
-            talentRole: updatedData.talentRole,
-            tier: updatedData.tier,
-            source: updatedData.source,
-            status: updatedData.status,
-            avatar: updatedData.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-          }
-        : member
-    ));
-    setIsEditModalOpen(false);
-    setSelectedMember(null);
+  const handleEditMember = async (updatedData) => {
+    try {
+      // Map status values to match backend enum
+      let backendStatus = updatedData.status?.toLowerCase() || 'active';
+      if (backendStatus === 'on hold') {
+        backendStatus = 'inactive';
+      }
+
+      const memberPayload = {
+        name: updatedData.fullName,
+        email: updatedData.email,
+        phone: updatedData.contactNumber,
+        alternateNumber: updatedData.alternateNumber,
+        address: updatedData.country,
+        aliasName: updatedData.aliasName,
+        category: updatedData.category,
+        tier: updatedData.tier,
+        talentRole: updatedData.talentRole,
+        talentType: updatedData.talentType,
+        genre: updatedData.genre,
+        source: updatedData.source,
+        spoc: updatedData.spoc,
+        biography: updatedData.biography,
+        bankName: updatedData.bankName,
+        accountNumber: updatedData.accountNumber,
+        ifscCode: updatedData.ifscCode,
+        panNumber: updatedData.panNumber,
+        aadharNumber: updatedData.aadharNumber,
+        membershipType: updatedData.tier?.toLowerCase().includes('tier 1') ? 'premium' : 
+                       updatedData.tier?.toLowerCase().includes('tier 2') ? 'basic' : 'vip',
+        status: backendStatus
+      };
+
+      const response = await membersAPI.update(updatedData.id, memberPayload);
+      
+      if (response.success) {
+        alert('Member updated successfully!');
+        fetchMembers(); // Refresh the list
+        setIsEditModalOpen(false);
+        setSelectedMember(null);
+      }
+    } catch (error) {
+      console.error('Error updating member:', error);
+      alert(error.response?.data?.message || 'Failed to update member. Please try again.');
+    }
   };
 
   const openEditModal = (member) => {
     setSelectedMember(member);
     setIsEditModalOpen(true);
+  };
+
+  const handleDeleteMember = async (memberId, memberName) => {
+    if (window.confirm(`Are you sure you want to delete ${memberName}? This action cannot be undone.`)) {
+      try {
+        const response = await membersAPI.delete(memberId);
+        if (response.success) {
+          await fetchMembers();
+          alert('Member deleted successfully');
+        }
+      } catch (error) {
+        console.error('Error deleting member:', error);
+        alert('Failed to delete member');
+      }
+    }
   };
 
   const getStatusColor = (status) => {
@@ -301,8 +307,8 @@ const MemberManagement = () => {
         onSubmit={handleAddMember}
       />
 
-      {/* Member Detail Modal */}
-      <MemberDetailModal
+      {/* View Member Modal */}
+      <ViewMemberModal
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         member={selectedMember}
@@ -313,99 +319,132 @@ const MemberManagement = () => {
         <table className="w-full table-fixed">
           <thead className="bg-slate-900 border-b border-slate-700">
             <tr>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[18%]">
+              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[22%]">
                 Member
               </th>
-              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[10%]">
-                IPRS ID
+              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[11%]">
+                Genre
               </th>
-              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[10%]">
-                Category
+              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[11%]">
+                Note
               </th>
-              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[14%]">
+              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[11%]">
                 Talent Role
               </th>
-              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[8%]">
+              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[10%]">
                 Tier
               </th>
-              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[13%]">
+              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[11%]">
                 Source
               </th>
-              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[10%]">
+              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[11%]">
                 Status
               </th>
-              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[8%]">
+              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[13%]">
                 Actions
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-700">
-            {currentMembers.map((member) => (
-              <tr 
-                key={member.id} 
-                onClick={() => handleViewMember(member)}
-                className="hover:bg-slate-700/50 transition-colors border-b border-slate-700/50 cursor-pointer"
-              >
-                <td className="px-4 py-3">
-                  <div className="flex items-center space-x-2">
-                    <div className="relative flex-shrink-0">
-                      <div className="bg-slate-700 text-white font-semibold w-9 h-9 rounded-full flex items-center justify-center text-xs">
-                        {member.avatar}
-                      </div>
-                      <div className="absolute -bottom-0.5 -right-0.5 bg-green-500 w-2.5 h-2.5 rounded-full border-2 border-slate-800"></div>
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-white font-medium text-sm truncate">{member.name}</div>
-                      <div className="text-gray-400 text-xs truncate">{member.email}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-3 py-3">
-                  <span className="text-blue-400 font-medium text-sm">{member.iprsId}</span>
-                </td>
-                <td className="px-3 py-3">
-                  <span className="text-gray-300 text-sm">{member.category}</span>
-                </td>
-                <td className="px-3 py-3">
-                  <span className="text-gray-300 text-sm truncate block">{member.talentRole}</span>
-                </td>
-                <td className="px-3 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium inline-block ${getTierColor(member.tier)}`}>
-                    {member.tier}
-                  </span>
-                </td>
-                <td className="px-3 py-3">
-                  <span className="text-gray-300 text-sm truncate block">{member.source}</span>
-                </td>
-                <td className="px-3 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium inline-block ${getStatusColor(member.status)}`}>
-                    {member.status}
-                  </span>
-                </td>
-                <td className="px-3 py-3">
-                  <div className="flex items-center space-x-2">
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewMember(member);
-                      }}
-                      className="text-gray-400 hover:text-blue-400 transition-colors"
-                    >
-                      <RiEyeLine className="text-lg" />
-                    </button>
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openEditModal(member);
-                      }}
-                      className="text-gray-400 hover:text-blue-400 transition-colors"
-                    >
-                      <RiEditLine className="text-lg" />
-                    </button>
-                  </div>
+            {loading ? (
+              <tr>
+                <td colSpan="8" className="px-4 py-8 text-center text-gray-400">
+                  Loading members...
                 </td>
               </tr>
-            ))}
+            ) : currentMembers.length === 0 ? (
+              <tr>
+                <td colSpan="8" className="px-4 py-8 text-center text-gray-400">
+                  No members found. Click "Add Member" to create one.
+                </td>
+              </tr>
+            ) : (
+              currentMembers.map((member) => {
+                const avatar = member.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'NA';
+                const genre = member.genre || 'N/A';
+                const spoc = member.spoc || 'N/A';
+                const talentRole = member.talentRole || 'N/A';
+                const source = member.source || 'N/A';
+                const tier = member.membershipType === 'premium' ? 'Tier 1' : 
+                            member.membershipType === 'basic' ? 'Tier 2' : 'Tier 3';
+                
+                return (
+                  <tr 
+                    key={member._id} 
+                    onClick={() => handleViewMember(member)}
+                    className="hover:bg-slate-700/50 transition-colors border-b border-slate-700/50 cursor-pointer"
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center space-x-2">
+                        <div className="relative flex-shrink-0">
+                          <div className="bg-slate-700 text-white font-semibold w-9 h-9 rounded-full flex items-center justify-center text-xs">
+                            {avatar}
+                          </div>
+                          <div className="absolute -bottom-0.5 -right-0.5 bg-green-500 w-2.5 h-2.5 rounded-full border-2 border-slate-800"></div>
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-white font-medium text-sm truncate">{member.name}</div>
+                          <div className="text-gray-400 text-xs truncate">{member.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-3 py-3">
+                      <span className="text-gray-300 text-sm">{genre}</span>
+                    </td>
+                    <td className="px-3 py-3">
+                      <span className="text-gray-300 text-sm truncate block">{spoc}</span>
+                    </td>
+                    <td className="px-3 py-3">
+                      <span className="text-gray-300 text-sm truncate block">{talentRole}</span>
+                    </td>
+                    <td className="px-3 py-3">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium inline-block ${getTierColor(tier)}`}>
+                        {tier}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3">
+                      <span className="text-gray-300 text-sm truncate block">{source}</span>
+                    </td>
+                    <td className="px-3 py-3">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium inline-block ${getStatusColor(member.status)}`}>
+                        {member.status?.charAt(0).toUpperCase() + member.status?.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="flex items-center space-x-2">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewMember(member);
+                          }}
+                          className="text-gray-400 hover:text-blue-400 transition-colors"
+                        >
+                          <RiEyeLine className="text-lg" />
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditModal(member);
+                          }}
+                          className="text-gray-400 hover:text-blue-400 transition-colors"
+                        >
+                          <RiEditLine className="text-lg" />
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteMember(member._id, member.name);
+                          }}
+                          className="text-gray-400 hover:text-red-400 transition-colors"
+                        >
+                          <RiDeleteBinLine className="text-lg" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
 

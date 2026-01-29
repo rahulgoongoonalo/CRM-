@@ -124,7 +124,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Email Address <span className="text-red-400">*</span>
+                  Email Address
                 </label>
                 <input
                   type="email"
@@ -133,7 +133,6 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
-                  required
                 />
               </div>
               <div>
@@ -168,14 +167,13 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Country <span className="text-red-400">*</span>
+                  Country
                 </label>
                 <select
                   name="country"
                   value={formData.country}
                   onChange={handleChange}
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
                 >
                   <option value="">Select country</option>
                   <option value="India">India</option>
@@ -189,14 +187,13 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Category <span className="text-red-400">*</span>
+                  Category
                 </label>
                 <select
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
                 >
                   <option value="">Select category</option>
                   <option value="Premier">Premier</option>
@@ -206,14 +203,13 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Tier <span className="text-red-400">*</span>
+                  Tier
                 </label>
                 <select
                   name="tier"
                   value={formData.tier}
                   onChange={handleChange}
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
                 >
                   <option value="">Select tier</option>
                   <option value="Tier 1">Tier 1</option>
@@ -226,7 +222,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Talent Role <span className="text-red-400">*</span>
+                  Talent Role
                 </label>
                 <input
                   type="text"
@@ -235,19 +231,17 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   value={formData.talentRole}
                   onChange={handleChange}
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
-                  required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Talent Type <span className="text-red-400">*</span>
+                  Talent Type
                 </label>
                 <select
                   name="talentType"
                   value={formData.talentType}
                   onChange={handleChange}
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
                 >
                   <option value="">Select type</option>
                   <option value="Individual">Individual</option>
@@ -273,20 +267,23 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Source <span className="text-red-400">*</span>
+                  Source
                 </label>
                 <select
                   name="source"
                   value={formData.source}
                   onChange={handleChange}
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
                 >
                   <option value="">Select source</option>
                   <option value="Personal Reference">Personal Reference</option>
                   <option value="Curated Artist">Curated Artist</option>
                   <option value="Open Inbound">Open Inbound</option>
                   <option value="Special Curated">Special Curated</option>
+                  <option value="Special Curated">Cartel</option>
+                  <option value="Special Curated">Soumini</option>
+                  <option value="Special Curated">Marriot</option>
+
                 </select>
               </div>
             </div>
@@ -294,12 +291,12 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  SPOC (Single Point of Contact)
+                  Note
                 </label>
                 <input
                   type="text"
                   name="spoc"
-                  placeholder="Enter SPOC name"
+                  placeholder="Enter note"
                   value={formData.spoc}
                   onChange={handleChange}
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
@@ -411,19 +408,6 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                     onChange={handleChange}
                     className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
                   />
-                </div>
-                <div className="flex items-end">
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      name="digitalPayout"
-                      checked={formData.digitalPayout}
-                      onChange={handleChange}
-                      className="sr-only peer"
-                    />
-                    <div className="relative w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                    <span className="ml-3 text-sm font-medium text-gray-300">Enable Digital Payout</span>
-                  </label>
                 </div>
               </div>
             </div>

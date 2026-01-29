@@ -1,5 +1,9 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import Layout from './components/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import MemberManagement from './pages/MemberManagement';
 import Onboarding from './pages/Onboarding';
@@ -9,18 +13,32 @@ import Settings from './pages/Settings';
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="members" element={<MemberManagement />} />
-          <Route path="onboarding" element={<Onboarding />} />
-          <Route path="reporting" element={<Reporting />} />
-          <Route path="campaigns" element={<Campaigns />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          
+          {/* Protected Routes */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<Dashboard />} />
+            <Route path="members" element={<MemberManagement />} />
+            <Route path="onboarding" element={<Onboarding />} />
+            <Route path="reporting" element={<Reporting />} />
+            <Route path="campaigns" element={<Campaigns />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+
+          {/* Catch all - redirect to dashboard */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

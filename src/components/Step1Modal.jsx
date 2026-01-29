@@ -1,20 +1,42 @@
 import { RiCloseLine, RiFileTextLine } from 'react-icons/ri';
 import { useState } from 'react';
 import L1QuestionnaireModal from './L1QuestionnaireModal';
+import { onboardingAPI } from '../services/api';
 
-const Step1Modal = ({ isOpen, onClose, memberName, taskId }) => {
+const Step1Modal = ({ isOpen, onClose, onboardingId, memberName, taskId }) => {
   const [formData, setFormData] = useState({
     source: 'Personal Reference',
     contactStatus: 'New',
     notes: ''
   });
   const [isQuestionnaireOpen, setIsQuestionnaireOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (action) => {
-    console.log('Step 1 Form submitted:', { ...formData, action, taskId });
-    onClose();
+  const handleSubmit = async (action) => {
+    if (action === 'submit-l2') {
+      try {
+        setSaving(true);
+        const response = await onboardingAPI.updateStep1(onboardingId, {
+          source: formData.source,
+          contactStatus: formData.contactStatus,
+          step1Notes: formData.notes
+        });
+        
+        if (response.success) {
+          alert('Step 1 data saved successfully');
+          onClose();
+        }
+      } catch (error) {
+        console.error('Error saving step 1:', error);
+        alert('Failed to save step 1 data');
+      } finally {
+        setSaving(false);
+      }
+    } else {
+      onClose();
+    }
   };
 
   return (
@@ -117,32 +139,38 @@ const Step1Modal = ({ isOpen, onClose, memberName, taskId }) => {
         <div className="px-6 py-4 border-t border-slate-600 flex gap-3">
           <button
             onClick={onClose}
+            type="button"
             className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors font-medium"
           >
             Cancel
           </button>
           <button
             onClick={() => handleSubmit('save')}
-            className="px-5 py-2.5 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors font-medium"
+            type="button"
+            disabled={saving}
+            className="px-5 py-2.5 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors font-medium disabled:opacity-50"
           >
-            Save Progress
+            {saving ? 'Saving...' : 'Save Progress'}
           </button>
           <button
-            onClick={() => handleSubmit('submit')}
-            className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium"
+            onClick={() => handleSubmit('submit-l2')}
+            type="button"
+            disabled={saving}
+            className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50"
           >
+            {saving ? 'Submitting...' : 'Submit for L2 Review'}
+          </button>
+        </div>
+      </div>
 
       {/* L1 Questionnaire Modal */}
       <L1QuestionnaireModal
         isOpen={isQuestionnaireOpen}
         onClose={() => setIsQuestionnaireOpen(false)}
+        onboardingId={onboardingId}
         memberName={memberName}
         taskId={taskId}
       />
-            Submit for L2 Review
-          </button>
-        </div>
-      </div>
     </div>
   );
 };

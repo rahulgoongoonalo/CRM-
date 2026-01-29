@@ -1,6 +1,7 @@
 import { RiCloseLine } from 'react-icons/ri';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Step1Modal from './Step1Modal';
+import { membersAPI } from '../services/api';
 
 const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -13,20 +14,53 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
   const [isStep1ModalOpen, setIsStep1ModalOpen] = useState(false);
   const [newTaskId, setNewTaskId] = useState('');
   const [savedMemberName, setSavedMemberName] = useState('');
+  const [createdOnboardingId, setCreatedOnboardingId] = useState('');
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  // Fetch members from MongoDB
+  useEffect(() => {
+    if (isOpen) {
+      fetchMembers();
+    }
+  }, [isOpen]);
+
+  const fetchMembers = async () => {
+    try {
+      setLoading(true);
+      const response = await membersAPI.getAll();
+      if (response.success) {
+        setMembers(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching members:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Save member name and task ID
-    const taskId = `ONB-${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`;
-    setSavedMemberName(formData.member);
-    setNewTaskId(taskId);
-    
-    // Submit the form data
-    onSubmit(formData);
-    
-    // Open Step 1 modal
-    setIsStep1ModalOpen(true);
+    try {
+      // Call onSubmit which returns the created onboarding ID
+      const createdId = await onSubmit(formData);
+      
+      if (createdId) {
+        // Get the member name
+        const selectedMember = members.find(m => m._id === formData.member);
+        const memberName = selectedMember?.name || '';
+        const taskId = `ONB-${createdId.slice(-4).toUpperCase()}`;
+        
+        // Set state and open Step1Modal
+        setCreatedOnboardingId(createdId);
+        setSavedMemberName(memberName);
+        setNewTaskId(taskId);
+        setIsStep1ModalOpen(true);
+      }
+    } catch (error) {
+      console.error('Error in handleSubmit:', error);
+    }
   };
 
   const handleChange = (e) => {
@@ -76,14 +110,15 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
                 className="w-full bg-[#2d3748] text-white px-4 py-2.5 rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
               >
                 <option value="">Choose a member</option>
-                <option>Neha Kakkar</option>
-                <option>Badshah</option>
-                <option>Arijit Singh</option>
-                <option>Shreya Ghoshal</option>
-                <option>Sunidhi Chauhan</option>
-                <option>Vishal Dadlani</option>
-                <option>Neeti Mohan</option>
-                <option>Armaan Malik</option>
+                {loading ? (
+                  <option disabled>Loading members...</option>
+                ) : (
+                  members.map((member) => (
+                    <option key={member._id} value={member._id}>
+                      {member.name} - {member.email}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
 
@@ -181,15 +216,9 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
         isOpen={isStep1ModalOpen}
         onClose={() => {
           setIsStep1ModalOpen(false);
-          setFormData({
-            member: '',
-            description: '',
-            spoc: '',
-            etaClosure: '',
-            notes: '',
-          });
-          onClose();
+          setCreatedOnboardingId('');
         }}
+        onboardingId={createdOnboardingId}
         memberName={savedMemberName}
         taskId={newTaskId}
       />

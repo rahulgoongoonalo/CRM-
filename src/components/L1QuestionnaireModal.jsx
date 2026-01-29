@@ -1,7 +1,8 @@
 import { RiCloseLine } from 'react-icons/ri';
 import { useState } from 'react';
+import { onboardingAPI } from '../services/api';
 
-const L1QuestionnaireModal = ({ isOpen, onClose, memberName, taskId }) => {
+const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskId }) => {
   const [formData, setFormData] = useState({
     // Artist Basics
     artistName: '',
@@ -42,6 +43,7 @@ const L1QuestionnaireModal = ({ isOpen, onClose, memberName, taskId }) => {
     consentEditorial: false,
     understandPayout: false,
   });
+  const [saving, setSaving] = useState(false);
 
   if (!isOpen) return null;
 
@@ -53,11 +55,33 @@ const L1QuestionnaireModal = ({ isOpen, onClose, memberName, taskId }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('L1 Questionnaire submitted:', formData);
-    onClose();
+    
+    // Validate all checkboxes are checked
+    if (!formData.confirmRights || !formData.acceptTerms || !formData.consentEditorial || !formData.understandPayout) {
+      alert('Please check all agreement checkboxes before submitting the questionnaire.');
+      return;
+    }
+    
+    try {
+      setSaving(true);
+      const response = await onboardingAPI.updateL1Questionnaire(onboardingId, formData);
+      
+      if (response.success) {
+        alert('L1 Questionnaire submitted successfully! Status updated to Review for L2.');
+        onClose();
+      }
+    } catch (error) {
+      console.error('Error submitting L1 questionnaire:', error);
+      alert('Failed to submit L1 questionnaire');
+    } finally {
+      setSaving(false);
+    }
   };
+  
+  // Check if all agreement checkboxes are checked
+  const allAgreementsChecked = formData.confirmRights && formData.acceptTerms && formData.consentEditorial && formData.understandPayout;
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-[60] p-4" onClick={onClose}>
@@ -290,33 +314,31 @@ const L1QuestionnaireModal = ({ isOpen, onClose, memberName, taskId }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1.5 text-left">
-                    Languages You Create In <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="languages"
-                    value={formData.languages}
-                    onChange={handleChange}
-                    required
-                    className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1.5 text-left">
-                    Sub-Genre / Style
-                  </label>
-                  <input
-                    type="text"
-                    name="subGenre"
-                    value={formData.subGenre}
-                    onChange={handleChange}
-                    className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
+              <div className="mb-4">
+                <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                  Languages You Create In <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="languages"
+                  value={formData.languages}
+                  onChange={handleChange}
+                  required
+                  className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                  Sub-Genre / Style
+                </label>
+                <input
+                  type="text"
+                  name="subGenre"
+                  value={formData.subGenre}
+                  onChange={handleChange}
+                  className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
               </div>
             </div>
 
@@ -324,21 +346,20 @@ const L1QuestionnaireModal = ({ isOpen, onClose, memberName, taskId }) => {
             <div className="mb-6">
               <h3 className="text-blue-400 font-semibold text-lg mb-4">STREAMING & SOCIAL MEDIA</h3>
               
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1.5 text-left">
-                    Streaming Platform Link
-                  </label>
-                  <input
-                    type="text"
-                    name="streamingLink"
-                    value={formData.streamingLink}
-                    onChange={handleChange}
-                    placeholder="Spotify, Apple Music, etc."
-                    className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
-                
+              <div className="mb-4">
+                <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                  Streaming Platform Link
+                </label>
+                <input
+                  type="text"
+                  name="streamingLink"
+                  value={formData.streamingLink}
+                  onChange={handleChange}
+                  placeholder="Spotify, Apple Music, etc."
+                  className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
+<div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-gray-400 text-sm mb-1.5 text-left">
                     YouTube Channel
@@ -351,9 +372,7 @@ const L1QuestionnaireModal = ({ isOpen, onClose, memberName, taskId }) => {
                     className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-gray-400 text-sm mb-1.5 text-left">
                     Instagram Profile
@@ -366,19 +385,19 @@ const L1QuestionnaireModal = ({ isOpen, onClose, memberName, taskId }) => {
                     className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
-                
-                <div>
-                  <label className="block text-gray-400 text-sm mb-1.5 text-left">
-                    Other Platforms
-                  </label>
-                  <input
-                    type="text"
-                    name="otherPlatforms"
-                    value={formData.otherPlatforms}
-                    onChange={handleChange}
-                    className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  />
-                </div>
+              </div>
+              
+              <div className="mt-4">
+                <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                  Other Platforms
+                </label>
+                <input
+                  type="text"
+                  name="otherPlatforms"
+                  value={formData.otherPlatforms}
+                  onChange={handleChange}
+                  className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
               </div>
             </div>
 
@@ -575,11 +594,17 @@ const L1QuestionnaireModal = ({ isOpen, onClose, memberName, taskId }) => {
               </button>
               <button
                 type="submit"
-                className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium"
+                disabled={saving || !allAgreementsChecked}
+                className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Submit Questionnaire
+                {saving ? 'Submitting...' : 'Submit Questionnaire'}
               </button>
             </div>
+            {!allAgreementsChecked && (
+              <p className="text-yellow-400 text-sm mt-2">
+                Please check all agreement checkboxes to submit the questionnaire
+              </p>
+            )}
           </form>
         </div>
       </div>

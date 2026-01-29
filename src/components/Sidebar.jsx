@@ -1,7 +1,17 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { RiDashboardLine, RiUserLine, RiUserAddLine, RiBarChartLine, RiMegaphoneLine, RiSettings4Line, RiLogoutBoxLine, RiMusicLine } from 'react-icons/ri';
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ isOpen }) => {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  
+  const handleLogout = () => {
+    console.log('Sidebar logout clicked');
+    logout();
+    navigate('/login', { replace: true });
+  };
+
   const navItems = [
     { path: '/', icon: RiDashboardLine, label: 'Dashboard' },
     { path: '/members', icon: RiUserLine, label: 'Member Management' },
@@ -63,7 +73,10 @@ const Sidebar = ({ isOpen }) => {
           {isOpen && <span className="text-sm font-medium">Settings</span>}
         </NavLink>
         
-        <button className="flex items-center space-x-3 px-6 py-3 w-full text-gray-300 hover:bg-slate-700 hover:text-white transition-colors">
+        <button 
+          onClick={handleLogout}
+          className="flex items-center space-x-3 px-6 py-3 w-full text-gray-300 hover:bg-slate-700 hover:text-white transition-colors text-left"
+        >
           <RiLogoutBoxLine className="text-xl" />
           {isOpen && <span className="text-sm font-medium">Logout</span>}
         </button>
