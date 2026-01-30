@@ -51,7 +51,7 @@ router.get('/:id', async (req, res) => {
 // @access  Private
 router.post('/', [
   body('name').trim().notEmpty().withMessage('Name is required'),
-  body('email').isEmail().withMessage('Valid email is required'),
+  body('email').optional({ checkFalsy: true }).isEmail().withMessage('Valid email is required'),
   body('phone').optional().trim(),
   body('address').optional().trim(),
   body('membershipType').optional().isIn(['basic', 'premium', 'vip']),
@@ -59,7 +59,11 @@ router.post('/', [
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    console.log('Validation errors:', errors.array());
+    return res.status(400).json({ 
+      message: 'Validation failed', 
+      errors: errors.array() 
+    });
   }
 
   try {
@@ -70,15 +74,20 @@ router.post('/', [
       aadharNumber, membershipType, status, notes 
     } = req.body;
 
-    // Check if member with email already exists
-    const memberExists = await Member.findOne({ email });
-    if (memberExists) {
-      return res.status(400).json({ message: 'Member with this email already exists' });
+    // Convert empty email to null to avoid unique constraint issues
+    const emailValue = email && email.trim() !== '' ? email : null;
+
+    // Check if member with email already exists (only if email is provided)
+    if (emailValue) {
+      const memberExists = await Member.findOne({ email: emailValue });
+      if (memberExists) {
+        return res.status(400).json({ message: 'Member with this email already exists' });
+      }
     }
 
     const member = await Member.create({
       name,
-      email,
+      email: emailValue,
       phone,
       alternateNumber,
       address,
@@ -99,7 +108,7 @@ router.post('/', [
       membershipType: membershipType || 'basic',
       status: status || 'active',
       notes,
-      createdBy: req.user._id
+      createdBy: req.user?._id || null
     });
 
     res.status(201).json({
@@ -107,7 +116,20 @@ router.post('/', [
       data: member
     });
   } catch (error) {
-    console.error(error);
+    console.error('Error creating member:', error);
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ 
+        message: 'Validation error', 
+        error: error.message,
+        details: error.errors 
+      });
+    }
+    if (error.code === 11000) {
+      return res.status(400).json({ 
+        message: 'Duplicate email', 
+        error: 'A member with this email already exists' 
+      });
+    }
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

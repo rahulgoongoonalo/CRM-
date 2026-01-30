@@ -9,10 +9,14 @@ const ViewOnboardingModal = ({ isOpen, onClose, onboarding }) => {
   
   if (!isOpen || !onboarding) return null;
 
-  const taskId = `ONB-${onboarding._id?.slice(-4).toUpperCase()}`;
+  console.log('ViewOnboardingModal - onboarding object received:', onboarding);
+  console.log('ViewOnboardingModal - step1Data:', onboarding.step1Data);
+  console.log('ViewOnboardingModal - l1QuestionnaireData:', onboarding.l1QuestionnaireData);
+
+  const taskId = onboarding.taskNumber || 'N/A';
   const startDate = new Date(onboarding.createdAt).toISOString().split('T')[0];
   const etaClosure = onboarding.etaClosure ? new Date(onboarding.etaClosure).toISOString().split('T')[0] : 'N/A';
-  const memberName = onboarding.member?.name || 'N/A';
+  const memberName = onboarding.memberName || onboarding.member?.name || 'N/A';
   const memberEmail = onboarding.member?.email || 'N/A';
   const statusDisplay = {
     'contact-established': 'Contact Established',
@@ -181,8 +185,6 @@ const ViewOnboardingModal = ({ isOpen, onClose, onboarding }) => {
         isOpen={isStep1Open}
         onClose={() => setIsStep1Open(false)}
         onboarding={onboarding}
-        memberName={memberName}
-        taskId={taskId}
       />
       
       {/* L1 Questionnaire Modal */}
@@ -190,8 +192,6 @@ const ViewOnboardingModal = ({ isOpen, onClose, onboarding }) => {
         isOpen={isQuestionnaireOpen}
         onClose={() => setIsQuestionnaireOpen(false)}
         onboarding={onboarding}
-        memberName={memberName}
-        taskId={taskId}
       />
     </div>
   );

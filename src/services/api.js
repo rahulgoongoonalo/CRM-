@@ -89,6 +89,10 @@ export const onboardingAPI = {
   updateL1Questionnaire: async (id, l1Data) => {
     const response = await api.patch(`/onboarding/${id}/l1-questionnaire`, l1Data);
     return response.data;
+  },
+  updateL2Review: async (id, l2Data) => {
+    const response = await api.patch(`/onboarding/${id}/l2-review`, l2Data);
+    return response.data;
   }
 };
 

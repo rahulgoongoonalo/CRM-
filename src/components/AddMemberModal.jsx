@@ -280,9 +280,9 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   <option value="Curated Artist">Curated Artist</option>
                   <option value="Open Inbound">Open Inbound</option>
                   <option value="Special Curated">Special Curated</option>
-                  <option value="Special Curated">Cartel</option>
-                  <option value="Special Curated">Soumini</option>
-                  <option value="Special Curated">Marriot</option>
+                  <option value="Cartel">Cartel</option>
+                  <option value="Soumini">Soumini</option>
+                  <option value="Marriot">Marriot</option>
 
                 </select>
               </div>

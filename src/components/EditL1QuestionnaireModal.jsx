@@ -2,7 +2,7 @@ import { RiCloseLine } from 'react-icons/ri';
 import { useState, useEffect } from 'react';
 import { onboardingAPI } from '../services/api';
 
-const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding, memberName, taskId }) => {
+const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
   const [formData, setFormData] = useState({
     // Artist Basics
     artistName: '',
@@ -86,6 +86,9 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding, memberName, tas
 
   if (!isOpen || !onboarding) return null;
 
+  const taskId = onboarding.taskNumber || 'N/A';
+  const memberName = onboarding.memberName || onboarding.member?.name || 'N/A';
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -109,7 +112,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding, memberName, tas
       
       if (response.success) {
         alert('L1 Questionnaire updated successfully!');
-        onClose();
+        onClose(true); // Pass true to indicate data was updated
       }
     } catch (error) {
       console.error('Error updating L1 questionnaire:', error);
@@ -135,6 +138,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding, memberName, tas
           <div>
             <h2 className="text-xl font-semibold text-white">Edit L1 Questionnaire</h2>
             <p className="text-green-100 text-sm">Task ID: {taskId} | Member: {memberName}</p>
+            <p className="text-green-100 text-xs mt-1">Only Artist Name and Phone are required</p>
           </div>
           <button
             onClick={onClose}
@@ -168,14 +172,13 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding, memberName, tas
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Primary Contact Person <span className="text-red-400">*</span>
+                    Primary Contact Person
                   </label>
                   <input
                     type="text"
                     name="primaryContact"
                     value={formData.primaryContact}
                     onChange={handleChange}
-                    required
                     className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
@@ -184,14 +187,13 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding, memberName, tas
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Email <span className="text-red-400">*</span>
+                    Email
                   </label>
                   <input
                     type="email"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    required
                     className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
@@ -214,14 +216,13 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding, memberName, tas
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    City / Country <span className="text-red-400">*</span>
+                    City / Country
                   </label>
                   <input
                     type="text"
                     name="cityCountry"
                     value={formData.cityCountry}
                     onChange={handleChange}
-                    required
                     className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
@@ -276,23 +277,6 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding, memberName, tas
                   </select>
                 </div>
 
-                {formData.hasManager === 'Yes' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Manager Name
-                    </label>
-                    <input
-                      type="text"
-                      name="managerName"
-                      value={formData.managerName}
-                      onChange={handleChange}
-                      className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Are you signed to a label?
@@ -307,22 +291,41 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding, memberName, tas
                     <option value="Yes">Yes</option>
                   </select>
                 </div>
-
-                {formData.hasLabel === 'Yes' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Label Name
-                    </label>
-                    <input
-                      type="text"
-                      name="labelName"
-                      value={formData.labelName}
-                      onChange={handleChange}
-                      className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-                )}
               </div>
+
+              {(formData.hasManager === 'Yes' || formData.hasLabel === 'Yes') && (
+                <div className="grid grid-cols-2 gap-4">
+                  {formData.hasManager === 'Yes' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Manager Name
+                      </label>
+                      <input
+                        type="text"
+                        name="managerName"
+                        value={formData.managerName}
+                        onChange={handleChange}
+                        className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                  )}
+
+                  {formData.hasLabel === 'Yes' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Label Name
+                      </label>
+                      <input
+                        type="text"
+                        name="labelName"
+                        value={formData.labelName}
+                        onChange={handleChange}
+                        className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* MUSIC & IDENTITY */}
@@ -473,23 +476,6 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding, memberName, tas
                   </select>
                 </div>
 
-                {formData.hasDistributor === 'Yes' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Distributor Name
-                    </label>
-                    <input
-                      type="text"
-                      name="distributorName"
-                      value={formData.distributorName}
-                      onChange={handleChange}
-                      className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Existing Contracts?
@@ -504,22 +490,41 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding, memberName, tas
                     <option value="Yes">Yes</option>
                   </select>
                 </div>
-
-                {formData.hasContracts === 'Yes' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Contract Valid Until
-                    </label>
-                    <input
-                      type="date"
-                      name="contractValidUntil"
-                      value={formData.contractValidUntil}
-                      onChange={handleChange}
-                      className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-                )}
               </div>
+
+              {(formData.hasDistributor === 'Yes' || formData.hasContracts === 'Yes') && (
+                <div className="grid grid-cols-2 gap-4">
+                  {formData.hasDistributor === 'Yes' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Distributor Name
+                      </label>
+                      <input
+                        type="text"
+                        name="distributorName"
+                        value={formData.distributorName}
+                        onChange={handleChange}
+                        className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                  )}
+
+                  {formData.hasContracts === 'Yes' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Contract Valid Until
+                      </label>
+                      <input
+                        type="date"
+                        name="contractValidUntil"
+                        value={formData.contractValidUntil}
+                        onChange={handleChange}
+                        className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* GOONGOONALO PARTICIPATION */}

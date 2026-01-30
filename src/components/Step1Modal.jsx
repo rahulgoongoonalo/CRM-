@@ -75,11 +75,13 @@ const Step1Modal = ({ isOpen, onClose, onboardingId, memberName, taskId }) => {
                 onChange={(e) => setFormData({ ...formData, source: e.target.value })}
                 className="w-full bg-[#2d3748] border border-slate-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
               >
-                <option>Personal Reference</option>
-                <option>Social Media</option>
-                <option>Website</option>
-                <option>Event</option>
-                <option>Other</option>
+                 <option value="Personal Reference">Personal Reference</option>
+                  <option value="Curated Artist">Curated Artist</option>
+                  <option value="Open Inbound">Open Inbound</option>
+                  <option value="Special Curated">Special Curated</option>
+                  <option value="Cartel">Cartel</option>
+                  <option value="Soumini">Soumini</option>
+                  <option value="Marriot">Marriot</option>
               </select>
             </div>
 

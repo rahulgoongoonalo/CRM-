@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FaUser, FaLock, FaEnvelope, FaUserPlus, FaIdCard } from 'react-icons/fa';
+import { FaUser, FaLock, FaEnvelope, FaUserPlus, FaIdCard, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -11,6 +11,8 @@ const Register = () => {
     confirmPassword: '',
     role: 'staff'
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { register, user } = useAuth();
@@ -155,13 +157,20 @@ const Register = () => {
               <input
                 id="password"
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 placeholder="Create a password"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
             </div>
           </div>
 
@@ -177,13 +186,20 @@ const Register = () => {
               <input
                 id="confirmPassword"
                 name="confirmPassword"
-                type="password"
+                type={showConfirmPassword ? "text" : "password"}
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 placeholder="Confirm your password"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
             </div>
           </div>
 

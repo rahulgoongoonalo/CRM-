@@ -61,8 +61,8 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
 
   if (!isOpen || !onboarding) return null;
 
-  const taskId = `ONB-${onboarding._id?.slice(-4).toUpperCase()}`;
-  const memberName = onboarding.member?.name || 'N/A';
+  const taskId = onboarding.taskNumber || 'N/A';
+  const memberName = onboarding.memberName || onboarding.member?.name || 'N/A';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -238,19 +238,25 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
       {/* Step1 Modal */}
       <EditStep1Modal
         isOpen={isStep1Open}
-        onClose={() => setIsStep1Open(false)}
+        onClose={(dataUpdated) => {
+          setIsStep1Open(false);
+          if (dataUpdated && typeof onClose === 'function') {
+            onClose(true); // Propagate update to parent
+          }
+        }}
         onboarding={onboarding}
-        memberName={memberName}
-        taskId={taskId}
       />
       
       {/* L1 Questionnaire Modal */}
       <EditL1QuestionnaireModal
         isOpen={isQuestionnaireOpen}
-        onClose={() => setIsQuestionnaireOpen(false)}
+        onClose={(dataUpdated) => {
+          setIsQuestionnaireOpen(false);
+          if (dataUpdated && typeof onClose === 'function') {
+            onClose(true); // Propagate update to parent
+          }
+        }}
         onboarding={onboarding}
-        memberName={memberName}
-        taskId={taskId}
       />
     </div>
   );

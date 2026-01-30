@@ -8,8 +8,7 @@ const memberSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: [true, 'Please provide email'],
-    unique: true,
+    required: false,
     lowercase: true,
     trim: true
   },
@@ -101,7 +100,7 @@ const memberSchema = new mongoose.Schema({
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false
   },
   createdAt: {
     type: Date,
@@ -118,6 +117,9 @@ memberSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   next();
 });
+
+// Create sparse unique index on email (allows multiple null values)
+memberSchema.index({ email: 1 }, { unique: true, sparse: true });
 
 const Member = mongoose.model('Member', memberSchema);
 

@@ -1,9 +1,17 @@
 import mongoose from 'mongoose';
 
 const onboardingSchema = new mongoose.Schema({
+  taskNumber: {
+    type: Number,
+    unique: true
+  },
   member: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Member',
+    required: true
+  },
+  memberName: {
+    type: String,
     required: true
   },
   description: {
@@ -29,13 +37,17 @@ const onboardingSchema = new mongoose.Schema({
   },
   // Step 1: Initial Contact Data
   step1Data: {
-    source: String,
-    contactStatus: String,
-    step1Notes: String
+    type: {
+      source: String,
+      contactStatus: String,
+      step1Notes: String
+    },
+    default: {}
   },
   // L1 Questionnaire Data
   l1QuestionnaireData: {
-    artistName: String,
+    type: {
+      artistName: String,
     primaryContact: String,
     email: String,
     phone: String,
@@ -66,6 +78,33 @@ const onboardingSchema = new mongoose.Schema({
     acceptTerms: Boolean,
     consentEditorial: Boolean,
     understandPayout: Boolean
+    },
+    default: {}
+  },
+  // L2 Review Data
+  l2ReviewData: {
+    type: {
+      meetingScheduledOn: Date,
+    meetingType: {
+      type: String,
+      enum: ['In-Person', 'Google Meet'],
+      default: 'In-Person'
+    },
+    checklist: {
+      catalogReview: { type: Boolean, default: false },
+      rightsOwnership: { type: Boolean, default: false },
+      commercialData: { type: Boolean, default: false },
+      contractDiscussion: { type: Boolean, default: false },
+      techOnboarding: { type: Boolean, default: false },
+      contentIngestion: { type: Boolean, default: false }
+    },
+    membershipType: {
+      type: String,
+      enum: ['artist-investor', 'partner-artist']
+    },
+    notes: String
+    },
+    default: {}
   },
   createdBy: {
     type: String,
@@ -73,6 +112,19 @@ const onboardingSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true
+});
+
+// Auto-increment taskNumber before saving
+onboardingSchema.pre('save', async function(next) {
+  if (this.isNew) {
+    try {
+      const lastOnboarding = await mongoose.model('Onboarding').findOne().sort({ taskNumber: -1 });
+      this.taskNumber = lastOnboarding ? lastOnboarding.taskNumber + 1 : 1;
+    } catch (error) {
+      return next(error);
+    }
+  }
+  next();
 });
 
 export default mongoose.model('Onboarding', onboardingSchema);

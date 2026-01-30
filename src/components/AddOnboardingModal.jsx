@@ -43,13 +43,17 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
     e.preventDefault();
     
     try {
+      // Get the member name before submitting
+      const selectedMember = members.find(m => m._id === formData.member);
+      const memberName = selectedMember?.name || '';
+      
       // Call onSubmit which returns the created onboarding ID
-      const createdId = await onSubmit(formData);
+      const createdId = await onSubmit({
+        ...formData,
+        memberName
+      });
       
       if (createdId) {
-        // Get the member name
-        const selectedMember = members.find(m => m._id === formData.member);
-        const memberName = selectedMember?.name || '';
         const taskId = `ONB-${createdId.slice(-4).toUpperCase()}`;
         
         // Set state and open Step1Modal

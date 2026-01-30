@@ -3,12 +3,14 @@ import { useState, useEffect } from 'react';
 import AddOnboardingModal from '../components/AddOnboardingModal';
 import ViewOnboardingModal from '../components/ViewOnboardingModal';
 import EditOnboardingModal from '../components/EditOnboardingModal';
+import L2ReviewModal from '../components/L2ReviewModal';
 import { onboardingAPI } from '../services/api';
 
 const Onboarding = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isL2ReviewModalOpen, setIsL2ReviewModalOpen] = useState(false);
   const [selectedOnboarding, setSelectedOnboarding] = useState(null);
   const [activeFilter, setActiveFilter] = useState('All');
   const [onboardings, setOnboardings] = useState([]);
@@ -36,6 +38,7 @@ const Onboarding = () => {
     try {
       const response = await onboardingAPI.create({
         member: formData.member,
+        memberName: formData.memberName,
         description: formData.description,
         spoc: formData.spoc,
         etaClosure: formData.etaClosure,
@@ -80,6 +83,14 @@ const Onboarding = () => {
     setIsEditModalOpen(true);
   };
 
+  const handleCloseEditModal = async (dataUpdated) => {
+    if (dataUpdated) {
+      await fetchOnboardings();
+    }
+    setIsEditModalOpen(false);
+    setSelectedOnboarding(null);
+  };
+
   const handleUpdateOnboarding = async (updatedData) => {
     try {
       const response = await onboardingAPI.update(selectedOnboarding._id, updatedData);
@@ -92,6 +103,26 @@ const Onboarding = () => {
     } catch (error) {
       console.error('Error updating onboarding:', error);
       alert('Failed to update onboarding');
+    }
+  };
+
+  const handleOpenL2Review = (onboarding) => {
+    setSelectedOnboarding(onboarding);
+    setIsL2ReviewModalOpen(true);
+  };
+
+  const handleSubmitL2Review = async (l2Data) => {
+    try {
+      const response = await onboardingAPI.updateL2Review(selectedOnboarding._id, l2Data);
+      if (response.success) {
+        await fetchOnboardings();
+        setIsL2ReviewModalOpen(false);
+        setSelectedOnboarding(null);
+        alert('L2 Review saved successfully');
+      }
+    } catch (error) {
+      console.error('Error saving L2 review:', error);
+      alert('Failed to save L2 review');
     }
   };
       
@@ -239,9 +270,9 @@ const Onboarding = () => {
               </tr>
             ) : (
               filteredOnboardings.map((item) => {
-                const taskId = `ONB-${item._id?.slice(-4).toUpperCase()}`;
+                const taskId = item.taskNumber || 'N/A';
                 const startDate = new Date(item.createdAt).toISOString().split('T')[0];
-                const memberName = item.member?.name || 'N/A';
+                const memberName = item.memberName || item.member?.name || 'N/A';
                 const source = item.member?.source || 'N/A';
                 const tier = item.member?.membershipType || 'basic';
                 
@@ -292,7 +323,10 @@ const Onboarding = () => {
                         >
                           <RiDeleteBinLine className="text-base" />
                         </button>
-                        <button className="text-gray-400 hover:text-green-400 transition-colors p-1">
+                        <button 
+                          onClick={() => handleOpenL2Review(item)}
+                          className="text-gray-400 hover:text-green-400 transition-colors p-1"
+                        >
                           <RiSendPlaneLine className="text-base" />
                         </button>
                       </div>
@@ -319,10 +353,7 @@ const Onboarding = () => {
       {/* Edit Onboarding Modal */}
       <EditOnboardingModal
         isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedOnboarding(null);
-        }}
+        onClose={handleCloseEditModal}
         onboarding={selectedOnboarding}
         onSubmit={handleUpdateOnboarding}
       />
@@ -331,6 +362,17 @@ const Onboarding = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleAddOnboarding}
+      />
+
+      {/* L2 Review Modal */}
+      <L2ReviewModal
+        isOpen={isL2ReviewModalOpen}
+        onClose={() => {
+          setIsL2ReviewModalOpen(false);
+          setSelectedOnboarding(null);
+        }}
+        onboarding={selectedOnboarding}
+        onSubmit={handleSubmitL2Review}
       />
     </div>
   );

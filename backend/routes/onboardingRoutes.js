@@ -54,10 +54,11 @@ router.get('/:id', async (req, res) => {
 // Create new onboarding
 router.post('/', async (req, res) => {
   try {
-    const { member, description, spoc, etaClosure, notes, status, createdBy } = req.body;
+    const { member, memberName, description, spoc, etaClosure, notes, status, createdBy } = req.body;
     
     const newOnboarding = new Onboarding({
       member,
+      memberName,
       description,
       spoc,
       etaClosure,
@@ -218,6 +219,42 @@ router.patch('/:id/l1-questionnaire', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to update L1 questionnaire',
+      error: error.message
+    });
+  }
+});
+
+// Update L2 Review data
+router.patch('/:id/l2-review', async (req, res) => {
+  try {
+    const { l2ReviewData, status } = req.body;
+    
+    const updatedOnboarding = await Onboarding.findByIdAndUpdate(
+      req.params.id,
+      {
+        l2ReviewData,
+        status: status || 'review-l2'
+      },
+      { new: true, runValidators: true }
+    ).populate('member', 'name email phone genre source membershipType');
+    
+    if (!updatedOnboarding) {
+      return res.status(404).json({
+        success: false,
+        message: 'Onboarding not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: updatedOnboarding,
+      message: 'L2 Review saved successfully'
+    });
+  } catch (error) {
+    console.error('Error updating L2 review:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update L2 review',
       error: error.message
     });
   }

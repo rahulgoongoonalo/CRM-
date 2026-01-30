@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { onboardingAPI } from '../services/api';
 import EditL1QuestionnaireModal from './EditL1QuestionnaireModal';
 
-const EditStep1Modal = ({ isOpen, onClose, onboarding, memberName, taskId }) => {
+const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
   const [formData, setFormData] = useState({
     source: '',
     contactStatus: '',
@@ -24,6 +24,9 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding, memberName, taskId }) => 
 
   if (!isOpen || !onboarding) return null;
 
+  const taskId = onboarding.taskNumber || 'N/A';
+  const memberName = onboarding.memberName || onboarding.member?.name || 'N/A';
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -38,12 +41,12 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding, memberName, taskId }) => 
       const response = await onboardingAPI.updateStep1(onboarding._id, formData);
       
       if (response.success) {
+        alert('Step 1 updated successfully!');
         if (action === 'submit-l2') {
-          alert('Step 1 updated successfully!');
+          onClose(true); // Pass true to indicate data was updated
           setIsQuestionnaireOpen(true);
         } else {
-          alert('Step 1 progress saved successfully!');
-          onClose();
+          onClose(true); // Pass true to indicate data was updated
         }
       }
     } catch (error) {
@@ -89,12 +92,13 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding, memberName, taskId }) => 
               className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Select Source</option>
-              <option value="Website">Website</option>
-              <option value="Social Media">Social Media</option>
-              <option value="Referral">Referral</option>
-              <option value="Direct Contact">Direct Contact</option>
-              <option value="Event">Event</option>
-              <option value="Other">Other</option>
+                 <option value="Personal Reference">Personal Reference</option>
+                  <option value="Curated Artist">Curated Artist</option>
+                  <option value="Open Inbound">Open Inbound</option>
+                  <option value="Special Curated">Special Curated</option>
+                  <option value="Cartel">Cartel</option>
+                  <option value="Soumini">Soumini</option>
+                  <option value="Marriot">Marriot</option>
             </select>
           </div>
 

@@ -1,9 +1,11 @@
 import { RiCloseLine } from 'react-icons/ri';
 
-const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding, memberName, taskId }) => {
+const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
   if (!isOpen || !onboarding) return null;
 
   const data = onboarding.l1QuestionnaireData || {};
+  const taskId = onboarding.taskNumber || 'N/A';
+  const memberName = onboarding.memberName || onboarding.member?.name || 'N/A';
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-[60] p-4" onClick={onClose}>
