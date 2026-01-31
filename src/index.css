@@ -1,6 +1,138 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /* Grift font fallback to Inter for now */
+  * {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  
+  body {
+    @apply bg-surface text-text-primary antialiased;
+    font-weight: 400;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight;
+  }
+  
+  h1 {
+    @apply text-3xl font-extrabold;
+  }
+  
+  h2 {
+    @apply text-2xl font-bold;
+  }
+  
+  h3 {
+    @apply text-xl font-bold;
+  }
+  
+  a {
+    @apply text-brand-accent hover:text-brand-highlight transition-colors;
+  }
+  
+  /* Focus ring */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-brand-primary/40 ring-offset-2 ring-offset-surface;
+  }
+  
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-surface-light;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-brand-primary/30 hover:bg-brand-primary/50 rounded-full;
+  }
+}
+
+@layer components {
+  /* Button Styles */
+  .btn-primary {
+    @apply bg-gradient-to-r from-brand-primary to-brand-secondary text-white px-4 py-2 rounded-lg font-semibold
+    hover:from-brand-secondary hover:to-brand-accent active:scale-95 
+    disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-brand-primary disabled:hover:to-brand-secondary
+    transition-all duration-200 shadow-lg shadow-brand-primary/20;
+  }
+  
+  .btn-secondary {
+    @apply bg-surface-lighter text-text-primary border border-brand-primary/30 px-4 py-2 rounded-lg font-semibold
+    hover:bg-brand-primary/10 hover:border-brand-primary/50 active:scale-95
+    disabled:opacity-50 disabled:cursor-not-allowed
+    transition-all duration-200;
+  }
+  
+  .btn-ghost {
+    @apply text-text-secondary hover:text-text-primary hover:bg-brand-primary/10 px-3 py-2 rounded-lg font-medium
+    active:scale-95 transition-all duration-200;
+  }
+  
+  /* Card Styles */
+  .card {
+    @apply bg-surface-card rounded-xl border border-border shadow-lg shadow-brand-primary/5 p-6;
+  }
+  
+  .card-hover {
+    @apply card hover:border-brand-primary/40 hover:shadow-brand-primary/10 transition-all duration-300;
+  }
+  
+  /* Input Styles */
+  .input {
+    @apply bg-surface-lighter text-text-primary px-4 py-2.5 rounded-lg border border-border
+    focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20
+    placeholder:text-text-muted transition-all duration-200;
+  }
+  
+  .select {
+    @apply input cursor-pointer;
+  }
+  
+  /* Badge Styles */
+  .badge {
+    @apply px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center;
+  }
+  
+  .badge-primary {
+    @apply badge bg-brand-primary/20 text-brand-highlight border border-brand-primary/30;
+  }
+  
+  .badge-success {
+    @apply badge bg-emerald-500/20 text-emerald-400 border border-emerald-500/30;
+  }
+  
+  .badge-warning {
+    @apply badge bg-amber-500/20 text-amber-400 border border-amber-500/30;
+  }
+  
+  .badge-danger {
+    @apply badge bg-red-500/20 text-red-400 border border-red-500/30;
+  }
+  
+  /* Table Styles */
+  .table-row {
+    @apply border-b border-border hover:bg-brand-primary/5 transition-colors;
+  }
+  
+  /* Responsive modal styles */
+  .modal-content {
+    @apply max-h-[90vh] overflow-y-auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  @media (max-width: 640px) {
+    .modal-content {
+      @apply max-h-[85vh];
+    }
+  }
+}
 
 @layer utilities {
   /* Mobile scroll improvements */
@@ -24,17 +156,13 @@
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
-}
-
-@layer components {
-  /* Responsive modal styles */
-  .modal-content {
-    @apply max-h-[90vh] overflow-y-auto mobile-scroll;
+  
+  /* Gradient backgrounds */
+  .bg-gradient-royal {
+    background: linear-gradient(135deg, #5B0EB6 0%, #8015D5 50%, #A429D3 100%);
   }
   
-  @media (max-width: 640px) {
-    .modal-content {
-      @apply max-h-[85vh];
-    }
+  .bg-gradient-royal-subtle {
+    background: linear-gradient(135deg, rgba(91, 14, 182, 0.1) 0%, rgba(128, 21, 213, 0.05) 100%);
   }
 }

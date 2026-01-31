@@ -99,18 +99,18 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
 
       {/* Modal */}
       <div 
-        className="relative bg-slate-800 rounded-lg shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden border border-slate-700"
+        className="relative bg-surface-card rounded-lg shadow-2xl shadow-orange-600/20 w-full max-w-3xl max-h-[90vh] overflow-hidden border border-border"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-orange-600 px-6 py-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-orange-600 to-orange-500 px-6 py-4 flex items-center justify-between shadow-lg">
           <div>
             <h2 className="text-xl font-bold text-white">L2 Review - Core Group Approval</h2>
             <p className="text-orange-100 text-sm">{artistName} • {taskId}</p>
           </div>
           <button
             onClick={onClose}
-            className="text-white hover:bg-orange-700 rounded-lg p-1 transition-colors"
+            className="text-white/80 hover:text-white hover:bg-white/10 rounded-lg p-1 transition-all"
           >
             <RiCloseLine className="text-2xl" />
           </button>
@@ -121,7 +121,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
           {/* Meeting Details */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-semibold text-text-secondary mb-2">
                 Meeting Scheduled On <span className="text-red-400">*</span>
               </label>
               <input
@@ -129,19 +129,19 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                 name="meetingScheduledOn"
                 value={formData.meetingScheduledOn}
                 onChange={handleChange}
-                className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="input w-full"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-semibold text-text-secondary mb-2">
                 Meeting Type <span className="text-red-400">*</span>
               </label>
               <select
                 name="meetingType"
                 value={formData.meetingType}
                 onChange={handleChange}
-                className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="select w-full"
               >
                 <option value="In-Person">In-Person</option>
                 <option value="Google Meet">Google Meet</option>
@@ -271,14 +271,14 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
 
           {/* Membership Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-semibold text-text-secondary mb-2">
               Membership Type <span className="text-red-400">*</span>
             </label>
             <select
               name="membershipType"
               value={formData.membershipType}
               onChange={handleChange}
-              className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="select w-full"
               required
             >
               <option value="">Select membership type</option>
@@ -289,7 +289,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-semibold text-text-secondary mb-2">
               Notes
             </label>
             <textarea
@@ -298,44 +298,44 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
               onChange={handleChange}
               placeholder="Meeting notes, observations, next steps..."
               rows="4"
-              className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-gray-500 resize-none"
+              className="input w-full resize-none"
             />
           </div>
 
           {/* Footer Actions */}
-          <div className="pt-4 border-t border-slate-700 flex items-center justify-end space-x-3">
+          <div className="pt-4 border-t border-border flex items-center justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors font-medium"
+              className="btn-secondary px-6 py-2.5"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={() => handleSubmit('review-l2')}
-              className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="btn-primary px-6 py-2.5 shadow-lg shadow-brand-primary/30"
             >
               Save Progress
             </button>
             <button
               type="button"
               onClick={() => handleSubmit('closed-won')}
-              className="px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+              className="px-6 py-2.5 rounded-lg font-medium bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-500 hover:to-emerald-500 transition-all shadow-lg shadow-green-600/30"
             >
               Closed Won
             </button>
             <button
               type="button"
               onClick={() => handleSubmit('closed-lost')}
-              className="px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+              className="px-6 py-2.5 rounded-lg font-medium bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-500 hover:to-rose-500 transition-all shadow-lg shadow-red-600/30"
             >
               Closed Lost
             </button>
             <button
               type="button"
               onClick={() => handleSubmit('review-l2')}
-              className="px-5 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+              className="px-6 py-2.5 rounded-lg font-medium bg-gradient-to-r from-brand-accent to-brand-highlight text-white hover:from-brand-accent/90 hover:to-brand-highlight/90 transition-all shadow-lg shadow-brand-accent/30"
             >
               Cold Storage
             </button>

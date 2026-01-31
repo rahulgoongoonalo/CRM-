@@ -73,13 +73,13 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
       ></div>
 
       {/* Modal */}
-      <div className="relative bg-slate-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden border border-slate-700">
+      <div className="relative bg-surface-card rounded-lg shadow-2xl shadow-brand-primary/20 w-full max-w-2xl max-h-[90vh] overflow-hidden border border-border">
         {/* Header */}
-        <div className="bg-blue-600 px-6 py-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-brand-primary to-brand-secondary px-6 py-4 flex items-center justify-between shadow-lg">
           <h2 className="text-xl font-bold text-white">Edit Onboarding</h2>
           <button
             onClick={onClose}
-            className="text-white hover:bg-blue-700 rounded-lg p-1 transition-colors"
+            className="text-white/80 hover:text-white hover:bg-white/10 rounded-lg p-1 transition-all"
           >
             <RiCloseLine className="text-2xl" />
           </button>
@@ -91,7 +91,7 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
             <div className="p-6 space-y-4">
               {/* Select Member */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Member <span className="text-red-400">*</span>
                 </label>
                 <select
@@ -99,7 +99,7 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                   value={formData.member}
                   onChange={handleChange}
                   required
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  className="select w-full cursor-pointer"
                 >
                   <option value="">Choose a member</option>
                   {loading ? (
@@ -116,7 +116,7 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Description
                 </label>
                 <textarea
@@ -125,14 +125,14 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                   onChange={handleChange}
                   placeholder="Brief description of onboarding"
                   rows="2"
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="input w-full resize-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 {/* SPOC */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-text-secondary mb-2">
                     SPOC <span className="text-red-400">*</span>
                   </label>
                   <input
@@ -142,13 +142,13 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                     onChange={handleChange}
                     required
                     placeholder="Enter SPOC name"
-                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="input w-full"
                   />
                 </div>
 
                 {/* ETA to Closure */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-text-secondary mb-2">
                     ETA to Closure
                   </label>
                   <input
@@ -156,14 +156,14 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                     name="etaClosure"
                     value={formData.etaClosure}
                     onChange={handleChange}
-                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="input w-full"
                   />
                 </div>
               </div>
 
               {/* Status */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Status <span className="text-red-400">*</span>
                 </label>
                 <select
@@ -171,7 +171,7 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                   value={formData.status}
                   onChange={handleChange}
                   required
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  className="select w-full cursor-pointer"
                 >
                   <option value="contact-established">Contact Established</option>
                   <option value="spoc-assigned">SPOC Assigned</option>
@@ -183,7 +183,7 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
 
               {/* Notes */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Notes
                 </label>
                 <textarea
@@ -192,26 +192,26 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                   onChange={handleChange}
                   placeholder="Additional notes..."
                   rows="3"
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="input w-full resize-none"
                 />
               </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="bg-slate-900 px-6 py-4 flex justify-between border-t border-slate-700">
+          <div className="bg-surface-lighter px-6 py-4 flex justify-between border-t border-border">
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setIsStep1Open(true)}
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="btn-primary px-6 py-2.5 shadow-lg shadow-brand-primary/30"
               >
                 Edit Step 1
               </button>
               <button
                 type="button"
                 onClick={() => setIsQuestionnaireOpen(true)}
-                className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="px-6 py-2.5 rounded-lg font-medium bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-500 hover:to-emerald-500 transition-all shadow-lg shadow-green-600/30"
               >
                 Edit L1 Questionnaire
               </button>
@@ -220,13 +220,13 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2.5 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors"
+                className="btn-secondary px-6 py-2.5"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="btn-primary px-6 py-2.5 shadow-lg shadow-brand-primary/30"
               >
                 Save Changes
               </button>

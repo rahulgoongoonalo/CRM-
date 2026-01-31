@@ -70,18 +70,18 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop with blur */}
       <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
         onClick={onClose}
       ></div>
 
       {/* Modal */}
-      <div className="relative bg-slate-800 rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-slate-700">
+      <div className="relative bg-surface-card rounded-lg shadow-2xl shadow-brand-primary/20 w-full max-w-4xl max-h-[90vh] overflow-hidden border border-border">
         {/* Header */}
-        <div className="bg-blue-600 px-6 py-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-brand-primary to-brand-secondary px-6 py-4 flex items-center justify-between shadow-lg">
           <h2 className="text-xl font-bold text-white">Add New Member</h2>
           <button
             onClick={onClose}
-            className="text-white hover:bg-blue-700 rounded-lg p-1 transition-colors"
+            className="text-white/80 hover:text-white hover:bg-white/10 rounded-lg p-1 transition-all"
           >
             <RiCloseLine className="text-2xl" />
           </button>
@@ -93,7 +93,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
             {/* Personal Information */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Full Name <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -102,12 +102,12 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   placeholder="Enter full name"
                   value={formData.fullName}
                   onChange={handleChange}
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
                   required
+                  className="input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Alias Name
                 </label>
                 <input
@@ -116,14 +116,14 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   placeholder="Enter alias/stage name"
                   value={formData.aliasName}
                   onChange={handleChange}
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
+                  className="input w-full"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Email Address
                 </label>
                 <input
@@ -132,11 +132,11 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   placeholder="Enter email address"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
+                  className="input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Contact Number <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -145,7 +145,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   placeholder="Enter contact number"
                   value={formData.contactNumber}
                   onChange={handleChange}
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
+                  className="input w-full"
                   required
                 />
               </div>
@@ -153,7 +153,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Alternate Number
                 </label>
                 <input
@@ -162,18 +162,18 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   placeholder="Enter alternate number"
                   value={formData.alternateNumber}
                   onChange={handleChange}
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
+                  className="input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Country
                 </label>
                 <select
                   name="country"
                   value={formData.country}
                   onChange={handleChange}
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="select w-full"
                 >
                   <option value="">Select country</option>
                   <option value="India">India</option>
@@ -186,14 +186,14 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Category
                 </label>
                 <select
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="select w-full"
                 >
                   <option value="">Select category</option>
                   <option value="Premier">Premier</option>
@@ -202,14 +202,14 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Tier
                 </label>
                 <select
                   name="tier"
                   value={formData.tier}
                   onChange={handleChange}
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="select w-full"
                 >
                   <option value="">Select tier</option>
                   <option value="Tier 1">Tier 1</option>
@@ -221,7 +221,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Talent Role
                 </label>
                 <input
@@ -230,18 +230,18 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   placeholder="e.g., Singer, Composer, Lyricist"
                   value={formData.talentRole}
                   onChange={handleChange}
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
+                  className="input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Talent Type
                 </label>
                 <select
                   name="talentType"
                   value={formData.talentType}
                   onChange={handleChange}
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="select w-full"
                 >
                   <option value="">Select type</option>
                   <option value="Individual">Individual</option>
@@ -253,7 +253,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Genre
                 </label>
                 <input
@@ -262,18 +262,18 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   placeholder="e.g., Bollywood, Pop, Classical"
                   value={formData.genre}
                   onChange={handleChange}
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
+                  className="input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Source
                 </label>
                 <select
                   name="source"
                   value={formData.source}
                   onChange={handleChange}
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="select w-full"
                 >
                   <option value="">Select source</option>
                   <option value="Personal Reference">Personal Reference</option>
@@ -290,7 +290,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Note
                 </label>
                 <input
@@ -299,18 +299,18 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   placeholder="Enter note"
                   value={formData.spoc}
                   onChange={handleChange}
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
+                  className="input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Status
                 </label>
                 <select
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="select w-full"
                 >
                   <option value="Pending">Pending</option>
                   <option value="Active">Active</option>
@@ -320,7 +320,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-semibold text-text-secondary mb-2">
                 Biography
               </label>
               <textarea
@@ -329,17 +329,17 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                 value={formData.biography}
                 onChange={handleChange}
                 rows="4"
-                className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 resize-none"
+                className="input w-full resize-none"
               ></textarea>
             </div>
 
             {/* KYC Information */}
-            <div className="border-t border-slate-700 pt-6">
-              <h3 className="text-lg font-bold text-white mb-4">KYC Information</h3>
+            <div className="border-t border-border pt-6">
+              <h3 className="text-lg font-bold text-text-primary mb-4">KYC Information</h3>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-text-secondary mb-2">
                     Bank Name
                   </label>
                   <input
@@ -348,11 +348,11 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                     placeholder="Enter bank name"
                     value={formData.bankName}
                     onChange={handleChange}
-                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
+                    className="input w-full"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-text-secondary mb-2">
                     Account Number
                   </label>
                   <input
@@ -361,14 +361,14 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                     placeholder="Enter account number"
                     value={formData.accountNumber}
                     onChange={handleChange}
-                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
+                    className="input w-full"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-text-secondary mb-2">
                     IFSC Code
                   </label>
                   <input
@@ -377,11 +377,11 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                     placeholder="Enter IFSC code"
                     value={formData.ifscCode}
                     onChange={handleChange}
-                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
+                    className="input w-full"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-text-secondary mb-2">
                     PAN Number
                   </label>
                   <input
@@ -390,14 +390,14 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                     placeholder="Enter PAN number"
                     value={formData.panNumber}
                     onChange={handleChange}
-                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
+                    className="input w-full"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-text-secondary mb-2">
                     Aadhar Number
                   </label>
                   <input
@@ -406,7 +406,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                     placeholder="Enter Aadhar number"
                     value={formData.aadharNumber}
                     onChange={handleChange}
-                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
+                    className="input w-full"
                   />
                 </div>
               </div>
@@ -414,17 +414,17 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
           </div>
 
           {/* Footer */}
-          <div className="bg-slate-900 px-6 py-4 flex justify-end space-x-3 border-t border-slate-700">
+          <div className="bg-surface-lighter px-6 py-4 flex justify-end space-x-3 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors"
+              className="btn-secondary px-6 py-2.5"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="btn-primary px-6 py-2.5 shadow-lg shadow-brand-primary/30"
             >
               Add Member
             </button>

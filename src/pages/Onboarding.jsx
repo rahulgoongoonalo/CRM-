@@ -128,21 +128,21 @@ const Onboarding = () => {
       
   const getStatusColor = (status) => {
     const statusMap = {
-      'contact-established': 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
-      'spoc-assigned': 'bg-purple-500/20 text-purple-400 border border-purple-500/30',
-      'review-l2': 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
-      'closed-won': 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
-      'closed-lost': 'bg-red-500/20 text-red-400 border border-red-500/30'
+      'contact-established': 'badge-primary',
+      'spoc-assigned': 'badge-primary',
+      'review-l2': 'badge-warning',
+      'closed-won': 'badge-success',
+      'closed-lost': 'badge-danger'
     };
-    return statusMap[status] || 'bg-gray-500/20 text-gray-400 border border-gray-500/30';
+    return statusMap[status] || 'bg-surface-lighter/50 text-text-muted border border-border';
   };
 
   const getTierColor = (tier) => {
     return tier === 'premium' 
-      ? 'bg-amber-600 text-white'
+      ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-md shadow-brand-primary/30'
       : tier === 'basic'
-      ? 'bg-blue-600 text-white'
-      : 'bg-gray-600 text-white';
+      ? 'bg-gradient-to-r from-brand-accent to-brand-highlight text-white shadow-md shadow-brand-accent/30'
+      : 'bg-surface-lighter text-text-secondary';
   };
 
   const formatStatus = (status) => {
@@ -161,10 +161,10 @@ const Onboarding = () => {
     : onboardings.filter(o => formatStatus(o.status) === activeFilter);
 
   const stats = [
-    { number: onboardings.length.toString(), label: 'Total Onboarding', icon: RiUserAddLine, bgColor: 'bg-blue-900/30', iconBg: 'bg-blue-600' },
-    { number: onboardings.filter(o => ['contact-established', 'spoc-assigned', 'review-l2'].includes(o.status)).length.toString(), label: 'In Progress', icon: RiUserAddLine, bgColor: 'bg-orange-900/30', iconBg: 'bg-orange-600' },
-    { number: onboardings.filter(o => o.status === 'closed-won').length.toString(), label: 'Closed Won', icon: RiUserAddLine, bgColor: 'bg-emerald-900/30', iconBg: 'bg-emerald-600' },
-    { number: onboardings.filter(o => o.status === 'closed-lost').length.toString(), label: 'Closed Lost', icon: RiUserAddLine, bgColor: 'bg-purple-900/30', iconBg: 'bg-purple-600' },
+    { number: onboardings.length.toString(), label: 'Total Onboarding', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-brand-primary to-brand-secondary' },
+    { number: onboardings.filter(o => ['contact-established', 'spoc-assigned', 'review-l2'].includes(o.status)).length.toString(), label: 'In Progress', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-brand-accent to-brand-highlight' },
+    { number: onboardings.filter(o => o.status === 'closed-won').length.toString(), label: 'Closed Won', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-emerald-600 to-emerald-700' },
+    { number: onboardings.filter(o => o.status === 'closed-lost').length.toString(), label: 'Closed Lost', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-red-600 to-red-700' },
   ];
 
   const filters = [
@@ -180,10 +180,10 @@ const Onboarding = () => {
     <div className="p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">Member Onboarding</h1>
+        <h1 className="text-2xl font-bold text-text-primary">Member Onboarding</h1>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors"
+          className="btn-primary flex items-center space-x-2 px-5 py-2.5"
         >
           <span>+</span>
           <span>Add New Onboarding</span>
@@ -193,15 +193,15 @@ const Onboarding = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {stats.map((stat, index) => (
-          <div key={index} className={`${stat.bgColor} rounded-lg p-5 border border-slate-700/50`}>
+          <div key={index} className={`${stat.bgColor} card card-hover shadow-lg shadow-brand-primary/5 border-border`}>
             <div className="flex items-start justify-between">
-              <div className={`${stat.iconBg} w-12 h-12 rounded-xl flex items-center justify-center text-white`}>
+              <div className={`${stat.iconBg} w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md shadow-brand-primary/30`}>
                 <stat.icon className="text-2xl" />
               </div>
             </div>
             <div className="mt-3">
-              <div className="text-white text-3xl font-bold mb-1">{stat.number}</div>
-              <div className="text-gray-400 text-sm">{stat.label}</div>
+              <div className="text-text-primary text-3xl font-bold mb-1">{stat.number}</div>
+              <div className="text-text-muted text-sm font-medium">{stat.label}</div>
             </div>
           </div>
         ))}
@@ -213,10 +213,10 @@ const Onboarding = () => {
           <button
             key={filter}
             onClick={() => setActiveFilter(filter)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+            className={`px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
               activeFilter === filter
-                ? 'bg-blue-600 text-white'
-                : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/30'
+                : 'bg-surface-lighter text-text-muted hover:bg-surface-card border border-border'
             }`}
           >
             {filter}
@@ -225,46 +225,46 @@ const Onboarding = () => {
       </div>
 
       {/* Table - Desktop View */}
-      <div className="hidden lg:block bg-[#1e2a3a] rounded-lg overflow-hidden border border-slate-700/50">
+      <div className="hidden lg:block card shadow-lg shadow-brand-primary/10 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-[#243447] border-b border-slate-700">
+          <thead className="bg-surface-lighter border-b border-border">
             <tr>
-              <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <th className="text-left px-4 py-2 text-xs font-bold text-text-muted uppercase tracking-wider">
                 Task #
               </th>
-              <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <th className="text-left px-4 py-2 text-xs font-bold text-text-muted uppercase tracking-wider">
                 Artist Name
               </th>
-              <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <th className="text-left px-4 py-2 text-xs font-bold text-text-muted uppercase tracking-wider">
                 Start Date
               </th>
-              <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <th className="text-left px-4 py-2 text-xs font-bold text-text-muted uppercase tracking-wider">
                 Source
               </th>
-              <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <th className="text-left px-4 py-2 text-xs font-bold text-text-muted uppercase tracking-wider">
                 Tier
               </th>
-              <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <th className="text-left px-4 py-2 text-xs font-bold text-text-muted uppercase tracking-wider">
                 SPOC
               </th>
-              <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <th className="text-left px-4 py-2 text-xs font-bold text-text-muted uppercase tracking-wider">
                 Status
               </th>
-              <th className="text-left px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <th className="text-left px-4 py-2 text-xs font-bold text-text-muted uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700/50">
+          <tbody className="divide-y divide-border">
             {loading ? (
               <tr>
-                <td colSpan="8" className="px-4 py-8 text-center text-gray-400">
+                <td colSpan="8" className="px-4 py-8 text-center text-text-muted">
                   Loading onboardings...
                 </td>
               </tr>
             ) : filteredOnboardings.length === 0 ? (
               <tr>
-                <td colSpan="8" className="px-4 py-8 text-center text-gray-400">
+                <td colSpan="8" className="px-4 py-8 text-center text-text-muted">
                   No onboardings found. Click "Add New Onboarding" to create one.
                 </td>
               </tr>
@@ -277,29 +277,29 @@ const Onboarding = () => {
                 const tier = item.member?.membershipType || 'basic';
                 
                 return (
-                  <tr key={item._id} className="hover:bg-[#243447] transition-colors">
+                  <tr key={item._id} className="table-row">
                     <td className="px-4 py-2.5">
-                      <span className="text-blue-400 font-medium text-xs">{taskId}</span>
+                      <span className="text-brand-accent font-semibold text-xs">{taskId}</span>
                     </td>
                     <td className="px-4 py-2.5">
-                      <span className="text-white font-medium text-xs">{memberName}</span>
+                      <span className="text-text-primary font-semibold text-xs">{memberName}</span>
                     </td>
                     <td className="px-4 py-2.5">
-                      <span className="text-gray-300 text-xs">{startDate}</span>
+                      <span className="text-text-secondary text-xs">{startDate}</span>
                     </td>
                     <td className="px-4 py-2.5">
-                      <span className="text-gray-300 text-xs">{source}</span>
+                      <span className="text-text-secondary text-xs">{source}</span>
                     </td>
                     <td className="px-4 py-2.5">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium inline-block ${getTierColor(tier)}`}>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold inline-block ${getTierColor(tier)}`}>
                         {tier === 'premium' ? 'Tier 1' : tier === 'basic' ? 'Tier 2' : 'Tier 3'}
                       </span>
                     </td>
                     <td className="px-4 py-2.5">
-                      <span className="text-gray-300 text-xs">{item.spoc}</span>
+                      <span className="text-text-secondary text-xs">{item.spoc}</span>
                     </td>
                     <td className="px-4 py-2.5">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium inline-block ${getStatusColor(item.status)}`}>
+                      <span className={`${getStatusColor(item.status)}`}>
                         {formatStatus(item.status)}
                       </span>
                     </td>
@@ -307,25 +307,25 @@ const Onboarding = () => {
                       <div className="flex items-center space-x-1">
                         <button 
                           onClick={() => handleViewOnboarding(item)}
-                          className="text-gray-400 hover:text-blue-400 transition-colors p-1"
+                          className="text-text-muted hover:text-brand-accent transition-colors p-1"
                         >
                           <RiEyeLine className="text-base" />
                         </button>
                         <button 
                           onClick={() => handleEditOnboarding(item)}
-                          className="text-gray-400 hover:text-blue-400 transition-colors p-1"
+                          className="text-text-muted hover:text-brand-accent transition-colors p-1"
                         >
                           <RiEditLine className="text-base" />
                         </button>
                         <button 
                           onClick={() => handleDeleteOnboarding(item._id)}
-                          className="text-gray-400 hover:text-red-400 transition-colors p-1"
+                          className="text-text-muted hover:text-red-400 transition-colors p-1"
                         >
                           <RiDeleteBinLine className="text-base" />
                         </button>
                         <button 
                           onClick={() => handleOpenL2Review(item)}
-                          className="text-gray-400 hover:text-green-400 transition-colors p-1"
+                          className="text-text-muted hover:text-emerald-400 transition-colors p-1"
                         >
                           <RiSendPlaneLine className="text-base" />
                         </button>
@@ -342,11 +342,11 @@ const Onboarding = () => {
       {/* Mobile/Tablet Card View */}
       <div className="lg:hidden space-y-3">
         {loading ? (
-          <div className="bg-[#1e2a3a] rounded-lg p-6 text-center text-gray-400 border border-slate-700/50">
+          <div className="card shadow-md text-center text-text-muted border-border">
             Loading onboardings...
           </div>
         ) : filteredOnboardings.length === 0 ? (
-          <div className="bg-[#1e2a3a] rounded-lg p-6 text-center text-gray-400 border border-slate-700/50">
+          <div className="card shadow-md text-center text-text-muted border-border">
             No onboardings found. Click "Add New Onboarding" to create one.
           </div>
         ) : (
@@ -360,20 +360,20 @@ const Onboarding = () => {
             return (
               <div 
                 key={item._id}
-                className="bg-[#1e2a3a] rounded-lg p-4 border border-slate-700/50 hover:border-blue-500 transition-colors"
+                className="card-hover shadow-md"
               >
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
-                      <span className="text-blue-400 font-semibold text-sm">#{taskId}</span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
+                      <span className="text-brand-accent font-bold text-sm">#{taskId}</span>
+                      <span className={`${getStatusColor(item.status)}`}>
                         {formatStatus(item.status)}
                       </span>
                     </div>
-                    <div className="text-white font-semibold text-base">{memberName}</div>
+                    <div className="text-text-primary font-bold text-base">{memberName}</div>
                   </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2 ${getTierColor(tier)}`}>
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap ml-2 ${getTierColor(tier)}`}>
                     {tier === 'premium' ? 'Tier 1' : tier === 'basic' ? 'Tier 2' : 'Tier 3'}
                   </span>
                 </div>
@@ -381,48 +381,48 @@ const Onboarding = () => {
                 {/* Details Grid */}
                 <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
                   <div>
-                    <span className="text-gray-400">Start Date:</span>
-                    <span className="text-white ml-1">{startDate}</span>
+                    <span className="text-text-muted font-medium">Start Date:</span>
+                    <span className="text-text-primary ml-1">{startDate}</span>
                   </div>
                   <div>
-                    <span className="text-gray-400">Source:</span>
-                    <span className="text-white ml-1">{source}</span>
+                    <span className="text-text-muted font-medium">Source:</span>
+                    <span className="text-text-primary ml-1">{source}</span>
                   </div>
                   <div className="col-span-2">
-                    <span className="text-gray-400">SPOC:</span>
-                    <span className="text-white ml-1">{item.spoc}</span>
+                    <span className="text-text-muted font-medium">SPOC:</span>
+                    <span className="text-text-primary ml-1">{item.spoc}</span>
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center space-x-2 pt-3 border-t border-slate-700">
+                <div className="flex items-center space-x-2 pt-3 border-t border-border">
                   <button 
                     onClick={() => handleViewOnboarding(item)}
-                    className="flex-1 flex items-center justify-center space-x-1 text-gray-400 hover:text-blue-400 py-2 transition-colors"
+                    className="flex-1 flex items-center justify-center space-x-1 text-text-muted hover:text-brand-accent py-2 transition-colors"
                   >
                     <RiEyeLine className="text-lg" />
-                    <span className="text-sm">View</span>
+                    <span className="text-sm font-medium">View</span>
                   </button>
                   <button 
                     onClick={() => handleEditOnboarding(item)}
-                    className="flex-1 flex items-center justify-center space-x-1 text-gray-400 hover:text-blue-400 py-2 transition-colors"
+                    className="flex-1 flex items-center justify-center space-x-1 text-text-muted hover:text-brand-accent py-2 transition-colors"
                   >
                     <RiEditLine className="text-lg" />
-                    <span className="text-sm">Edit</span>
+                    <span className="text-sm font-medium">Edit</span>
                   </button>
                   <button 
                     onClick={() => handleDeleteOnboarding(item._id)}
-                    className="flex-1 flex items-center justify-center space-x-1 text-gray-400 hover:text-red-400 py-2 transition-colors"
+                    className="flex-1 flex items-center justify-center space-x-1 text-text-muted hover:text-red-400 py-2 transition-colors"
                   >
                     <RiDeleteBinLine className="text-lg" />
-                    <span className="text-sm">Delete</span>
+                    <span className="text-sm font-medium">Delete</span>
                   </button>
                   <button 
                     onClick={() => handleOpenL2Review(item)}
-                    className="flex-1 flex items-center justify-center space-x-1 text-gray-400 hover:text-green-400 py-2 transition-colors"
+                    className="flex-1 flex items-center justify-center space-x-1 text-text-muted hover:text-emerald-400 py-2 transition-colors"
                   >
                     <RiSendPlaneLine className="text-lg" />
-                    <span className="text-sm">Review</span>
+                    <span className="text-sm font-medium">Review</span>
                   </button>
                 </div>
               </div>

@@ -62,16 +62,16 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
       {/* Backdrop with blur */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
       
-      <div className="relative bg-[#1e2a3a] rounded-lg w-full max-w-2xl shadow-2xl border border-slate-700" onClick={(e) => e.stopPropagation()}>
+      <div className="relative bg-surface-card rounded-lg w-full max-w-2xl shadow-2xl shadow-brand-primary/20 border border-border" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <div className="bg-blue-600 px-6 py-4 rounded-t-lg flex justify-between items-center">
+        <div className="bg-gradient-to-r from-brand-primary to-brand-secondary px-6 py-4 rounded-t-lg flex justify-between items-center shadow-lg">
           <div>
             <h2 className="text-xl font-semibold text-white">Edit Step 1: Initial Contact</h2>
-            <p className="text-blue-100 text-sm">Task ID: {taskId} | Member: {memberName}</p>
+            <p className="text-white/80 text-sm">Task ID: {taskId} | Member: {memberName}</p>
           </div>
           <button
             onClick={onClose}
-            className="text-white hover:bg-blue-700 rounded p-1"
+            className="text-white/80 hover:text-white hover:bg-white/10 rounded-lg p-1 transition-all"
           >
             <RiCloseLine size={24} />
           </button>
@@ -81,7 +81,7 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
         <div className="p-6 space-y-4">
           {/* Source */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-semibold text-text-secondary mb-2">
               Source <span className="text-red-400">*</span>
             </label>
             <select
@@ -89,7 +89,7 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
               value={formData.source}
               onChange={handleChange}
               required
-              className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="select w-full"
             >
               <option value="">Select Source</option>
                  <option value="Personal Reference">Personal Reference</option>
@@ -104,7 +104,7 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
 
           {/* Contact Status */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-semibold text-text-secondary mb-2">
               Contact Status <span className="text-red-400">*</span>
             </label>
             <select
@@ -112,7 +112,7 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
               value={formData.contactStatus}
               onChange={handleChange}
               required
-              className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="select w-full"
             >
               <option value="">Select Status</option>
               <option value="First Contact">First Contact</option>
@@ -125,7 +125,7 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-semibold text-text-secondary mb-2">
               Notes
             </label>
             <textarea
@@ -134,17 +134,17 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
               onChange={handleChange}
               placeholder="Add any relevant notes about the initial contact..."
               rows="4"
-              className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="input w-full resize-none"
             />
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-600 flex gap-3">
+        <div className="px-6 py-4 border-t border-border flex gap-3 bg-surface-lighter">
           <button
             onClick={onClose}
             type="button"
-            className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors font-medium"
+            className="btn-secondary px-6 py-2.5"
           >
             Cancel
           </button>
@@ -152,7 +152,7 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
             onClick={() => handleSubmit('save')}
             type="button"
             disabled={saving}
-            className="px-5 py-2.5 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors font-medium disabled:opacity-50"
+            className="btn-secondary px-6 py-2.5 disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
@@ -160,7 +160,7 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
             onClick={() => handleSubmit('submit-l2')}
             type="button"
             disabled={saving}
-            className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50"
+            className="px-6 py-2.5 rounded-lg font-medium bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-500 hover:to-emerald-500 transition-all shadow-lg shadow-green-600/30 disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save & Open L1 Questionnaire'}
           </button>

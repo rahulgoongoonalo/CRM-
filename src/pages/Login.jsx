@@ -42,20 +42,20 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-surface via-surface-light to-brand-primary/20 flex items-center justify-center p-4">
+      <div className="card max-w-md w-full shadow-2xl shadow-brand-primary/20">
         {/* Header */}
         <div className="text-center mb-6 md:mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-indigo-600 rounded-full mb-4">
+          <div className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-brand-primary to-brand-secondary rounded-full mb-4 shadow-lg shadow-brand-primary/50">
             <FaSignInAlt className="text-white text-xl md:text-2xl" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">Welcome Back</h1>
-          <p className="text-gray-600 mt-2 text-sm md:text-base">Sign in to your CRM account</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-text-primary">Welcome Back</h1>
+          <p className="text-text-muted mt-2 text-sm md:text-base font-medium">Sign in to your CRM account</p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4 md:mb-6 text-sm">
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg mb-4 md:mb-6 text-sm font-medium">
             {error}
           </div>
         )}
@@ -64,19 +64,19 @@ const Login = () => {
         <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
           {/* Email Field */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="email" className="block text-sm font-semibold text-text-secondary mb-2">
               Email Address
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaUser className="text-gray-400" />
+                <FaUser className="text-text-muted" />
               </div>
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="input w-full pl-10"
                 placeholder="Enter your email"
                 required
               />
@@ -85,26 +85,26 @@ const Login = () => {
 
           {/* Password Field */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="password" className="block text-sm font-semibold text-text-secondary mb-2">
               Password
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaLock className="text-gray-400" />
+                <FaLock className="text-text-muted" />
               </div>
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="input w-full pl-10 pr-12"
                 placeholder="Enter your password"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-text-secondary transition-colors"
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -115,7 +115,7 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-brand-primary/30"
           >
             {loading ? 'Signing In...' : 'Sign In'}
           </button>
@@ -123,19 +123,19 @@ const Login = () => {
 
         {/* Register Link */}
         <div className="mt-6 text-center">
-          <p className="text-gray-600">
+          <p className="text-text-muted">
             Don't have an account?{' '}
-            <Link to="/register" className="text-indigo-600 hover:text-indigo-700 font-semibold">
+            <Link to="/register" className="text-brand-accent hover:text-brand-highlight font-bold transition-colors">
               Register as Staff
             </Link>
           </p>
         </div>
 
         {/* Demo Credentials */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-sm font-semibold text-gray-700 mb-2">Demo Credentials:</p>
-          <p className="text-xs text-gray-600">
-            <strong>Admin:</strong> admin@crm.com / admin123
+        <div className="mt-6 p-4 bg-surface-lighter rounded-lg border border-border">
+          <p className="text-sm font-bold text-text-secondary mb-2">Demo Credentials:</p>
+          <p className="text-xs text-text-muted">
+            <strong className="text-text-secondary">Admin:</strong> admin@crm.com / admin123
           </p>
         </div>
       </div>

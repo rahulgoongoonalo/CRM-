@@ -12,13 +12,13 @@ const ViewMemberModal = ({ isOpen, onClose, member }) => {
       ></div>
 
       {/* Modal */}
-      <div className="relative bg-slate-800 rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-slate-700">
+      <div className="relative bg-surface-card rounded-lg shadow-2xl shadow-brand-primary/20 w-full max-w-4xl max-h-[90vh] overflow-hidden border border-border">
         {/* Header */}
-        <div className="bg-blue-600 px-6 py-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-brand-primary to-brand-secondary px-6 py-4 flex items-center justify-between shadow-lg">
           <h2 className="text-xl font-bold text-white">View Member - {member.iprsId}</h2>
           <button
             onClick={onClose}
-            className="text-white hover:bg-blue-700 rounded-lg p-1 transition-colors"
+            className="text-white/80 hover:text-white hover:bg-white/10 rounded-lg p-1 transition-all"
           >
             <RiCloseLine className="text-2xl" />
           </button>
@@ -30,255 +30,255 @@ const ViewMemberModal = ({ isOpen, onClose, member }) => {
             {/* Personal Information */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Full Name
                 </label>
                 <input
                   type="text"
                   value={member.name || ''}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Alias Name
                 </label>
                 <input
                   type="text"
                   value={member.aliasName || ''}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Email Address
                 </label>
                 <input
                   type="email"
                   value={member.email || ''}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Contact Number
                 </label>
                 <input
                   type="tel"
                   value={member.phone || ''}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Alternate Number
                 </label>
                 <input
                   type="tel"
                   value={member.alternateNumber || ''}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Country
                 </label>
                 <input
                   type="text"
                   value={member.address || ''}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Category
                 </label>
                 <input
                   type="text"
                   value={member.category || ''}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Tier
                 </label>
                 <input
                   type="text"
                   value={member.tier || ''}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Talent Role
                 </label>
                 <input
                   type="text"
                   value={member.talentRole || ''}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Talent Type
                 </label>
                 <input
                   type="text"
                   value={member.talentType || ''}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Genre
                 </label>
                 <input
                   type="text"
                   value={member.genre || ''}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Source
                 </label>
                 <input
                   type="text"
                   value={member.source || ''}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Note
                 </label>
                 <input
                   type="text"
                   value={member.spoc || ''}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Status
                 </label>
                 <input
                   type="text"
                   value={member.status?.charAt(0).toUpperCase() + member.status?.slice(1) || ''}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-semibold text-text-secondary mb-2">
                 Biography
               </label>
               <textarea
                 value={member.biography || ''}
                 disabled
                 rows="4"
-                className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed resize-none"
+                className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed resize-none"
               ></textarea>
             </div>
 
             {/* KYC Information */}
-            <div className="border-t border-slate-700 pt-6">
-              <h3 className="text-lg font-bold text-white mb-4">KYC Information</h3>
+            <div className="border-t border-border pt-6">
+              <h3 className="text-lg font-bold text-text-primary mb-4">KYC Information</h3>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-text-secondary mb-2">
                     Bank Name
                   </label>
                   <input
                     type="text"
                     value={member.bankName || ''}
                     disabled
-                    className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                    className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-text-secondary mb-2">
                     Account Number
                   </label>
                   <input
                     type="text"
                     value={member.accountNumber || ''}
                     disabled
-                    className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                    className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-text-secondary mb-2">
                     IFSC Code
                   </label>
                   <input
                     type="text"
                     value={member.ifscCode || ''}
                     disabled
-                    className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                    className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-text-secondary mb-2">
                     PAN Number
                   </label>
                   <input
                     type="text"
                     value={member.panNumber || ''}
                     disabled
-                    className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                    className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-text-secondary mb-2">
                     Aadhar Number
                   </label>
                   <input
                     type="text"
                     value={member.aadharNumber || ''}
                     disabled
-                    className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                    className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -286,11 +286,11 @@ const ViewMemberModal = ({ isOpen, onClose, member }) => {
           </div>
 
           {/* Footer */}
-          <div className="bg-slate-900 px-6 py-4 flex justify-end border-t border-slate-700">
+          <div className="bg-surface-lighter px-6 py-4 flex justify-end border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors"
+              className="btn-secondary px-6 py-2.5"
             >
               Close
             </button>

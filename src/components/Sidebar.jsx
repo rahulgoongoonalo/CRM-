@@ -27,29 +27,29 @@ const Sidebar = ({ isOpen, isMobile, onClose }) => {
   ];
 
   return (
-    <div className={`bg-slate-800 min-h-screen flex flex-col text-gray-300 transition-all duration-300 ${
+    <div className={`bg-surface-light min-h-screen flex flex-col text-text-secondary transition-all duration-300 border-r border-border ${
       isMobile 
         ? `fixed inset-y-0 left-0 z-50 w-64 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}`
         : isOpen ? 'w-64' : 'w-20'
     }`}>
       {/* Logo Section */}
-      <div className="p-6 border-b border-slate-700">
+      <div className="p-6 border-b border-border bg-gradient-royal-subtle">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-blue-500 p-2 rounded-lg">
+            <div className="bg-gradient-to-br from-brand-primary to-brand-secondary p-2 rounded-lg shadow-lg shadow-brand-primary/30">
               <RiMusicLine className="text-2xl text-white" />
             </div>
             {(isOpen || isMobile) && (
               <div>
-                <h1 className="text-xl font-bold text-white">Artists</h1>
-                <p className="text-xs text-gray-400">Management Portal</p>
+                <h1 className="text-xl font-extrabold text-text-primary">Artists</h1>
+                <p className="text-xs text-text-muted font-medium">Management Portal</p>
               </div>
             )}
           </div>
           {isMobile && (
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
+              className="text-text-muted hover:text-text-primary transition-colors p-1 rounded-lg hover:bg-brand-primary/10"
             >
               <RiCloseLine className="text-2xl" />
             </button>
@@ -65,39 +65,39 @@ const Sidebar = ({ isOpen, isMobile, onClose }) => {
             to={item.path}
             onClick={handleNavClick}
             className={({ isActive }) =>
-              `flex items-center space-x-3 px-6 py-3 transition-colors ${
+              `flex items-center space-x-3 px-6 py-3 mx-2 rounded-lg transition-all ${
                 isActive
-                  ? 'bg-blue-600 text-white border-l-4 border-blue-400'
-                  : 'text-gray-300 hover:bg-slate-700 hover:text-white'
+                  ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/30'
+                  : 'text-text-secondary hover:bg-brand-primary/10 hover:text-text-primary'
               }`
             }
           >
-            <item.icon className="text-xl" />
-            {(isOpen || isMobile) && <span className="text-sm font-medium">{item.label}</span>}
+            <item.icon className="text-xl flex-shrink-0" />
+            {(isOpen || isMobile) && <span className="text-sm font-semibold">{item.label}</span>}
           </NavLink>
         ))}
       </nav>
 
       {/* Bottom Section */}
-      <div className="border-t border-slate-700">
+      <div className="border-t border-border">
         <NavLink
           to="/settings"
           onClick={handleNavClick}
           className={({ isActive }) =>
-            `flex items-center space-x-3 px-6 py-3 transition-colors ${
+            `flex items-center space-x-3 px-6 py-3 mx-2 my-2 rounded-lg transition-all ${
               isActive
-                ? 'bg-blue-600 text-white border-l-4 border-blue-400'
-                : 'text-gray-300 hover:bg-slate-700 hover:text-white'
+                ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/30'
+                : 'text-text-secondary hover:bg-brand-primary/10 hover:text-text-primary'
             }`
           }
         >
-          <RiSettings4Line className="text-xl" />
-          {(isOpen || isMobile) && <span className="text-sm font-medium">Settings</span>}
+          <RiSettings4Line className="text-xl flex-shrink-0" />
+          {(isOpen || isMobile) && <span className="text-sm font-semibold">Settings</span>}
         </NavLink>
         
         <button 
           onClick={handleLogout}
-          className="flex items-center space-x-3 px-6 py-3 w-full text-gray-300 hover:bg-slate-700 hover:text-white transition-colors text-left"
+          className="flex items-center space-x-3 px-6 py-3 mx-2 mb-4 w-auto rounded-lg text-text-secondary hover:bg-red-500/10 hover:text-red-400 transition-all text-left"
         >
           <RiLogoutBoxLine className="text-xl" />
           {(isOpen || isMobile) && <span className="text-sm font-medium">Logout</span>}

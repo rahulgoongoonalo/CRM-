@@ -8,9 +8,9 @@ const Dashboard = () => {
       value: '1,247', 
       change: '+12%', 
       changePositive: true,
-      bgColor: 'bg-blue-900/30',
-      iconBg: 'bg-blue-600',
-      border: 'border-slate-700/50'
+      bgColor: 'bg-surface-card',
+      iconBg: 'bg-gradient-to-br from-brand-primary to-brand-secondary',
+      border: 'border-border'
     },
     { 
       number: '1', 
@@ -18,9 +18,9 @@ const Dashboard = () => {
       value: '1,089', 
       change: '+8%', 
       changePositive: true,
-      bgColor: 'bg-emerald-900/30',
-      iconBg: 'bg-emerald-600',
-      border: 'border-slate-700/50'
+      bgColor: 'bg-surface-card',
+      iconBg: 'bg-gradient-to-br from-emerald-600 to-emerald-700',
+      border: 'border-border'
     },
     { 
       number: '3', 
@@ -28,9 +28,9 @@ const Dashboard = () => {
       value: '34', 
       change: '-5%', 
       changePositive: false,
-      bgColor: 'bg-orange-900/30',
-      iconBg: 'bg-orange-600',
-      border: 'border-slate-700/50'
+      bgColor: 'bg-surface-card',
+      iconBg: 'bg-gradient-to-br from-brand-accent to-brand-highlight',
+      border: 'border-border'
     },
     { 
       number: '1', 
@@ -38,9 +38,9 @@ const Dashboard = () => {
       value: '18', 
       change: '+3%', 
       changePositive: true,
-      bgColor: 'bg-purple-900/30',
-      iconBg: 'bg-purple-600',
-      border: 'border-slate-700/50'
+      bgColor: 'bg-surface-card',
+      iconBg: 'bg-gradient-to-br from-brand-secondary to-brand-accent',
+      border: 'border-border'
     },
   ];
 
@@ -86,22 +86,22 @@ const Dashboard = () => {
   const getPriorityColor = (priority) => {
     switch (priority) {
       case 'High':
-        return 'bg-red-500/20 text-red-400 border border-red-500/30';
+        return 'badge-danger';
       case 'Medium':
-        return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
+        return 'badge-warning';
       default:
-        return 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
+        return 'badge-primary';
     }
   };
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'In Progress':
-        return 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
+        return 'badge-primary';
       case 'Pending':
-        return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
+        return 'badge-warning';
       default:
-        return 'bg-gray-500/20 text-gray-400 border border-gray-500/30';
+        return 'bg-surface-lighter/50 text-text-muted border border-border';
     }
   };
 
@@ -110,42 +110,42 @@ const Dashboard = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {stats.map((stat, index) => (
-          <div key={index} className={`${stat.bgColor} rounded-lg p-5 border ${stat.border}`}>
+          <div key={index} className={`${stat.bgColor} rounded-lg p-5 border ${stat.border} card-hover shadow-lg shadow-brand-primary/5`}>
             <div className="flex items-start justify-between mb-3">
-              <div className={`${stat.iconBg} w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl font-bold`}>
+              <div className={`${stat.iconBg} w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-brand-primary/30`}>
                 {stat.number}
               </div>
-              <span className={`text-sm font-medium px-2 py-1 rounded ${stat.changePositive ? 'text-emerald-400' : 'text-red-400'}`}>
+              <span className={`text-sm font-semibold px-2 py-1 rounded ${stat.changePositive ? 'text-emerald-400' : 'text-red-400'}`}>
                 {stat.change}
               </span>
             </div>
-            <div className="text-gray-400 text-sm mb-1">{stat.title}</div>
-            <div className="text-white text-3xl font-bold">{stat.value}</div>
+            <div className="text-text-muted text-sm mb-1 font-medium">{stat.title}</div>
+            <div className="text-text-primary text-3xl font-bold">{stat.value}</div>
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         {/* Onboarding Pipeline */}
-        <div className="lg:col-span-2 bg-[#1e2a3a] rounded-lg p-6 border border-slate-700/50">
-          <h2 className="text-white text-lg font-semibold mb-4">Onboarding Pipeline</h2>
+        <div className="lg:col-span-2 card shadow-lg shadow-brand-primary/10">
+          <h2 className="text-text-primary text-lg font-bold mb-4">Onboarding Pipeline</h2>
           <div className="grid grid-cols-3 gap-4">
             {onboardingPipeline.map((stage, index) => (
-              <div key={index} className="bg-[#0f1419] rounded-lg p-4 border border-slate-700/50">
+              <div key={index} className="bg-surface-lighter rounded-lg p-4 border border-border">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-white text-sm font-medium">{stage.level}</h3>
-                  <span className="bg-slate-700 text-gray-300 text-xs px-2 py-1 rounded-full">{stage.count}</span>
+                  <h3 className="text-text-primary text-sm font-semibold">{stage.level}</h3>
+                  <span className="bg-surface text-text-secondary text-xs px-2 py-1 rounded-full font-medium">{stage.count}</span>
                 </div>
                 <div className="space-y-3">
                   {stage.members.map((member, mIndex) => (
-                    <div key={mIndex} className="bg-[#1e2a3a] rounded-lg p-3 border border-slate-700/30">
+                    <div key={mIndex} className="bg-surface-card rounded-lg p-3 border border-border hover:border-brand-primary transition-all">
                       <div className="flex items-center space-x-3 mb-2">
-                        <div className="bg-slate-700 text-white text-xs font-semibold w-10 h-10 rounded-lg flex items-center justify-center">
+                        <div className="bg-gradient-to-br from-brand-primary to-brand-secondary text-white text-xs font-bold w-10 h-10 rounded-lg flex items-center justify-center shadow-md shadow-brand-primary/30">
                           {member.avatar}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-white text-sm font-medium truncate">{member.name}</div>
-                          <div className="text-gray-400 text-xs">{member.source}</div>
+                          <div className="text-text-primary text-sm font-semibold truncate">{member.name}</div>
+                          <div className="text-text-muted text-xs">{member.source}</div>
                         </div>
                       </div>
                     </div>
@@ -157,15 +157,15 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-[#1e2a3a] rounded-lg p-6 border border-slate-700/50">
-          <h2 className="text-white text-lg font-semibold mb-4">Recent Activity</h2>
+        <div className="card shadow-lg shadow-brand-primary/10">
+          <h2 className="text-text-primary text-lg font-bold mb-4">Recent Activity</h2>
           <div className="space-y-4">
             {recentActivity.map((activity, index) => (
               <div key={index} className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                <div className="w-2 h-2 bg-gradient-to-br from-brand-accent to-brand-highlight rounded-full mt-2 shadow-md"></div>
                 <div className="flex-1">
-                  <p className="text-white text-sm font-medium mb-1">{activity.action}</p>
-                  <p className="text-gray-400 text-xs">{activity.name} • {activity.time}</p>
+                  <p className="text-text-primary text-sm font-semibold mb-1">{activity.action}</p>
+                  <p className="text-text-muted text-xs">{activity.name} • {activity.time}</p>
                 </div>
               </div>
             ))}
@@ -174,39 +174,39 @@ const Dashboard = () => {
       </div>
 
       {/* Pending Tasks */}
-      <div className="bg-[#1e2a3a] rounded-lg p-4 md:p-6 border border-slate-700/50">
+      <div className="card shadow-lg shadow-brand-primary/10">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-white text-lg font-semibold">Pending Tasks</h2>
-          <a href="#" className="text-blue-400 text-sm hover:text-blue-300">View All →</a>
+          <h2 className="text-text-primary text-lg font-bold">Pending Tasks</h2>
+          <a href="#" className="text-brand-accent text-sm hover:text-brand-highlight font-semibold transition-colors">View All →</a>
         </div>
         
         {/* Desktop Table View */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
-            <thead className="border-b border-slate-700/50">
+            <thead className="border-b border-border">
               <tr>
-                <th className="text-left text-gray-400 text-xs font-semibold pb-3 uppercase">Task</th>
-                <th className="text-left text-gray-400 text-xs font-semibold pb-3 uppercase">Member</th>
-                <th className="text-left text-gray-400 text-xs font-semibold pb-3 uppercase">Assignee</th>
-                <th className="text-left text-gray-400 text-xs font-semibold pb-3 uppercase">Priority</th>
-                <th className="text-left text-gray-400 text-xs font-semibold pb-3 uppercase">Due Date</th>
-                <th className="text-left text-gray-400 text-xs font-semibold pb-3 uppercase">Status</th>
+                <th className="text-left text-text-muted text-xs font-bold pb-3 uppercase tracking-wider">Task</th>
+                <th className="text-left text-text-muted text-xs font-bold pb-3 uppercase tracking-wider">Member</th>
+                <th className="text-left text-text-muted text-xs font-bold pb-3 uppercase tracking-wider">Assignee</th>
+                <th className="text-left text-text-muted text-xs font-bold pb-3 uppercase tracking-wider">Priority</th>
+                <th className="text-left text-text-muted text-xs font-bold pb-3 uppercase tracking-wider">Due Date</th>
+                <th className="text-left text-text-muted text-xs font-bold pb-3 uppercase tracking-wider">Status</th>
               </tr>
             </thead>
             <tbody>
               {pendingTasks.map((task, index) => (
-                <tr key={index} className="border-b border-slate-700/30">
-                  <td className="py-4 text-white text-sm font-medium">{task.task}</td>
-                  <td className="py-4 text-gray-300 text-sm">{task.member}</td>
-                  <td className="py-4 text-blue-400 text-sm">{task.assignee}</td>
+                <tr key={index} className="table-row">
+                  <td className="py-4 text-text-primary text-sm font-semibold">{task.task}</td>
+                  <td className="py-4 text-text-secondary text-sm">{task.member}</td>
+                  <td className="py-4 text-brand-accent text-sm font-medium">{task.assignee}</td>
                   <td className="py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium inline-block ${getPriorityColor(task.priority)}`}>
+                    <span className={`${getPriorityColor(task.priority)}`}>
                       {task.priority}
                     </span>
                   </td>
-                  <td className="py-4 text-gray-300 text-sm">{task.dueDate}</td>
+                  <td className="py-4 text-text-secondary text-sm">{task.dueDate}</td>
                   <td className="py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium inline-block ${getStatusColor(task.status)}`}>
+                    <span className={`${getStatusColor(task.status)}`}>
                       {task.status}
                     </span>
                   </td>
@@ -219,28 +219,28 @@ const Dashboard = () => {
         {/* Mobile Card View */}
         <div className="md:hidden space-y-3">
           {pendingTasks.map((task, index) => (
-            <div key={index} className="bg-[#243447] rounded-lg p-4 border border-slate-700/50">
+            <div key={index} className="bg-surface-card rounded-lg p-4 border border-border card-hover shadow-md">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
-                  <h3 className="text-white text-sm font-semibold mb-1">{task.task}</h3>
-                  <p className="text-gray-300 text-xs">{task.member}</p>
+                  <h3 className="text-text-primary text-sm font-bold mb-1">{task.task}</h3>
+                  <p className="text-text-secondary text-xs">{task.member}</p>
                 </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2 ${getPriorityColor(task.priority)}`}>
+                <span className={`${getPriorityColor(task.priority)} whitespace-nowrap ml-2`}>
                   {task.priority}
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
-                  <span className="text-gray-400">Assignee:</span>
-                  <span className="text-blue-400 ml-1">{task.assignee}</span>
+                  <span className="text-text-muted font-medium">Assignee:</span>
+                  <span className="text-brand-accent ml-1 font-semibold">{task.assignee}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400">Due:</span>
-                  <span className="text-gray-300 ml-1">{task.dueDate}</span>
+                  <span className="text-text-muted font-medium">Due:</span>
+                  <span className="text-text-secondary ml-1">{task.dueDate}</span>
                 </div>
               </div>
-              <div className="mt-3 pt-3 border-t border-slate-700/50">
-                <span className={`px-3 py-1 rounded-full text-xs font-medium inline-block ${getStatusColor(task.status)}`}>
+              <div className="mt-3 pt-3 border-t border-border">
+                <span className={`${getStatusColor(task.status)}`}>
                   {task.status}
                 </span>
               </div>

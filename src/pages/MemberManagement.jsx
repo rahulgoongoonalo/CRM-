@@ -225,49 +225,49 @@ const MemberManagement = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'Active':
-        return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        return 'badge-success';
       case 'On Hold':
-        return 'bg-orange-500/20 text-orange-400 border border-orange-500/30';
+        return 'badge-warning';
       case 'Pending':
-        return 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
+        return 'badge-warning';
       default:
-        return 'bg-gray-500/20 text-gray-400 border border-gray-500/30';
+        return 'bg-surface-lighter/50 text-text-muted border border-border';
     }
   };
 
   const getTierColor = (tier) => {
     switch (tier) {
       case 'Tier 1':
-        return 'bg-amber-600 text-white';
+        return 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-md shadow-brand-primary/30';
       case 'Tier 2':
-        return 'bg-blue-600 text-white';
+        return 'bg-gradient-to-r from-brand-accent to-brand-highlight text-white shadow-md shadow-brand-accent/30';
       default:
-        return 'bg-gray-600 text-white';
+        return 'bg-surface-lighter text-text-secondary';
     }
   };
 
   return (
     <div className="space-y-4">
       {/* Filters Section */}
-      <div className="bg-slate-800 rounded-lg p-4">
+      <div className="card shadow-lg shadow-brand-primary/10">
         {/* Search and Add Button Row */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-3">
           {/* Search Input */}
           <div className="relative flex-1 max-w-full sm:max-w-md">
-            <RiSearchLine className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
+            <RiSearchLine className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted text-sm" />
             <input
               type="text"
               placeholder="Search members..."
               value={searchQuery}
               onChange={handleSearchChange}
-              className="w-full bg-slate-700 text-white text-sm pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input w-full text-sm pl-9"
             />
           </div>
 
           {/* Add Member Button */}
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+            className="btn-primary flex items-center justify-center space-x-2 px-5 py-2 text-sm whitespace-nowrap"
           >
             <RiAddLine className="text-lg" />
             <span>Add Member</span>
@@ -279,7 +279,7 @@ const MemberManagement = () => {
           <select
             value={statusFilter}
             onChange={handleFilterChange(setStatusFilter)}
-            className="flex-1 bg-slate-700 text-white text-sm px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            className="select flex-1"
           >
             <option>All Status</option>
             <option>Active</option>
@@ -290,7 +290,7 @@ const MemberManagement = () => {
           <select
             value={tierFilter}
             onChange={handleFilterChange(setTierFilter)}
-            className="flex-1 bg-slate-700 text-white text-sm px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            className="select flex-1"
           >
             <option>All Tiers</option>
             <option>Tier 1</option>
@@ -315,46 +315,46 @@ const MemberManagement = () => {
       />
 
       {/* Table - Desktop View */}
-      <div className="hidden lg:block bg-slate-800 rounded-lg overflow-hidden border border-slate-700">
+      <div className="hidden lg:block card shadow-lg shadow-brand-primary/10 overflow-hidden">
         <table className="w-full table-fixed">
-          <thead className="bg-slate-900 border-b border-slate-700">
+          <thead className="bg-surface-lighter border-b border-border">
             <tr>
-              <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[22%]">
+              <th className="text-left px-4 py-3 text-xs font-bold text-text-muted uppercase tracking-wider w-[22%]">
                 Member
               </th>
-              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[11%]">
+              <th className="text-left px-3 py-3 text-xs font-bold text-text-muted uppercase tracking-wider w-[11%]">
                 Genre
               </th>
-              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[11%]">
+              <th className="text-left px-3 py-3 text-xs font-bold text-text-muted uppercase tracking-wider w-[11%]">
                 Note
               </th>
-              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[11%]">
+              <th className="text-left px-3 py-3 text-xs font-bold text-text-muted uppercase tracking-wider w-[11%]">
                 Talent Role
               </th>
-              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[10%]">
+              <th className="text-left px-3 py-3 text-xs font-bold text-text-muted uppercase tracking-wider w-[10%]">
                 Tier
               </th>
-              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[11%]">
+              <th className="text-left px-3 py-3 text-xs font-bold text-text-muted uppercase tracking-wider w-[11%]">
                 Source
               </th>
-              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[11%]">
+              <th className="text-left px-3 py-3 text-xs font-bold text-text-muted uppercase tracking-wider w-[11%]">
                 Status
               </th>
-              <th className="text-left px-3 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider w-[13%]">
+              <th className="text-left px-3 py-3 text-xs font-bold text-text-muted uppercase tracking-wider w-[13%]">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-700">
+          <tbody className="divide-y divide-border">
             {loading ? (
               <tr>
-                <td colSpan="8" className="px-4 py-8 text-center text-gray-400">
+                <td colSpan="8" className="px-4 py-8 text-center text-text-muted">
                   Loading members...
                 </td>
               </tr>
             ) : currentMembers.length === 0 ? (
               <tr>
-                <td colSpan="8" className="px-4 py-8 text-center text-gray-400">
+                <td colSpan="8" className="px-4 py-8 text-center text-text-muted">
                   No members found. Click "Add Member" to create one.
                 </td>
               </tr>
@@ -372,41 +372,41 @@ const MemberManagement = () => {
                   <tr 
                     key={member._id} 
                     onClick={() => handleViewMember(member)}
-                    className="hover:bg-slate-700/50 transition-colors border-b border-slate-700/50 cursor-pointer"
+                    className="table-row cursor-pointer"
                   >
                     <td className="px-4 py-3">
                       <div className="flex items-center space-x-2">
                         <div className="relative flex-shrink-0">
-                          <div className="bg-slate-700 text-white font-semibold w-9 h-9 rounded-full flex items-center justify-center text-xs">
+                          <div className="bg-gradient-to-br from-brand-primary to-brand-secondary text-white font-bold w-9 h-9 rounded-full flex items-center justify-center text-xs shadow-md shadow-brand-primary/30">
                             {avatar}
                           </div>
-                          <div className="absolute -bottom-0.5 -right-0.5 bg-green-500 w-2.5 h-2.5 rounded-full border-2 border-slate-800"></div>
+                          <div className="absolute -bottom-0.5 -right-0.5 bg-emerald-500 w-2.5 h-2.5 rounded-full border-2 border-surface"></div>
                         </div>
                         <div className="min-w-0">
-                          <div className="text-white font-medium text-sm truncate">{member.name}</div>
-                          <div className="text-gray-400 text-xs truncate">{member.email}</div>
+                          <div className="text-text-primary font-semibold text-sm truncate">{member.name}</div>
+                          <div className="text-text-muted text-xs truncate">{member.email}</div>
                         </div>
                       </div>
                     </td>
                     <td className="px-3 py-3">
-                      <span className="text-gray-300 text-sm">{genre}</span>
+                      <span className="text-text-secondary text-sm">{genre}</span>
                     </td>
                     <td className="px-3 py-3">
-                      <span className="text-gray-300 text-sm truncate block">{spoc}</span>
+                      <span className="text-text-secondary text-sm truncate block">{spoc}</span>
                     </td>
                     <td className="px-3 py-3">
-                      <span className="text-gray-300 text-sm truncate block">{talentRole}</span>
+                      <span className="text-text-secondary text-sm truncate block">{talentRole}</span>
                     </td>
                     <td className="px-3 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium inline-block ${getTierColor(tier)}`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold inline-block ${getTierColor(tier)}`}>
                         {tier}
                       </span>
                     </td>
                     <td className="px-3 py-3">
-                      <span className="text-gray-300 text-sm truncate block">{source}</span>
+                      <span className="text-text-secondary text-sm truncate block">{source}</span>
                     </td>
                     <td className="px-3 py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium inline-block ${getStatusColor(member.status)}`}>
+                      <span className={`${getStatusColor(member.status)}`}>
                         {member.status?.charAt(0).toUpperCase() + member.status?.slice(1)}
                       </span>
                     </td>
@@ -417,7 +417,7 @@ const MemberManagement = () => {
                             e.stopPropagation();
                             handleViewMember(member);
                           }}
-                          className="text-gray-400 hover:text-blue-400 transition-colors"
+                          className="text-text-muted hover:text-brand-accent transition-colors"
                         >
                           <RiEyeLine className="text-lg" />
                         </button>
@@ -426,7 +426,7 @@ const MemberManagement = () => {
                             e.stopPropagation();
                             openEditModal(member);
                           }}
-                          className="text-gray-400 hover:text-blue-400 transition-colors"
+                          className="text-text-muted hover:text-brand-accent transition-colors"
                         >
                           <RiEditLine className="text-lg" />
                         </button>
@@ -435,7 +435,7 @@ const MemberManagement = () => {
                             e.stopPropagation();
                             handleDeleteMember(member._id, member.name);
                           }}
-                          className="text-gray-400 hover:text-red-400 transition-colors"
+                          className="text-text-muted hover:text-red-400 transition-colors"
                         >
                           <RiDeleteBinLine className="text-lg" />
                         </button>
@@ -452,11 +452,11 @@ const MemberManagement = () => {
       {/* Mobile/Tablet Card View */}
       <div className="lg:hidden space-y-3">
         {loading ? (
-          <div className="bg-slate-800 rounded-lg p-6 text-center text-gray-400">
+          <div className="card shadow-md text-center text-text-muted">
             Loading members...
           </div>
         ) : currentMembers.length === 0 ? (
-          <div className="bg-slate-800 rounded-lg p-6 text-center text-gray-400">
+          <div className="card shadow-md text-center text-text-muted">
             No members found. Click "Add Member" to create one.
           </div>
         ) : (
@@ -469,23 +469,23 @@ const MemberManagement = () => {
               <div 
                 key={member._id}
                 onClick={() => handleViewMember(member)}
-                className="bg-slate-800 rounded-lg p-4 border border-slate-700 hover:border-blue-500 transition-colors cursor-pointer"
+                className="card-hover shadow-md cursor-pointer"
               >
                 {/* Header */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center space-x-3 flex-1 min-w-0">
                     <div className="relative flex-shrink-0">
-                      <div className="bg-slate-700 text-white font-semibold w-12 h-12 rounded-full flex items-center justify-center text-sm">
+                      <div className="bg-gradient-to-br from-brand-primary to-brand-secondary text-white font-bold w-12 h-12 rounded-full flex items-center justify-center text-sm shadow-md shadow-brand-primary/30">
                         {avatar}
                       </div>
-                      <div className="absolute -bottom-0.5 -right-0.5 bg-green-500 w-3 h-3 rounded-full border-2 border-slate-800"></div>
+                      <div className="absolute -bottom-0.5 -right-0.5 bg-emerald-500 w-3 h-3 rounded-full border-2 border-surface"></div>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-white font-semibold text-base truncate">{member.name}</div>
-                      <div className="text-gray-400 text-sm truncate">{member.email || 'No email'}</div>
+                      <div className="text-text-primary font-bold text-base truncate">{member.name}</div>
+                      <div className="text-text-muted text-sm truncate">{member.email || 'No email'}</div>
                     </div>
                   </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2 ${getTierColor(tier)}`}>
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap ml-2 ${getTierColor(tier)}`}>
                     {tier}
                   </span>
                 </div>
@@ -493,55 +493,55 @@ const MemberManagement = () => {
                 {/* Details Grid */}
                 <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
                   <div>
-                    <span className="text-gray-400">Genre:</span>
-                    <span className="text-white ml-1">{member.genre || 'N/A'}</span>
+                    <span className="text-text-muted font-medium">Genre:</span>
+                    <span className="text-text-primary ml-1">{member.genre || 'N/A'}</span>
                   </div>
                   <div>
-                    <span className="text-gray-400">Role:</span>
-                    <span className="text-white ml-1">{member.talentRole || 'N/A'}</span>
+                    <span className="text-text-muted font-medium">Role:</span>
+                    <span className="text-text-primary ml-1">{member.talentRole || 'N/A'}</span>
                   </div>
                   <div>
-                    <span className="text-gray-400">Source:</span>
-                    <span className="text-white ml-1">{member.source || 'N/A'}</span>
+                    <span className="text-text-muted font-medium">Source:</span>
+                    <span className="text-text-primary ml-1">{member.source || 'N/A'}</span>
                   </div>
                   <div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium inline-block ${getStatusColor(member.status)}`}>
+                    <span className={`${getStatusColor(member.status)}`}>
                       {member.status?.charAt(0).toUpperCase() + member.status?.slice(1)}
                     </span>
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center space-x-2 pt-3 border-t border-slate-700">
+                <div className="flex items-center space-x-2 pt-3 border-t border-border">
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
                       handleViewMember(member);
                     }}
-                    className="flex-1 flex items-center justify-center space-x-1 text-gray-400 hover:text-blue-400 py-2 transition-colors"
+                    className="flex-1 flex items-center justify-center space-x-1 text-text-muted hover:text-brand-accent py-2 transition-colors"
                   >
                     <RiEyeLine className="text-lg" />
-                    <span className="text-sm">View</span>
+                    <span className="text-sm font-medium">View</span>
                   </button>
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
                       openEditModal(member);
                     }}
-                    className="flex-1 flex items-center justify-center space-x-1 text-gray-400 hover:text-blue-400 py-2 transition-colors"
+                    className="flex-1 flex items-center justify-center space-x-1 text-text-muted hover:text-brand-accent py-2 transition-colors"
                   >
                     <RiEditLine className="text-lg" />
-                    <span className="text-sm">Edit</span>
+                    <span className="text-sm font-medium">Edit</span>
                   </button>
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDeleteMember(member._id, member.name);
                     }}
-                    className="flex-1 flex items-center justify-center space-x-1 text-gray-400 hover:text-red-400 py-2 transition-colors"
+                    className="flex-1 flex items-center justify-center space-x-1 text-text-muted hover:text-red-400 py-2 transition-colors"
                   >
                     <RiDeleteBinLine className="text-lg" />
-                    <span className="text-sm">Delete</span>
+                    <span className="text-sm font-medium">Delete</span>
                   </button>
                 </div>
               </div>
@@ -551,15 +551,15 @@ const MemberManagement = () => {
       </div>
 
       {/* Pagination */}
-      <div className="bg-slate-800 rounded-lg px-4 md:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 border border-slate-700">
-        <div className="text-sm text-gray-400 text-center sm:text-left">
+      <div className="card shadow-lg shadow-brand-primary/10 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="text-sm text-text-muted text-center sm:text-left font-medium">
           Showing {startIndex + 1} to {Math.min(endIndex, filteredMembers.length)} of {filteredMembers.length} members
         </div>
         <div className="flex items-center space-x-2 flex-wrap justify-center">
           <button 
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
-            className="px-3 md:px-4 py-2 text-xs md:text-sm border border-slate-600 text-gray-300 hover:text-white hover:bg-slate-700 hover:border-slate-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-400 disabled:hover:border-slate-600"
+            className="btn-secondary px-3 md:px-4 py-2 text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Previous
           </button>
@@ -567,10 +567,10 @@ const MemberManagement = () => {
             <button 
               key={page}
               onClick={() => setCurrentPage(page)}
-              className={`px-3 md:px-4 py-2 text-xs md:text-sm rounded-lg font-medium transition-colors ${
+              className={`px-3 md:px-4 py-2 text-xs md:text-sm rounded-lg font-semibold transition-all ${
                 currentPage === page
-                  ? 'bg-blue-600 text-white border border-blue-500' 
-                  : 'text-gray-400 hover:text-white hover:bg-slate-700 border border-slate-600 hover:border-slate-500'
+                  ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/30' 
+                  : 'text-text-muted hover:text-text-primary hover:bg-surface-lighter border border-border'
               }`}
             >
               {page}
@@ -579,7 +579,7 @@ const MemberManagement = () => {
           <button 
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
             disabled={currentPage === totalPages}
-            className="px-3 md:px-4 py-2 text-xs md:text-sm border border-slate-600 text-gray-300 hover:text-white hover:bg-slate-700 hover:border-slate-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-400 disabled:hover:border-slate-600"
+            className="btn-secondary px-3 md:px-4 py-2 text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Next
           </button>

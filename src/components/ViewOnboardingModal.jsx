@@ -35,13 +35,13 @@ const ViewOnboardingModal = ({ isOpen, onClose, onboarding }) => {
       ></div>
 
       {/* Modal */}
-      <div className="relative bg-slate-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden border border-slate-700">
+      <div className="relative bg-surface-card rounded-lg shadow-2xl shadow-brand-primary/20 w-full max-w-2xl max-h-[90vh] overflow-hidden border border-border">
         {/* Header */}
-        <div className="bg-blue-600 px-6 py-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-brand-primary to-brand-secondary px-6 py-4 flex items-center justify-between shadow-lg">
           <h2 className="text-xl font-bold text-white">View Onboarding - {taskId}</h2>
           <button
             onClick={onClose}
-            className="text-white hover:bg-blue-700 rounded-lg p-1 transition-colors"
+            className="text-white/80 hover:text-white hover:bg-white/10 rounded-lg p-1 transition-all"
           >
             <RiCloseLine className="text-2xl" />
           </button>
@@ -53,118 +53,118 @@ const ViewOnboardingModal = ({ isOpen, onClose, onboarding }) => {
             {/* Member Information */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Member Name
                 </label>
                 <input
                   type="text"
                   value={memberName}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Member Email
                 </label>
                 <input
                   type="text"
                   value={memberEmail}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Start Date
                 </label>
                 <input
                   type="text"
                   value={startDate}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   ETA to Closure
                 </label>
                 <input
                   type="text"
                   value={etaClosure}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   SPOC
                 </label>
                 <input
                   type="text"
                   value={onboarding.spoc || 'N/A'}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Status
                 </label>
                 <input
                   type="text"
                   value={statusDisplay}
                   disabled
-                  className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed"
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-semibold text-text-secondary mb-2">
                 Description
               </label>
               <textarea
                 value={onboarding.description || 'N/A'}
                 disabled
                 rows="3"
-                className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed resize-none"
+                className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed resize-none"
               ></textarea>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-semibold text-text-secondary mb-2">
                 Notes
               </label>
               <textarea
                 value={onboarding.notes || 'N/A'}
                 disabled
                 rows="3"
-                className="w-full bg-slate-900/50 text-gray-300 px-4 py-2.5 rounded-lg border border-slate-700 cursor-not-allowed resize-none"
+                className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed resize-none"
               ></textarea>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="bg-slate-900 px-6 py-4 flex justify-between border-t border-slate-700">
+          <div className="bg-surface-lighter px-6 py-4 flex justify-between border-t border-border">
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setIsStep1Open(true)}
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="btn-primary px-6 py-2.5 shadow-lg shadow-brand-primary/30"
               >
                 View Step 1
               </button>
               <button
                 type="button"
                 onClick={() => setIsQuestionnaireOpen(true)}
-                className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="px-6 py-2.5 rounded-lg font-medium bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-500 hover:to-emerald-500 transition-all shadow-lg shadow-green-600/30"
               >
                 View L1 Questionnaire
               </button>
@@ -172,7 +172,7 @@ const ViewOnboardingModal = ({ isOpen, onClose, onboarding }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors"
+              className="btn-secondary px-6 py-2.5"
             >
               Close
             </button>
