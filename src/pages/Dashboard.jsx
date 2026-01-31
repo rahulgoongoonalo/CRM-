@@ -174,12 +174,14 @@ const Dashboard = () => {
       </div>
 
       {/* Pending Tasks */}
-      <div className="bg-[#1e2a3a] rounded-lg p-6 border border-slate-700/50">
+      <div className="bg-[#1e2a3a] rounded-lg p-4 md:p-6 border border-slate-700/50">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-white text-lg font-semibold">Pending Tasks</h2>
           <a href="#" className="text-blue-400 text-sm hover:text-blue-300">View All →</a>
         </div>
-        <div className="overflow-x-auto">
+        
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead className="border-b border-slate-700/50">
               <tr>
@@ -212,6 +214,38 @@ const Dashboard = () => {
               ))}
             </tbody>
           </table>
+        </div>
+        
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-3">
+          {pendingTasks.map((task, index) => (
+            <div key={index} className="bg-[#243447] rounded-lg p-4 border border-slate-700/50">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <h3 className="text-white text-sm font-semibold mb-1">{task.task}</h3>
+                  <p className="text-gray-300 text-xs">{task.member}</p>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2 ${getPriorityColor(task.priority)}`}>
+                  {task.priority}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-gray-400">Assignee:</span>
+                  <span className="text-blue-400 ml-1">{task.assignee}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400">Due:</span>
+                  <span className="text-gray-300 ml-1">{task.dueDate}</span>
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-slate-700/50">
+                <span className={`px-3 py-1 rounded-full text-xs font-medium inline-block ${getStatusColor(task.status)}`}>
+                  {task.status}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>

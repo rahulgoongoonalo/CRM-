@@ -130,7 +130,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Email Address <span className="text-red-400">*</span>
+                  Email Address
                 </label>
                 <input
                   type="email"
@@ -139,7 +139,6 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
-                  required
                 />
               </div>
               <div>
@@ -174,14 +173,13 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Country <span className="text-red-400">*</span>
+                  Country
                 </label>
                 <select
                   name="country"
                   value={formData.country}
                   onChange={handleChange}
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
                 >
                   <option value="">Select country</option>
                   <option value="India">India</option>
@@ -195,14 +193,13 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Category <span className="text-red-400">*</span>
+                  Category
                 </label>
                 <select
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
                 >
                   <option value="">Select category</option>
                   <option value="Premier">Premier</option>
@@ -212,14 +209,13 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Tier <span className="text-red-400">*</span>
+                  Tier
                 </label>
                 <select
                   name="tier"
                   value={formData.tier}
                   onChange={handleChange}
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
                 >
                   <option value="">Select tier</option>
                   <option value="Tier 1">Tier 1</option>
@@ -232,7 +228,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Talent Role <span className="text-red-400">*</span>
+                  Talent Role
                 </label>
                 <input
                   type="text"
@@ -241,19 +237,17 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                   value={formData.talentRole}
                   onChange={handleChange}
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
-                  required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Talent Type <span className="text-red-400">*</span>
+                  Talent Type
                 </label>
                 <select
                   name="talentType"
                   value={formData.talentType}
                   onChange={handleChange}
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
                 >
                   <option value="">Select type</option>
                   <option value="Individual">Individual</option>
@@ -279,14 +273,13 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Source <span className="text-red-400">*</span>
+                  Source
                 </label>
                 <select
                   name="source"
                   value={formData.source}
                   onChange={handleChange}
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
                 >
                   <option value="">Select source</option>
                   <option value="Personal Reference">Personal Reference</option>

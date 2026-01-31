@@ -48,22 +48,23 @@ const Header = ({ onMenuClick }) => {
   }, [showDropdown]);
 
   return (
-    <header className="bg-slate-800 border-b border-slate-700 px-6 py-3">
+    <header className="bg-slate-800 border-b border-slate-700 px-4 md:px-6 py-3">
       <div className="flex items-center justify-between">
         {/* Left Section */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 md:space-x-4">
           <button 
             onClick={onMenuClick}
             className="text-gray-400 hover:text-white transition-colors"
           >
             <RiMenuLine className="text-2xl" />
           </button>
+          <h2 className="text-white font-semibold text-sm md:text-base lg:hidden">CRM</h2>
         </div>
 
         {/* Right Section */}
-        <div className="flex items-center space-x-4">
-          {/* Search */}
-          <div className="relative w-64">
+        <div className="flex items-center space-x-2 md:space-x-4">
+          {/* Search - Hidden on mobile */}
+          <div className="relative w-32 md:w-48 lg:w-64 hidden sm:block">
             <RiSearchLine className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
             <input
               type="text"
@@ -75,7 +76,7 @@ const Header = ({ onMenuClick }) => {
           </div>
 
           {/* Notification Icon */}
-          <button className="relative text-gray-400 hover:text-white">
+          <button className="relative text-gray-400 hover:text-white hidden md:block">
             <RiNotification3Line className="text-2xl" />
             <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
               1
@@ -86,12 +87,12 @@ const Header = ({ onMenuClick }) => {
           <div className="relative" ref={dropdownRef}>
             <div 
               onClick={() => setShowDropdown(!showDropdown)}
-              className="flex items-center space-x-3 bg-blue-600 px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-700 transition-colors"
+              className="flex items-center space-x-2 md:space-x-3 bg-blue-600 px-2 md:px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-700 transition-colors"
             >
               <div className="bg-blue-500 text-white font-bold text-sm w-8 h-8 rounded-full flex items-center justify-center">
                 {getInitials(user?.name)}
               </div>
-              <div className="text-left">
+              <div className="text-left hidden md:block">
                 <span className="text-white text-sm font-medium block">{user?.name || 'User'}</span>
                 <span className="text-blue-200 text-xs capitalize">{user?.role || 'staff'}</span>
               </div>

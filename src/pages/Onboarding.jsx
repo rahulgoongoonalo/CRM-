@@ -224,8 +224,8 @@ const Onboarding = () => {
         ))}
       </div>
 
-      {/* Table */}
-      <div className="bg-[#1e2a3a] rounded-lg overflow-hidden border border-slate-700/50">
+      {/* Table - Desktop View */}
+      <div className="hidden lg:block bg-[#1e2a3a] rounded-lg overflow-hidden border border-slate-700/50">
         <table className="w-full">
           <thead className="bg-[#243447] border-b border-slate-700">
             <tr>
@@ -339,6 +339,97 @@ const Onboarding = () => {
         </table>
       </div>
 
+      {/* Mobile/Tablet Card View */}
+      <div className="lg:hidden space-y-3">
+        {loading ? (
+          <div className="bg-[#1e2a3a] rounded-lg p-6 text-center text-gray-400 border border-slate-700/50">
+            Loading onboardings...
+          </div>
+        ) : filteredOnboardings.length === 0 ? (
+          <div className="bg-[#1e2a3a] rounded-lg p-6 text-center text-gray-400 border border-slate-700/50">
+            No onboardings found. Click "Add New Onboarding" to create one.
+          </div>
+        ) : (
+          filteredOnboardings.map((item) => {
+            const taskId = item.taskNumber || 'N/A';
+            const startDate = new Date(item.createdAt).toISOString().split('T')[0];
+            const memberName = item.memberName || item.member?.name || 'N/A';
+            const source = item.member?.source || 'N/A';
+            const tier = item.member?.membershipType || 'basic';
+            
+            return (
+              <div 
+                key={item._id}
+                className="bg-[#1e2a3a] rounded-lg p-4 border border-slate-700/50 hover:border-blue-500 transition-colors"
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <span className="text-blue-400 font-semibold text-sm">#{taskId}</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
+                        {formatStatus(item.status)}
+                      </span>
+                    </div>
+                    <div className="text-white font-semibold text-base">{memberName}</div>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2 ${getTierColor(tier)}`}>
+                    {tier === 'premium' ? 'Tier 1' : tier === 'basic' ? 'Tier 2' : 'Tier 3'}
+                  </span>
+                </div>
+
+                {/* Details Grid */}
+                <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
+                  <div>
+                    <span className="text-gray-400">Start Date:</span>
+                    <span className="text-white ml-1">{startDate}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Source:</span>
+                    <span className="text-white ml-1">{source}</span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-gray-400">SPOC:</span>
+                    <span className="text-white ml-1">{item.spoc}</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center space-x-2 pt-3 border-t border-slate-700">
+                  <button 
+                    onClick={() => handleViewOnboarding(item)}
+                    className="flex-1 flex items-center justify-center space-x-1 text-gray-400 hover:text-blue-400 py-2 transition-colors"
+                  >
+                    <RiEyeLine className="text-lg" />
+                    <span className="text-sm">View</span>
+                  </button>
+                  <button 
+                    onClick={() => handleEditOnboarding(item)}
+                    className="flex-1 flex items-center justify-center space-x-1 text-gray-400 hover:text-blue-400 py-2 transition-colors"
+                  >
+                    <RiEditLine className="text-lg" />
+                    <span className="text-sm">Edit</span>
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteOnboarding(item._id)}
+                    className="flex-1 flex items-center justify-center space-x-1 text-gray-400 hover:text-red-400 py-2 transition-colors"
+                  >
+                    <RiDeleteBinLine className="text-lg" />
+                    <span className="text-sm">Delete</span>
+                  </button>
+                  <button 
+                    onClick={() => handleOpenL2Review(item)}
+                    className="flex-1 flex items-center justify-center space-x-1 text-gray-400 hover:text-green-400 py-2 transition-colors"
+                  >
+                    <RiSendPlaneLine className="text-lg" />
+                    <span className="text-sm">Review</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
 
       {/* View Onboarding Modal */}
       <ViewOnboardingModal

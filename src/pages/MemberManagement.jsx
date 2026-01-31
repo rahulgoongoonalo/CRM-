@@ -247,56 +247,56 @@ const MemberManagement = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="space-y-4">
       {/* Filters Section */}
-      <div className="bg-slate-800 rounded-lg p-4 mb-6">
-        <div className="flex items-center justify-between">
-          {/* Left Section - Search and Filters */}
-          <div className="flex items-center space-x-3">
-            {/* Search Input */}
-            <div className="relative w-72">
-              <RiSearchLine className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
-              <input
-                type="text"
-                placeholder="Search members..."
-                value={searchQuery}
-                onChange={handleSearchChange}
-                className="w-full bg-slate-700 text-white text-sm pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Filter Dropdowns */}
-            <select
-              value={statusFilter}
-              onChange={handleFilterChange(setStatusFilter)}
-              className="bg-slate-700 text-white text-sm px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-            >
-              <option>All Status</option>
-              <option>Active</option>
-              <option>On Hold</option>
-              <option>Pending</option>
-            </select>
-
-            <select
-              value={tierFilter}
-              onChange={handleFilterChange(setTierFilter)}
-              className="bg-slate-700 text-white text-sm px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-            >
-              <option>All Tiers</option>
-              <option>Tier 1</option>
-              <option>Tier 2</option>
-              <option>Tier 3</option>
-            </select>
+      <div className="bg-slate-800 rounded-lg p-4">
+        {/* Search and Add Button Row */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-3">
+          {/* Search Input */}
+          <div className="relative flex-1 max-w-full sm:max-w-md">
+            <RiSearchLine className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
+            <input
+              type="text"
+              placeholder="Search members..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="w-full bg-slate-700 text-white text-sm pl-9 pr-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
 
-          {/* Right Section - Add Member Button */}
+          {/* Add Member Button */}
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors"
+            className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
           >
             <RiAddLine className="text-lg" />
             <span>Add Member</span>
           </button>
+        </div>
+
+        {/* Filter Dropdowns Row */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <select
+            value={statusFilter}
+            onChange={handleFilterChange(setStatusFilter)}
+            className="flex-1 bg-slate-700 text-white text-sm px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+          >
+            <option>All Status</option>
+            <option>Active</option>
+            <option>On Hold</option>
+            <option>Pending</option>
+          </select>
+
+          <select
+            value={tierFilter}
+            onChange={handleFilterChange(setTierFilter)}
+            className="flex-1 bg-slate-700 text-white text-sm px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+          >
+            <option>All Tiers</option>
+            <option>Tier 1</option>
+            <option>Tier 2</option>
+            <option>Tier 3</option>
+          </select>
         </div>
       </div>
 
@@ -314,8 +314,8 @@ const MemberManagement = () => {
         member={selectedMember}
       />
 
-      {/* Table */}
-      <div className="bg-slate-800 rounded-lg overflow-hidden border border-slate-700">
+      {/* Table - Desktop View */}
+      <div className="hidden lg:block bg-slate-800 rounded-lg overflow-hidden border border-slate-700">
         <table className="w-full table-fixed">
           <thead className="bg-slate-900 border-b border-slate-700">
             <tr>
@@ -447,41 +447,142 @@ const MemberManagement = () => {
             )}
           </tbody>
         </table>
+      </div>
 
-        {/* Pagination */}
-        <div className="bg-slate-900 px-6 py-4 flex items-center justify-between border-t border-slate-700">
-          <div className="text-sm text-gray-400">
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredMembers.length)} of {filteredMembers.length} members
+      {/* Mobile/Tablet Card View */}
+      <div className="lg:hidden space-y-3">
+        {loading ? (
+          <div className="bg-slate-800 rounded-lg p-6 text-center text-gray-400">
+            Loading members...
           </div>
-          <div className="flex items-center space-x-2">
-            <button 
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 text-sm border border-slate-600 text-gray-300 hover:text-white hover:bg-slate-700 hover:border-slate-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-400 disabled:hover:border-slate-600"
-            >
-              Previous
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button 
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`px-4 py-2 text-sm rounded-lg font-medium transition-colors ${
-                  currentPage === page
-                    ? 'bg-blue-600 text-white border border-blue-500' 
-                    : 'text-gray-400 hover:text-white hover:bg-slate-700 border border-slate-600 hover:border-slate-500'
-                }`}
+        ) : currentMembers.length === 0 ? (
+          <div className="bg-slate-800 rounded-lg p-6 text-center text-gray-400">
+            No members found. Click "Add Member" to create one.
+          </div>
+        ) : (
+          currentMembers.map((member) => {
+            const avatar = member.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'NA';
+            const tier = member.membershipType === 'premium' ? 'Tier 1' : 
+                        member.membershipType === 'basic' ? 'Tier 2' : 'Tier 3';
+            
+            return (
+              <div 
+                key={member._id}
+                onClick={() => handleViewMember(member)}
+                className="bg-slate-800 rounded-lg p-4 border border-slate-700 hover:border-blue-500 transition-colors cursor-pointer"
               >
-                {page}
-              </button>
-            ))}
+                {/* Header */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center space-x-3 flex-1 min-w-0">
+                    <div className="relative flex-shrink-0">
+                      <div className="bg-slate-700 text-white font-semibold w-12 h-12 rounded-full flex items-center justify-center text-sm">
+                        {avatar}
+                      </div>
+                      <div className="absolute -bottom-0.5 -right-0.5 bg-green-500 w-3 h-3 rounded-full border-2 border-slate-800"></div>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-white font-semibold text-base truncate">{member.name}</div>
+                      <div className="text-gray-400 text-sm truncate">{member.email || 'No email'}</div>
+                    </div>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ml-2 ${getTierColor(tier)}`}>
+                    {tier}
+                  </span>
+                </div>
+
+                {/* Details Grid */}
+                <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
+                  <div>
+                    <span className="text-gray-400">Genre:</span>
+                    <span className="text-white ml-1">{member.genre || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Role:</span>
+                    <span className="text-white ml-1">{member.talentRole || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-400">Source:</span>
+                    <span className="text-white ml-1">{member.source || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium inline-block ${getStatusColor(member.status)}`}>
+                      {member.status?.charAt(0).toUpperCase() + member.status?.slice(1)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center space-x-2 pt-3 border-t border-slate-700">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleViewMember(member);
+                    }}
+                    className="flex-1 flex items-center justify-center space-x-1 text-gray-400 hover:text-blue-400 py-2 transition-colors"
+                  >
+                    <RiEyeLine className="text-lg" />
+                    <span className="text-sm">View</span>
+                  </button>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEditModal(member);
+                    }}
+                    className="flex-1 flex items-center justify-center space-x-1 text-gray-400 hover:text-blue-400 py-2 transition-colors"
+                  >
+                    <RiEditLine className="text-lg" />
+                    <span className="text-sm">Edit</span>
+                  </button>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteMember(member._id, member.name);
+                    }}
+                    className="flex-1 flex items-center justify-center space-x-1 text-gray-400 hover:text-red-400 py-2 transition-colors"
+                  >
+                    <RiDeleteBinLine className="text-lg" />
+                    <span className="text-sm">Delete</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Pagination */}
+      <div className="bg-slate-800 rounded-lg px-4 md:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 border border-slate-700">
+        <div className="text-sm text-gray-400 text-center sm:text-left">
+          Showing {startIndex + 1} to {Math.min(endIndex, filteredMembers.length)} of {filteredMembers.length} members
+        </div>
+        <div className="flex items-center space-x-2 flex-wrap justify-center">
+          <button 
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+            className="px-3 md:px-4 py-2 text-xs md:text-sm border border-slate-600 text-gray-300 hover:text-white hover:bg-slate-700 hover:border-slate-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-400 disabled:hover:border-slate-600"
+          >
+            Previous
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <button 
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 text-sm border border-slate-600 text-gray-300 hover:text-white hover:bg-slate-700 hover:border-slate-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-400 disabled:hover:border-slate-600"
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`px-3 md:px-4 py-2 text-xs md:text-sm rounded-lg font-medium transition-colors ${
+                currentPage === page
+                  ? 'bg-blue-600 text-white border border-blue-500' 
+                  : 'text-gray-400 hover:text-white hover:bg-slate-700 border border-slate-600 hover:border-slate-500'
+              }`}
             >
-              Next
+              {page}
             </button>
-          </div>
+          ))}
+          <button 
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 md:px-4 py-2 text-xs md:text-sm border border-slate-600 text-gray-300 hover:text-white hover:bg-slate-700 hover:border-slate-500 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-gray-400 disabled:hover:border-slate-600"
+          >
+            Next
+          </button>
         </div>
       </div>
 

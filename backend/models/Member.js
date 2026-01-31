@@ -34,7 +34,8 @@ const memberSchema = new mongoose.Schema({
   },
   tier: {
     type: String,
-    trim: true
+    trim: true,
+    default: 'tier1'
   },
   talentRole: {
     type: String,
@@ -118,8 +119,17 @@ memberSchema.pre('save', function(next) {
   next();
 });
 
-// Create sparse unique index on email (allows multiple null values)
-memberSchema.index({ email: 1 }, { unique: true, sparse: true });
+// Create partial unique index on email
+// Partial index only applies to documents where email exists and is a non-empty string
+// This allows unlimited documents with null/empty/missing email
+memberSchema.index(
+  { email: 1 }, 
+  { 
+    unique: true,
+    partialFilterExpression: { email: { $exists: true, $type: 'string', $gt: '' } },
+    name: 'email_unique_partial'
+  }
+);
 
 const Member = mongoose.model('Member', memberSchema);
 

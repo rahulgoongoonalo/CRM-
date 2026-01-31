@@ -116,8 +116,8 @@ const Campaigns = () => {
         ))}
       </div>
 
-      {/* Campaigns Table */}
-      <div className="bg-[#1e2a3a] rounded-lg overflow-hidden border border-slate-700/50">
+      {/* Campaigns Table - Desktop View */}
+      <div className="hidden lg:block bg-[#1e2a3a] rounded-lg overflow-hidden border border-slate-700/50">
         <table className="w-full">
           <thead className="bg-[#243447] border-b border-slate-700">
             <tr>
@@ -187,6 +187,60 @@ const Campaigns = () => {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile/Tablet Card View */}
+      <div className="lg:hidden space-y-3">
+        {campaigns.map((campaign) => (
+          <div 
+            key={campaign.id}
+            className="bg-[#1e2a3a] rounded-lg p-4 border border-slate-700/50 hover:border-blue-500 transition-colors"
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex-1">
+                <div className="flex items-center space-x-2 mb-1">
+                  <span className="text-blue-400 font-semibold text-sm">{campaign.id}</span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+                    {campaign.status}
+                  </span>
+                </div>
+                <div className="text-white font-semibold text-base">{campaign.name}</div>
+              </div>
+            </div>
+
+            {/* Details Grid */}
+            <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
+              <div>
+                <span className="text-gray-400">Recipients:</span>
+                <span className="text-white ml-1">{campaign.recipients}</span>
+              </div>
+              <div>
+                <span className="text-gray-400">Open Rate:</span>
+                <span className="text-white ml-1">{campaign.openRate}</span>
+              </div>
+              <div className="col-span-2">
+                <span className="text-gray-400">Sent Date:</span>
+                <span className="text-white ml-1">{campaign.sentDate}</span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center space-x-2 pt-3 border-t border-slate-700">
+              <button className="flex-1 flex items-center justify-center space-x-1 text-gray-400 hover:text-blue-400 py-2 transition-colors">
+                <RiEyeLine className="text-lg" />
+                <span className="text-sm">View</span>
+              </button>
+              <button 
+                onClick={() => openEditModal(campaign)}
+                className="flex-1 flex items-center justify-center space-x-1 text-gray-400 hover:text-blue-400 py-2 transition-colors"
+              >
+                <RiEditLine className="text-lg" />
+                <span className="text-sm">Edit</span>
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* New Campaign Modal */}
