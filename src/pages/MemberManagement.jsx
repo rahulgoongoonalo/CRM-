@@ -223,15 +223,30 @@ const MemberManagement = () => {
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'Active':
-        return 'badge-success';
-      case 'On Hold':
-        return 'badge-warning';
-      case 'Pending':
-        return 'badge-warning';
-      default:
-        return 'bg-surface-lighter/50 text-text-muted border border-border';
+    const normalizedStatus = status?.toLowerCase() || '';
+    
+    if (normalizedStatus === 'active') {
+      return 'badge-success';
+    } else if (normalizedStatus === 'inactive' || normalizedStatus === 'on hold') {
+      return 'badge-warning';
+    } else if (normalizedStatus === 'pending') {
+      return 'badge-warning';
+    } else {
+      return 'badge bg-surface-lighter/50 text-text-muted border border-border';
+    }
+  };
+
+  const getStatusDisplay = (status) => {
+    const normalizedStatus = status?.toLowerCase() || '';
+    
+    if (normalizedStatus === 'active') {
+      return 'Active';
+    } else if (normalizedStatus === 'inactive') {
+      return 'On Hold';
+    } else if (normalizedStatus === 'pending') {
+      return 'Pending';
+    } else {
+      return status?.charAt(0).toUpperCase() + status?.slice(1) || 'Unknown';
     }
   };
 
@@ -407,7 +422,7 @@ const MemberManagement = () => {
                     </td>
                     <td className="px-3 py-3">
                       <span className={`${getStatusColor(member.status)}`}>
-                        {member.status?.charAt(0).toUpperCase() + member.status?.slice(1)}
+                        {getStatusDisplay(member.status)}
                       </span>
                     </td>
                     <td className="px-3 py-3">
@@ -506,7 +521,7 @@ const MemberManagement = () => {
                   </div>
                   <div>
                     <span className={`${getStatusColor(member.status)}`}>
-                      {member.status?.charAt(0).toUpperCase() + member.status?.slice(1)}
+                      {getStatusDisplay(member.status)}
                     </span>
                   </div>
                 </div>

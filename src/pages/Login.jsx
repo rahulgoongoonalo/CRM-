@@ -46,11 +46,11 @@ const Login = () => {
       <div className="card max-w-md w-full shadow-2xl shadow-brand-primary/20">
         {/* Header */}
         <div className="text-center mb-6 md:mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-brand-primary to-brand-secondary rounded-full mb-4 shadow-lg shadow-brand-primary/50">
-            <FaSignInAlt className="text-white text-xl md:text-2xl" />
+          <div className="inline-flex items-center justify-center mb-4">
+            <img src="/GG_LOGo.png" alt="Logo" className="w-20 h-20 md:w-24 md:h-24 object-contain" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-text-primary">Welcome Back</h1>
-          <p className="text-text-muted mt-2 text-sm md:text-base font-medium">Sign in to your CRM account</p>
+          <h1 className="text-2xl md:text-3xl font-bold" style={{ color: '#FFB743' }}>Welcome Back</h1>
+          <p className="text-text-muted mt-2 text-sm md:text-base font-medium">Sign in to your ARM account</p>
         </div>
 
         {/* Error Message */}
@@ -128,14 +128,6 @@ const Login = () => {
             <Link to="/register" className="text-brand-accent hover:text-brand-highlight font-bold transition-colors">
               Register as Staff
             </Link>
-          </p>
-        </div>
-
-        {/* Demo Credentials */}
-        <div className="mt-6 p-4 bg-surface-lighter rounded-lg border border-border">
-          <p className="text-sm font-bold text-text-secondary mb-2">Demo Credentials:</p>
-          <p className="text-xs text-text-muted">
-            <strong className="text-text-secondary">Admin:</strong> admin@crm.com / admin123
           </p>
         </div>
       </div>

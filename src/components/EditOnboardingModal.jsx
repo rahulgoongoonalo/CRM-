@@ -92,7 +92,7 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
               {/* Select Member */}
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Member <span className="text-red-400">*</span>
+                  Select Artist <span className="text-red-400">*</span>
                 </label>
                 <select
                   name="member"
@@ -101,7 +101,7 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                   required
                   className="select w-full cursor-pointer"
                 >
-                  <option value="">Choose a member</option>
+                  <option value="">Choose a Artist</option>
                   {loading ? (
                     <option disabled>Loading members...</option>
                   ) : (
@@ -124,7 +124,7 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                   value={formData.description}
                   onChange={handleChange}
                   placeholder="Brief description of onboarding"
-                  rows="2"
+                  rows="1"
                   className="input w-full resize-none"
                 />
               </div>
@@ -133,17 +133,25 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                 {/* SPOC */}
                 <div>
                   <label className="block text-sm font-semibold text-text-secondary mb-2">
-                    SPOC <span className="text-red-400">*</span>
+                    Assign SPOC <span className="text-red-400">*</span>
                   </label>
-                  <input
-                    type="text"
+                  <select
                     name="spoc"
                     value={formData.spoc}
                     onChange={handleChange}
                     required
-                    placeholder="Enter SPOC name"
-                    className="input w-full"
-                  />
+                    className="select w-full cursor-pointer"
+                  >
+                    <option value="">Select SPOC</option>
+                    <option>Vishal Onkar</option>
+                    <option>Soumini Paul</option>
+                    <option>Aayan De</option>
+                    <option>Joshua Singh</option>
+                    <option>Racheal Singh</option>
+                    <option>Aayush Jain</option>
+                    <option>Pooja Gupta</option>
+                    <option>Rahul Jadhav</option>
+                  </select>
                 </div>
 
                 {/* ETA to Closure */}
@@ -191,7 +199,7 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                   value={formData.notes}
                   onChange={handleChange}
                   placeholder="Additional notes..."
-                  rows="3"
+                  rows="2"
                   className="input w-full resize-none"
                 />
               </div>

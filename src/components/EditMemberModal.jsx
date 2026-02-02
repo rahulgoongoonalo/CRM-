@@ -18,11 +18,6 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
     spoc: '',
     status: 'Pending',
     biography: '',
-    bankName: '',
-    accountNumber: '',
-    ifscCode: '',
-    panNumber: '',
-    aadharNumber: '',
   });
 
   useEffect(() => {
@@ -48,11 +43,6 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
         spoc: member.spoc || '',
         status: member.status?.charAt(0).toUpperCase() + member.status?.slice(1) || 'Active',
         biography: member.biography || '',
-        bankName: member.bankName || '',
-        accountNumber: member.accountNumber || '',
-        ifscCode: member.ifscCode || '',
-        panNumber: member.panNumber || '',
-        aadharNumber: member.aadharNumber || '',
       });
     }
   }, [member]);
@@ -130,7 +120,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Email Address
+                  Email Address <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="email"
@@ -138,6 +128,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                   placeholder="Enter email address"
                   value={formData.email}
                   onChange={handleChange}
+                  required
                   className="input w-full"
                 />
               </div>
@@ -193,7 +184,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Category
+                  Category (Based on Spotify Monthly Listeners)
                 </label>
                 <select
                   name="category"
@@ -202,14 +193,20 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                   className="select w-full"
                 >
                   <option value="">Select category</option>
-                  <option value="Premier">Premier</option>
-                  <option value="Elite">Elite</option>
-                  <option value="Standard">Standard</option>
+                  <option value="Premier 1 - 20M">Premier 1 - 20M</option>
+                  <option value="Premier 2 - 10M">Premier 2 - 10M</option>
+                  <option value="Premier 3 - 5M">Premier 3 - 5M</option>
+                  <option value="Elite 1 - 1M">Elite 1 - 1M</option>
+                  <option value="Elite 2 - 600K">Elite 2 - 600K</option>
+                  <option value="Elite 3 - 100K">Elite 3 - 100K</option>
+                  <option value="Standard 1 - 50K">Standard 1 - 50K</option>
+                  <option value="Standard 2 - 10K">Standard 2 - 10K</option>
+                  <option value="Standard 3 - Below 10K">Standard 3 - Below 10K</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Tier
+                  Tier (Based on Instagram Followers)
                 </label>
                 <select
                   name="tier"
@@ -218,9 +215,14 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                   className="select w-full"
                 >
                   <option value="">Select tier</option>
-                  <option value="Tier 1">Tier 1</option>
-                  <option value="Tier 2">Tier 2</option>
-                  <option value="Tier 3">Tier 3</option>
+                  <option value="Tier 1 - 1M">Tier 1 - 1M</option>
+                  <option value="Tier 2 - 750K">Tier 2 - 750K</option>
+                  <option value="Tier 3 - 500K">Tier 3 - 500K</option>
+                  <option value="Tier 4 - 250K">Tier 4 - 250K</option>
+                  <option value="Tier 5 - 100K">Tier 5 - 100K</option>
+                  <option value="Tier 6 - 50K">Tier 6 - 50K</option>
+                  <option value="Tier 7 - 10K">Tier 7 - 10K</option>
+                  <option value="Tier 8 - Below 10K">Tier 8 - Below 10K</option>
                 </select>
               </div>
             </div>
@@ -273,12 +275,13 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Source
+                  Source <span className="text-red-400">*</span>
                 </label>
                 <select
                   name="source"
                   value={formData.source}
                   onChange={handleChange}
+                  required
                   className="select w-full"
                 >
                   <option value="">Select source</option>
@@ -286,6 +289,9 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                   <option value="Curated Artist">Curated Artist</option>
                   <option value="Open Inbound">Open Inbound</option>
                   <option value="Special Curated">Special Curated</option>
+                  <option value="Cartel">Cartel</option>
+                  <option value="Soumini">Soumini</option>
+                  <option value="Marriot">Marriot</option>
                 </select>
               </div>
             </div>
@@ -323,95 +329,16 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
 
             <div>
               <label className="block text-sm font-semibold text-text-secondary mb-2">
-                Biography
+                Biography based on Spotify
               </label>
               <textarea
                 name="biography"
-                placeholder="Enter member biography..."
+                placeholder="Enter member biography based on Spotify..."
                 value={formData.biography}
                 onChange={handleChange}
                 rows="4"
                 className="input w-full resize-none"
               ></textarea>
-            </div>
-
-            {/* KYC Information */}
-            <div className="border-t border-border pt-6">
-              <h3 className="text-lg font-bold text-text-primary mb-4">KYC Information</h3>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-text-secondary mb-2">
-                    Bank Name
-                  </label>
-                  <input
-                    type="text"
-                    name="bankName"
-                    placeholder="Enter bank name"
-                    value={formData.bankName}
-                    onChange={handleChange}
-                    className="input w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-text-secondary mb-2">
-                    Account Number
-                  </label>
-                  <input
-                    type="text"
-                    name="accountNumber"
-                    placeholder="Enter account number"
-                    value={formData.accountNumber}
-                    onChange={handleChange}
-                    className="input w-full"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <div>
-                  <label className="block text-sm font-semibold text-text-secondary mb-2">
-                    IFSC Code
-                  </label>
-                  <input
-                    type="text"
-                    name="ifscCode"
-                    placeholder="Enter IFSC code"
-                    value={formData.ifscCode}
-                    onChange={handleChange}
-                    className="input w-full"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-text-secondary mb-2">
-                    PAN Number
-                  </label>
-                  <input
-                    type="text"
-                    name="panNumber"
-                    placeholder="Enter PAN number"
-                    value={formData.panNumber}
-                    onChange={handleChange}
-                    className="input w-full"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <div>
-                  <label className="block text-sm font-semibold text-text-secondary mb-2">
-                    Aadhar Number
-                  </label>
-                  <input
-                    type="text"
-                    name="aadharNumber"
-                    placeholder="Enter Aadhar number"
-                    value={formData.aadharNumber}
-                    onChange={handleChange}
-                    className="input w-full"
-                  />
-                </div>
-              </div>
             </div>
           </div>
 

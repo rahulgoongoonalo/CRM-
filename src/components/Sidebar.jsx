@@ -36,12 +36,14 @@ const Sidebar = ({ isOpen, isMobile, onClose }) => {
       <div className="p-6 border-b border-border bg-gradient-royal-subtle">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-gradient-to-br from-brand-primary to-brand-secondary p-2 rounded-lg shadow-lg shadow-brand-primary/30">
-              <RiMusicLine className="text-2xl text-white" />
-            </div>
+            <img 
+              src="/GG_LOGo.png" 
+              alt="Logo" 
+              className={`object-contain ${isOpen || isMobile ? 'w-12 h-12' : 'w-10 h-10'}`}
+            />
             {(isOpen || isMobile) && (
               <div>
-                <h1 className="text-xl font-extrabold text-text-primary">Artists</h1>
+                <h1 className="text-xl font-extrabold "style={{ color: '#FFB743' }}>Artists</h1>
                 <p className="text-xs text-text-muted font-medium">Management Portal</p>
               </div>
             )}

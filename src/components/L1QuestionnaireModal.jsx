@@ -37,6 +37,12 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
     openToCollabs: 'Yes',
     whyGoongoonalo: '',
     howHeard: '',
+    // KYC Information
+    bankName: '',
+    accountNumber: '',
+    ifscCode: '',
+    panNumber: '',
+    aadharNumber: '',
     // Agreements
     confirmRights: false,
     acceptTerms: false,
@@ -524,6 +530,87 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
                     name="howHeard"
                     value={formData.howHeard}
                     onChange={handleChange}
+                    className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* KYC INFORMATION */}
+            <div className="mb-6">
+              <h3 className="text-blue-400 font-semibold text-lg mb-4">KYC INFORMATION</h3>
+              
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                    Bank Name
+                  </label>
+                  <input
+                    type="text"
+                    name="bankName"
+                    value={formData.bankName}
+                    onChange={handleChange}
+                    placeholder="Enter bank name"
+                    className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                    Account Number
+                  </label>
+                  <input
+                    type="text"
+                    name="accountNumber"
+                    value={formData.accountNumber}
+                    onChange={handleChange}
+                    placeholder="Enter account number"
+                    className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                    IFSC Code
+                  </label>
+                  <input
+                    type="text"
+                    name="ifscCode"
+                    value={formData.ifscCode}
+                    onChange={handleChange}
+                    placeholder="Enter IFSC code"
+                    className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                    PAN Number
+                  </label>
+                  <input
+                    type="text"
+                    name="panNumber"
+                    value={formData.panNumber}
+                    onChange={handleChange}
+                    placeholder="Enter PAN number"
+                    className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                    Aadhar Number
+                  </label>
+                  <input
+                    type="text"
+                    name="aadharNumber"
+                    value={formData.aadharNumber}
+                    onChange={handleChange}
+                    placeholder="Enter Aadhar number"
                     className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>

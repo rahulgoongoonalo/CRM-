@@ -104,7 +104,7 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
             {/* Select Member */}
             <div className="mb-4">
               <label className="block text-sm font-semibold text-text-secondary mb-2">
-                Select Member <span className="text-red-400">*</span>
+                Select Artist <span className="text-red-400">*</span>
               </label>
               <select
                 name="member"
@@ -113,7 +113,7 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
                 required
                 className="select w-full cursor-pointer"
               >
-                <option value="">Choose a member</option>
+                <option value="">Choose a Artist</option>
                 {loading ? (
                   <option disabled>Loading members...</option>
                 ) : (
@@ -159,7 +159,10 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
                   <option>Soumini Paul</option>
                   <option>Aayan De</option>
                   <option>Joshua Singh</option>
-                  <option>Rahul Sharma</option>
+                  <option>Racheal Singh</option>
+                  <option>Aayush Jain</option>
+                  <option>Pooja Gupta</option>
+                  <option>Rahul Jadhav</option>
                 </select>
               </div>
 

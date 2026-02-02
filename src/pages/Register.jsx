@@ -78,21 +78,14 @@ const Register = () => {
       <div className="card max-w-md w-full shadow-2xl shadow-brand-primary/20">
         {/* Header */}
         <div className="text-center mb-6 md:mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-brand-primary to-brand-secondary rounded-full mb-4 shadow-lg shadow-brand-primary/50">
-            <FaUserPlus className="text-white text-xl md:text-2xl" />
+          <div className="inline-flex items-center justify-center mb-4">
+            <img src="/GG_LOGo.png" alt="Logo" className="w-20 h-20 md:w-24 md:h-24 object-contain" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-text-primary">Staff Registration</h1>
+          <h1 className="text-2xl md:text-3xl font-bold "style={{ color: '#FFB743' }} >Staff Registration</h1>
           <p className="text-text-muted mt-2 text-sm md:text-base font-medium">Create your staff account</p>
         </div>
 
-        {/* Info Notice */}
-        <div className="bg-brand-primary/10 border border-brand-primary/30 text-brand-accent px-4 py-3 rounded-lg mb-4 md:mb-6 text-sm font-medium">
-          <p>
-            <strong>Note:</strong> Only staff members can register. Administrator accounts are created by the system.
-          </p>
-        </div>
-
-        {/* Error Message */}
+        
         {error && (
           <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg mb-4 md:mb-6 text-sm font-medium">
             {error}

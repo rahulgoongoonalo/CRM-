@@ -37,6 +37,12 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
     openToCollabs: 'Yes',
     whyGoongoonalo: '',
     howHeard: '',
+    // KYC Information
+    bankName: '',
+    accountNumber: '',
+    ifscCode: '',
+    panNumber: '',
+    aadharNumber: '',
     // Agreements
     confirmRights: false,
     acceptTerms: false,
@@ -76,6 +82,11 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
         openToCollabs: data.openToCollabs || 'Yes',
         whyGoongoonalo: data.whyGoongoonalo || '',
         howHeard: data.howHeard || '',
+        bankName: data.bankName || '',
+        accountNumber: data.accountNumber || '',
+        ifscCode: data.ifscCode || '',
+        panNumber: data.panNumber || '',
+        aadharNumber: data.aadharNumber || '',
         confirmRights: data.confirmRights || false,
         acceptTerms: data.acceptTerms || false,
         consentEditorial: data.consentEditorial || false,
@@ -591,6 +602,87 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
                   placeholder="Referral, social media, search, etc."
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
+              </div>
+            </div>
+
+            {/* KYC INFORMATION */}
+            <div className="space-y-3">
+              <h3 className="text-lg font-semibold text-blue-400 border-b border-slate-600 pb-2">KYC INFORMATION</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1.5">
+                    Bank Name
+                  </label>
+                  <input
+                    type="text"
+                    name="bankName"
+                    value={formData.bankName}
+                    onChange={handleChange}
+                    placeholder="Enter bank name"
+                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1.5">
+                    Account Number
+                  </label>
+                  <input
+                    type="text"
+                    name="accountNumber"
+                    value={formData.accountNumber}
+                    onChange={handleChange}
+                    placeholder="Enter account number"
+                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1.5">
+                    IFSC Code
+                  </label>
+                  <input
+                    type="text"
+                    name="ifscCode"
+                    value={formData.ifscCode}
+                    onChange={handleChange}
+                    placeholder="Enter IFSC code"
+                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1.5">
+                    PAN Number
+                  </label>
+                  <input
+                    type="text"
+                    name="panNumber"
+                    value={formData.panNumber}
+                    onChange={handleChange}
+                    placeholder="Enter PAN number"
+                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1.5">
+                    Aadhar Number
+                  </label>
+                  <input
+                    type="text"
+                    name="aadharNumber"
+                    value={formData.aadharNumber}
+                    onChange={handleChange}
+                    placeholder="Enter Aadhar number"
+                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
               </div>
             </div>
 
