@@ -74,41 +74,41 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-teal-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-8">
+    <div className="min-h-screen bg-gradient-to-br from-surface via-surface-light to-brand-primary/20 flex items-center justify-center p-4">
+      <div className="card max-w-md w-full shadow-2xl shadow-brand-primary/20">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-600 rounded-full mb-4">
-            <FaUserPlus className="text-white text-2xl" />
+        <div className="text-center mb-6 md:mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-brand-primary to-brand-secondary rounded-full mb-4 shadow-lg shadow-brand-primary/50">
+            <FaUserPlus className="text-white text-xl md:text-2xl" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-800">Staff Registration</h1>
-          <p className="text-gray-600 mt-2">Create your staff account</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-text-primary">Staff Registration</h1>
+          <p className="text-text-muted mt-2 text-sm md:text-base font-medium">Create your staff account</p>
         </div>
 
         {/* Info Notice */}
-        <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6">
-          <p className="text-sm">
+        <div className="bg-brand-primary/10 border border-brand-primary/30 text-brand-accent px-4 py-3 rounded-lg mb-4 md:mb-6 text-sm font-medium">
+          <p>
             <strong>Note:</strong> Only staff members can register. Administrator accounts are created by the system.
           </p>
         </div>
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg mb-4 md:mb-6 text-sm font-medium">
             {error}
           </div>
         )}
 
         {/* Register Form */}
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
           {/* Name Field */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="name" className="block text-sm font-semibold text-text-secondary mb-2">
               Full Name
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaIdCard className="text-gray-400" />
+                <FaIdCard className="text-text-muted" />
               </div>
               <input
                 id="name"
@@ -116,7 +116,7 @@ const Register = () => {
                 type="text"
                 value={formData.name}
                 onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="input w-full pl-10"
                 placeholder="Enter your full name"
                 required
               />
@@ -125,12 +125,12 @@ const Register = () => {
 
           {/* Email Field */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="email" className="block text-sm font-semibold text-text-secondary mb-2">
               Email Address
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaEnvelope className="text-gray-400" />
+                <FaEnvelope className="text-text-muted" />
               </div>
               <input
                 id="email"
@@ -138,7 +138,7 @@ const Register = () => {
                 type="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="input w-full pl-10"
                 placeholder="Enter your email"
                 required
               />
@@ -147,12 +147,12 @@ const Register = () => {
 
           {/* Password Field */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="password" className="block text-sm font-semibold text-text-secondary mb-2">
               Password
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaLock className="text-gray-400" />
+                <FaLock className="text-text-muted" />
               </div>
               <input
                 id="password"
@@ -160,14 +160,14 @@ const Register = () => {
                 type={showPassword ? "text" : "password"}
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="input w-full pl-10 pr-12"
                 placeholder="Create a password"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-text-secondary transition-colors"
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -176,12 +176,12 @@ const Register = () => {
 
           {/* Confirm Password Field */}
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="confirmPassword" className="block text-sm font-semibold text-text-secondary mb-2">
               Confirm Password
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaLock className="text-gray-400" />
+                <FaLock className="text-text-muted" />
               </div>
               <input
                 id="confirmPassword"
@@ -189,14 +189,14 @@ const Register = () => {
                 type={showConfirmPassword ? "text" : "password"}
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="input w-full pl-10 pr-12"
                 placeholder="Confirm your password"
                 required
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-text-secondary transition-colors"
               >
                 {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -210,7 +210,7 @@ const Register = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-brand-primary/30"
           >
             {loading ? 'Creating Account...' : 'Create Staff Account'}
           </button>
@@ -218,9 +218,9 @@ const Register = () => {
 
         {/* Login Link */}
         <div className="mt-6 text-center">
-          <p className="text-gray-600">
+          <p className="text-text-muted">
             Already have an account?{' '}
-            <Link to="/login" className="text-green-600 hover:text-green-700 font-semibold">
+            <Link to="/login" className="text-brand-accent hover:text-brand-highlight font-bold transition-colors">
               Sign In
             </Link>
           </p>
