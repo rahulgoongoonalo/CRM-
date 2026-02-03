@@ -1,5 +1,6 @@
 import express from 'express';
 import Onboarding from '../models/Onboarding.js';
+import Member from '../models/Member.js';
 
 const router = express.Router();
 
@@ -193,6 +194,17 @@ router.patch('/:id/l1-questionnaire', async (req, res) => {
   try {
     const l1Data = req.body;
     
+    // Find the onboarding to get the member ID
+    const onboarding = await Onboarding.findById(req.params.id);
+    
+    if (!onboarding) {
+      return res.status(404).json({
+        success: false,
+        message: 'Onboarding not found'
+      });
+    }
+    
+    // Update the onboarding with L1 data
     const updatedOnboarding = await Onboarding.findByIdAndUpdate(
       req.params.id,
       {
@@ -202,11 +214,19 @@ router.patch('/:id/l1-questionnaire', async (req, res) => {
       { new: true, runValidators: true }
     ).populate('member', 'name email phone genre source membershipType');
     
-    if (!updatedOnboarding) {
-      return res.status(404).json({
-        success: false,
-        message: 'Onboarding not found'
-      });
+    // Update the member with KYC information from L1 data
+    if (onboarding.member && l1Data) {
+      await Member.findByIdAndUpdate(
+        onboarding.member,
+        {
+          bankName: l1Data.bankName,
+          accountNumber: l1Data.accountNumber,
+          ifscCode: l1Data.ifscCode,
+          panNumber: l1Data.panNumber,
+          aadharNumber: l1Data.aadharNumber
+        },
+        { runValidators: true }
+      );
     }
     
     res.json({

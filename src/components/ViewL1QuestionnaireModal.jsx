@@ -403,6 +403,75 @@ const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
             </div>
           </div>
 
+          {/* KYC INFORMATION */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-brand-accent border-b border-border pb-2">KYC INFORMATION</h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Bank Name
+                </label>
+                <input
+                  type="text"
+                  value={data.bankName || 'N/A'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Account Number
+                </label>
+                <input
+                  type="text"
+                  value={data.accountNumber || 'N/A'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  IFSC Code
+                </label>
+                <input
+                  type="text"
+                  value={data.ifscCode || 'N/A'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  PAN Number
+                </label>
+                <input
+                  type="text"
+                  value={data.panNumber || 'N/A'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-2">
+                Aadhar Number
+              </label>
+              <input
+                type="text"
+                value={data.aadharNumber || 'N/A'}
+                disabled
+                className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+              />
+            </div>
+          </div>
+
           {/* AGREEMENTS */}
           <div className="space-y-3">
             <h3 className="text-lg font-semibold text-brand-accent border-b border-border pb-2">AGREEMENTS</h3>

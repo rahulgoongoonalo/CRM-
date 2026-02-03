@@ -94,15 +94,6 @@ const memberSchema = new mongoose.Schema({
     enum: ['active', 'inactive', 'pending', 'on hold', 'Active', 'Inactive', 'Pending', 'On Hold'],
     default: 'pending'
   },
-  digitalPayout: {
-    type: Boolean,
-    default: false
-  },
-  membershipType: {
-    type: String,
-    enum: ['basic', 'premium', 'vip'],
-    default: 'basic'
-  },
   joinDate: {
     type: Date,
     default: Date.now
