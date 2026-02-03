@@ -290,7 +290,7 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-gray-400 text-sm mb-1.5 text-left">
-                    Primary Role(s) <span className="text-red-400">*</span>
+                    Primary Role(s)
                   </label>
                   <input
                     type="text"
@@ -298,21 +298,19 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
                     value={formData.primaryRole}
                     onChange={handleChange}
                     placeholder="Singer, Composer, Lyricist..."
-                    required
                     className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
                 
                 <div>
                   <label className="block text-gray-400 text-sm mb-1.5 text-left">
-                    Primary Genres <span className="text-red-400">*</span>
+                    Primary Genres
                   </label>
                   <input
                     type="text"
                     name="primaryGenres"
                     value={formData.primaryGenres}
                     onChange={handleChange}
-                    required
                     className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
@@ -320,14 +318,13 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
 
               <div className="mb-4">
                 <label className="block text-gray-400 text-sm mb-1.5 text-left">
-                  Languages You Create In <span className="text-red-400">*</span>
+                  Languages You Create In
                 </label>
                 <input
                   type="text"
                   name="languages"
                   value={formData.languages}
                   onChange={handleChange}
-                  required
                   className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>

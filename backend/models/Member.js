@@ -1,6 +1,10 @@
 import mongoose from 'mongoose';
 
 const memberSchema = new mongoose.Schema({
+  memberNumber: {
+    type: Number,
+    unique: true
+  },
   name: {
     type: String,
     required: [true, 'Please provide member name'],
@@ -21,6 +25,10 @@ const memberSchema = new mongoose.Schema({
     trim: true
   },
   address: {
+    type: String,
+    trim: true
+  },
+  country: {
     type: String,
     trim: true
   },
@@ -83,8 +91,12 @@ const memberSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['active', 'inactive', 'pending'],
-    default: 'active'
+    enum: ['active', 'inactive', 'pending', 'on hold', 'Active', 'Inactive', 'Pending', 'On Hold'],
+    default: 'pending'
+  },
+  digitalPayout: {
+    type: Boolean,
+    default: false
   },
   membershipType: {
     type: String,
@@ -114,8 +126,19 @@ const memberSchema = new mongoose.Schema({
 });
 
 // Update the updatedAt timestamp before saving
-memberSchema.pre('save', function(next) {
+memberSchema.pre('save', async function(next) {
   this.updatedAt = Date.now();
+  
+  // Auto-increment memberNumber for new members
+  if (this.isNew) {
+    try {
+      const lastMember = await mongoose.model('Member').findOne().sort({ memberNumber: -1 });
+      this.memberNumber = lastMember ? lastMember.memberNumber + 1 : 1;
+    } catch (error) {
+      return next(error);
+    }
+  }
+  
   next();
 });
 

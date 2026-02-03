@@ -346,14 +346,13 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Primary Role <span className="text-red-400">*</span>
+                    Primary Role
                   </label>
                   <input
                     type="text"
                     name="primaryRole"
                     value={formData.primaryRole}
                     onChange={handleChange}
-                    required
                     placeholder="e.g., Singer, Producer, Rapper"
                     className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
@@ -361,14 +360,13 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Primary Genre(s) <span className="text-red-400">*</span>
+                    Primary Genre(s)
                   </label>
                   <input
                     type="text"
                     name="primaryGenres"
                     value={formData.primaryGenres}
                     onChange={handleChange}
-                    required
                     placeholder="e.g., Pop, Hip-Hop, Electronic"
                     className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                   />

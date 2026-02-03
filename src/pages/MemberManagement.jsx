@@ -140,14 +140,14 @@ const MemberManagement = () => {
   };
 
   const handleViewMember = (member) => {
-    // Add IPRS ID and tier for display
-    const iprsId = `IPR${member._id?.slice(-4).toUpperCase()}` || 'N/A';
+    // Add member ID for display
+    const memberId = member.memberNumber || 'N/A';
     const tier = member.membershipType === 'premium' ? 'Tier 1' : 
                 member.membershipType === 'basic' ? 'Tier 2' : 'Tier 3';
     
     const transformedMember = {
       ...member,
-      iprsId,
+      memberId,
       tier
     };
     

@@ -74,7 +74,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
       <div className="relative bg-surface-card rounded-lg shadow-2xl shadow-brand-primary/20 w-full max-w-4xl max-h-[90vh] overflow-hidden border border-border">
         {/* Header */}
         <div className="bg-gradient-to-r from-brand-primary to-brand-secondary px-6 py-4 flex items-center justify-between shadow-lg">
-          <h2 className="text-xl font-bold text-white">Edit Member - {member?.iprsId}</h2>
+          <h2 className="text-xl font-bold text-white">Edit Member - {member?.memberId}</h2>
           <button
             onClick={onClose}
             className="text-white/80 hover:text-white hover:bg-white/10 rounded-lg p-1 transition-all"
