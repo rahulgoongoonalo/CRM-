@@ -15,6 +15,8 @@ const Onboarding = () => {
   const [activeFilter, setActiveFilter] = useState('All');
   const [onboardings, setOnboardings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 100;
 
   useEffect(() => {
     fetchOnboardings();
@@ -164,6 +166,18 @@ const Onboarding = () => {
     ? onboardings 
     : onboardings.filter(o => formatStatus(o.status) === activeFilter);
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredOnboardings.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentOnboardings = filteredOnboardings.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filter changes
+  const handleFilterChange = (filter) => {
+    setActiveFilter(filter);
+    setCurrentPage(1);
+  };
+
   const stats = [
     { number: onboardings.length.toString(), label: 'Total Onboarding', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-brand-primary to-brand-secondary' },
     { number: onboardings.filter(o => ['contact-established', 'spoc-assigned', 'review-l2'].includes(o.status)).length.toString(), label: 'In Progress', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-brand-accent to-brand-highlight' },
@@ -216,7 +230,7 @@ const Onboarding = () => {
         {filters.map((filter) => (
           <button
             key={filter}
-            onClick={() => setActiveFilter(filter)}
+            onClick={() => handleFilterChange(filter)}
             className={`px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
               activeFilter === filter
                 ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/30'
@@ -266,14 +280,14 @@ const Onboarding = () => {
                   Loading onboardings...
                 </td>
               </tr>
-            ) : filteredOnboardings.length === 0 ? (
+            ) : currentOnboardings.length === 0 ? (
               <tr>
                 <td colSpan="8" className="px-4 py-8 text-center text-text-muted">
                   No onboardings found. Click "Add New Onboarding" to create one.
                 </td>
               </tr>
             ) : (
-              filteredOnboardings.map((item) => {
+              currentOnboardings.map((item) => {
                 const taskId = item.taskNumber || 'N/A';
                 const startDate = new Date(item.createdAt).toISOString().split('T')[0];
                 const memberName = item.artistName || item.member?.artistName || 'N/A';
@@ -349,12 +363,12 @@ const Onboarding = () => {
           <div className="card shadow-md text-center text-text-muted border-border">
             Loading onboardings...
           </div>
-        ) : filteredOnboardings.length === 0 ? (
+        ) : currentOnboardings.length === 0 ? (
           <div className="card shadow-md text-center text-text-muted border-border">
             No onboardings found. Click "Add New Onboarding" to create one.
           </div>
         ) : (
-          filteredOnboardings.map((item) => {
+          currentOnboardings.map((item) => {
             const taskId = item.taskNumber || 'N/A';
             const startDate = new Date(item.createdAt).toISOString().split('T')[0];
             const memberName = item.artistName || item.member?.artistName || 'N/A';
@@ -434,6 +448,78 @@ const Onboarding = () => {
           })
         )}
       </div>
+
+      {/* Pagination */}
+      {filteredOnboardings.length > 0 && (
+        <div className="card shadow-lg shadow-brand-primary/10 flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
+          <div className="text-sm text-text-muted text-center sm:text-left font-medium">
+            Showing {startIndex + 1} to {Math.min(endIndex, filteredOnboardings.length)} of {filteredOnboardings.length} onboardings
+          </div>
+          <div className="flex items-center space-x-2 flex-wrap justify-center">
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="btn-secondary px-3 md:px-4 py-2 text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            {(() => {
+              const pages = [];
+              const showEllipsis = totalPages > 7;
+              
+              if (!showEllipsis) {
+                for (let i = 1; i <= totalPages; i++) {
+                  pages.push(i);
+                }
+              } else {
+                pages.push(1);
+                
+                if (currentPage > 3) {
+                  pages.push('...');
+                }
+                
+                const start = Math.max(2, currentPage - 1);
+                const end = Math.min(totalPages - 1, currentPage + 1);
+                
+                for (let i = start; i <= end; i++) {
+                  if (!pages.includes(i)) pages.push(i);
+                }
+                
+                if (currentPage < totalPages - 2) {
+                  pages.push('...');
+                }
+                
+                if (!pages.includes(totalPages)) pages.push(totalPages);
+              }
+              
+              return pages.map((page, index) => (
+                page === '...' ? (
+                  <span key={`ellipsis-${index}`} className="px-2 text-text-muted">...</span>
+                ) : (
+                  <button 
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 md:px-4 py-2 text-xs md:text-sm rounded-lg font-semibold transition-all ${
+                      currentPage === page
+                        ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/30' 
+                        : 'text-text-muted hover:text-text-primary hover:bg-surface-lighter border border-border'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              ));
+            })()}
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="btn-secondary px-3 md:px-4 py-2 text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* View Onboarding Modal */}
       <ViewOnboardingModal
