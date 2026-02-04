@@ -61,16 +61,12 @@ const MemberManagement = () => {
       }
     }
     
-    // Map tier filter to membership type
+    // Map tier filter to tier field
     let matchesTier = true;
     if (tierFilter !== 'All Tiers') {
-      if (tierFilter === 'Tier 1') {
-        matchesTier = member.membershipType === 'premium';
-      } else if (tierFilter === 'Tier 2') {
-        matchesTier = member.membershipType === 'basic';
-      } else if (tierFilter === 'Tier 3') {
-        matchesTier = member.membershipType === 'vip';
-      }
+      const memberTier = member.tier?.toLowerCase() || '';
+      const filterTier = tierFilter.toLowerCase();
+      matchesTier = memberTier.includes(filterTier.split(' - ')[0].toLowerCase());
     }
     
     return matchesSearch && matchesStatus && matchesTier;
@@ -307,9 +303,14 @@ const MemberManagement = () => {
             className="select flex-1"
           >
             <option>All Tiers</option>
-            <option>Tier 1</option>
-            <option>Tier 2</option>
-            <option>Tier 3</option>
+            <option>Tier 1 - 1M</option>
+            <option>Tier 2 - 750K</option>
+            <option>Tier 3 - 500K</option>
+            <option>Tier 4 - 250K</option>
+            <option>Tier 5 - 100K</option>
+            <option>Tier 6 - 50K</option>
+            <option>Tier 7 - 10K</option>
+            <option>Tier 8 - Below 10K</option>
           </select>
         </div>
       </div>
