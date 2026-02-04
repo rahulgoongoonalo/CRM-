@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Data files
+*.csv
+crm_db.members FINAL.csv
+crm_db.onboardings FINAL.csv

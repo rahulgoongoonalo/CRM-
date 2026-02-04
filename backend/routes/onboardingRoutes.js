@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const onboardings = await Onboarding.find()
-      .populate('member', 'artistName email phone primaryGenres source')
+      .populate('member', 'artistName email phone primaryGenres source tier')
       .sort({ createdAt: -1 });
     
     res.json({
@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const onboarding = await Onboarding.findById(req.params.id)
-      .populate('member', 'artistName email phone primaryGenres source');
+      .populate('member', 'artistName email phone primaryGenres source tier');
     
     if (!onboarding) {
       return res.status(404).json({
@@ -55,11 +55,11 @@ router.get('/:id', async (req, res) => {
 // Create new onboarding
 router.post('/', async (req, res) => {
   try {
-    const { member, memberName, description, spoc, etaClosure, notes, status, createdBy } = req.body;
+    const { member, artistName, description, spoc, etaClosure, notes, status, createdBy } = req.body;
     
     const newOnboarding = new Onboarding({
       member,
-      memberName,
+      artistName,
       description,
       spoc,
       etaClosure,
@@ -70,7 +70,7 @@ router.post('/', async (req, res) => {
     
     const savedOnboarding = await newOnboarding.save();
     const populatedOnboarding = await Onboarding.findById(savedOnboarding._id)
-      .populate('member', 'artistName email phone primaryGenres source');
+      .populate('member', 'artistName email phone primaryGenres source tier');
     
     res.status(201).json({
       success: true,
@@ -103,7 +103,7 @@ router.put('/:id', async (req, res) => {
         status
       },
       { new: true, runValidators: true }
-    ).populate('member', 'artistName email phone primaryGenres source');
+    ).populate('member', 'artistName email phone primaryGenres source tier');
     
     if (!updatedOnboarding) {
       return res.status(404).json({
@@ -165,7 +165,7 @@ router.patch('/:id/step1', async (req, res) => {
         status: 'spoc-assigned'
       },
       { new: true, runValidators: true }
-    ).populate('member', 'artistName email phone primaryGenres source');
+    ).populate('member', 'artistName email phone primaryGenres source tier');
     
     if (!updatedOnboarding) {
       return res.status(404).json({
@@ -212,7 +212,7 @@ router.patch('/:id/l1-questionnaire', async (req, res) => {
         status: 'review-l2'
       },
       { new: true, runValidators: true }
-    ).populate('member', 'artistName email phone primaryGenres source');
+    ).populate('member', 'artistName email phone primaryGenres source tier');
     
     // Update the member with KYC information from L1 data
     if (onboarding.member && l1Data) {
@@ -256,7 +256,7 @@ router.patch('/:id/l2-review', async (req, res) => {
         status: status || 'review-l2'
       },
       { new: true, runValidators: true }
-    ).populate('member', 'artistName email phone primaryGenres source');
+    ).populate('member', 'artistName email phone primaryGenres source tier');
     
     if (!updatedOnboarding) {
       return res.status(404).json({

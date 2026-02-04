@@ -16,7 +16,7 @@ const ViewOnboardingModal = ({ isOpen, onClose, onboarding }) => {
   const taskId = onboarding.taskNumber || 'N/A';
   const startDate = new Date(onboarding.createdAt).toISOString().split('T')[0];
   const etaClosure = onboarding.etaClosure ? new Date(onboarding.etaClosure).toISOString().split('T')[0] : 'N/A';
-  const memberName = onboarding.memberName || onboarding.member?.name || 'N/A';
+  const memberName = onboarding.artistName || onboarding.member?.artistName || 'N/A';
   const memberEmail = onboarding.member?.email || 'N/A';
   const statusDisplay = {
     'contact-established': 'Contact Established',
@@ -54,7 +54,7 @@ const ViewOnboardingModal = ({ isOpen, onClose, onboarding }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Member Name
+                  Artist Name
                 </label>
                 <input
                   type="text"

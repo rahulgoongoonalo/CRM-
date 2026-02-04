@@ -10,7 +10,7 @@ const onboardingSchema = new mongoose.Schema({
     ref: 'Member',
     required: true
   },
-  memberName: {
+  artistName: {
     type: String,
     required: true
   },

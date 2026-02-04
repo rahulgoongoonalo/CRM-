@@ -38,7 +38,7 @@ const Onboarding = () => {
     try {
       const response = await onboardingAPI.create({
         member: formData.member,
-        memberName: formData.memberName,
+        artistName: formData.artistName,
         description: formData.description,
         spoc: formData.spoc,
         etaClosure: formData.etaClosure,
@@ -272,9 +272,9 @@ const Onboarding = () => {
               filteredOnboardings.map((item) => {
                 const taskId = item.taskNumber || 'N/A';
                 const startDate = new Date(item.createdAt).toISOString().split('T')[0];
-                const memberName = item.memberName || item.member?.name || 'N/A';
+                const memberName = item.artistName || item.member?.artistName || 'N/A';
                 const source = item.member?.source || 'N/A';
-                const tier = item.member?.membershipType || 'basic';
+                const tier = item.member?.tier || 'Tier 1';
                 
                 return (
                   <tr key={item._id} className="table-row">
@@ -292,7 +292,7 @@ const Onboarding = () => {
                     </td>
                     <td className="px-4 py-2.5">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-semibold inline-block ${getTierColor(tier)}`}>
-                        {tier === 'premium' ? 'Tier 1' : tier === 'basic' ? 'Tier 2' : 'Tier 3'}
+                        {tier}
                       </span>
                     </td>
                     <td className="px-4 py-2.5">
@@ -353,9 +353,9 @@ const Onboarding = () => {
           filteredOnboardings.map((item) => {
             const taskId = item.taskNumber || 'N/A';
             const startDate = new Date(item.createdAt).toISOString().split('T')[0];
-            const memberName = item.memberName || item.member?.name || 'N/A';
+            const memberName = item.artistName || item.member?.artistName || 'N/A';
             const source = item.member?.source || 'N/A';
-            const tier = item.member?.membershipType || 'basic';
+            const tier = item.member?.tier || 'Tier 1';
             
             return (
               <div 

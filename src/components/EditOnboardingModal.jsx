@@ -62,7 +62,7 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
   if (!isOpen || !onboarding) return null;
 
   const taskId = onboarding.taskNumber || 'N/A';
-  const memberName = onboarding.memberName || onboarding.member?.name || 'N/A';
+  const memberName = onboarding.artistName || onboarding.member?.artistName || 'N/A';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

@@ -43,14 +43,14 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
     e.preventDefault();
     
     try {
-      // Get the member name before submitting
+      // Get the artist name before submitting
       const selectedMember = members.find(m => m._id === formData.member);
-      const memberName = selectedMember?.name || '';
+      const artistName = selectedMember?.artistName || '';
       
       // Call onSubmit which returns the created onboarding ID
       const createdId = await onSubmit({
         ...formData,
-        memberName
+        artistName
       });
       
       if (createdId) {
@@ -58,7 +58,7 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
         
         // Set state and open Step1Modal
         setCreatedOnboardingId(createdId);
-        setSavedMemberName(memberName);
+        setSavedMemberName(artistName);
         setNewTaskId(taskId);
         setIsStep1ModalOpen(true);
       }
