@@ -5,9 +5,9 @@ const memberSchema = new mongoose.Schema({
     type: Number,
     unique: true
   },
-  name: {
+  artistName: {
     type: String,
-    required: [true, 'Please provide member name'],
+    required: [true, 'Please provide artist name'],
     trim: true
   },
   email: {
@@ -24,7 +24,7 @@ const memberSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  address: {
+  location: {
     type: String,
     trim: true
   },
@@ -32,7 +32,7 @@ const memberSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  aliasName: {
+  contactName: {
     type: String,
     trim: true
   },
@@ -45,7 +45,7 @@ const memberSchema = new mongoose.Schema({
     trim: true,
     default: 'tier1'
   },
-  talentRole: {
+  primaryRole: {
     type: String,
     trim: true
   },
@@ -53,7 +53,7 @@ const memberSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  genre: {
+  primaryGenres: {
     type: String,
     trim: true
   },

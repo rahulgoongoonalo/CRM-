@@ -99,6 +99,7 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
                   <option value="Cartel">Cartel</option>
                   <option value="Soumini">Soumini</option>
                   <option value="Marriot">Marriot</option>
+                  <option value="Website">Website</option>
             </select>
           </div>
 

@@ -55,6 +55,7 @@ const onboardingSchema = new mongoose.Schema({
       cityCountry: String,
       yearsActive: String,
       artistBio: String,
+      listenerRegion: String,
       // Representation
       hasManager: String,
       managerName: String,
@@ -69,6 +70,9 @@ const onboardingSchema = new mongoose.Schema({
       streamingLink: String,
       youtube: String,
       instagram: String,
+      facebook: String,
+      twitter: String,
+      soundcloud: String,
       otherPlatforms: String,
       // Existing Contracts
       hasDistributor: String,
@@ -78,8 +82,12 @@ const onboardingSchema = new mongoose.Schema({
       // Goongoonalo Participation
       exclusiveReleases: String,
       openToCollabs: String,
+      performLive: String,
+      upcomingProject: String,
+      interestedInGatecrash: String,
       whyGoongoonalo: String,
       howHeard: String,
+      otherInfo: String,
       // KYC Information
       bankName: String,
       accountNumber: String,

@@ -19,7 +19,7 @@ const MemberDetailModal = ({ isOpen, onClose, member }) => {
           <div className="flex items-center space-x-2">
             <span className="text-white text-sm">MEMBER VIEW</span>
             <span className="text-white text-sm">›</span>
-            <span className="text-white font-semibold">{member.name} ({member.memberId})</span>
+            <span className="text-white font-semibold">{member.artistName} ({member.memberId})</span>
           </div>
           <div className="flex items-center space-x-3">
             <button className="bg-white text-blue-600 px-4 py-1.5 rounded text-sm font-medium hover:bg-gray-100 transition-colors">
@@ -44,7 +44,7 @@ const MemberDetailModal = ({ isOpen, onClose, member }) => {
                   {member.avatar}
                 </div>
                 <div className="text-center">
-                  <p className="text-white text-sm font-semibold">{member.name}</p>
+                  <p className="text-white text-sm font-semibold">{member.artistName}</p>
                 </div>
               </div>
             </div>
@@ -59,24 +59,24 @@ const MemberDetailModal = ({ isOpen, onClose, member }) => {
                     <span className="text-white text-sm font-medium">{member.category || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500 text-sm">Talent Role</span>
-                    <span className="text-white text-sm font-medium">{member.talentRole || 'N/A'}</span>
+                    <span className="text-gray-500 text-sm">Primary Role</span>
+                    <span className="text-white text-sm font-medium">{member.primaryRole || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500 text-sm">Talent Type</span>
                     <span className="text-white text-sm font-medium">{member.talentType || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500 text-sm">Genre</span>
-                    <span className="text-white text-sm font-medium">{member.genre || 'N/A'}</span>
+                    <span className="text-gray-500 text-sm">Primary Genres</span>
+                    <span className="text-white text-sm font-medium">{member.primaryGenres || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500 text-sm">Name</span>
-                    <span className="text-white text-sm font-medium">{member.name}</span>
+                    <span className="text-gray-500 text-sm">Artist Name</span>
+                    <span className="text-white text-sm font-medium">{member.artistName}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500 text-sm">Alias Name</span>
-                    <span className="text-white text-sm font-medium">{member.aliasName || 'N/A'}</span>
+                    <span className="text-gray-500 text-sm">Contact Name</span>
+                    <span className="text-white text-sm font-medium">{member.contactName || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500 text-sm">Email</span>
@@ -104,8 +104,8 @@ const MemberDetailModal = ({ isOpen, onClose, member }) => {
                     <span className="text-white text-sm font-medium">{member.alternateNumber || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500 text-sm">Country</span>
-                    <span className="text-white text-sm font-medium">{member.address || 'N/A'}</span>
+                    <span className="text-gray-500 text-sm">Location</span>
+                    <span className="text-white text-sm font-medium">{member.location || 'N/A'}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500 text-sm">Note</span>

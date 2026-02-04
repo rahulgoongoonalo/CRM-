@@ -144,7 +144,7 @@ const Dashboard = () => {
                           {member.avatar}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-text-primary text-sm font-semibold truncate">{member.name}</div>
+                          <div className="text-text-primary text-sm font-semibold truncate">{member.artistName}</div>
                           <div className="text-text-muted text-xs">{member.source}</div>
                         </div>
                       </div>

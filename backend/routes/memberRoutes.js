@@ -14,14 +14,16 @@ const router = express.Router();
 // @access  Private
 router.get('/', async (req, res) => {
   try {
-    const members = await Member.find().populate('createdBy', 'name email').sort({ createdAt: -1 });
+    console.log('GET /api/members - Request received');
+    const members = await Member.find().sort({ createdAt: -1 });
+    console.log(`Found ${members.length} members`);
     res.json({
       success: true,
       count: members.length,
       data: members
     });
   } catch (error) {
-    console.error(error);
+    console.error('Error in GET /api/members:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
@@ -31,7 +33,7 @@ router.get('/', async (req, res) => {
 // @access  Private
 router.get('/:id', async (req, res) => {
   try {
-    const member = await Member.findById(req.params.id).populate('createdBy', 'name email');
+    const member = await Member.findById(req.params.id);
     
     if (!member) {
       return res.status(404).json({ message: 'Member not found' });
@@ -51,12 +53,11 @@ router.get('/:id', async (req, res) => {
 // @desc    Create new member
 // @access  Private
 router.post('/', [
-  body('name').trim().notEmpty().withMessage('Name is required'),
+  body('artistName').trim().notEmpty().withMessage('Artist name is required'),
   body('email').optional({ checkFalsy: true }).isEmail().withMessage('Valid email is required'),
   body('phone').optional().trim(),
-  body('address').optional().trim(),
-  body('membershipType').optional().isIn(['basic', 'premium', 'vip']),
-  body('status').optional().isIn(['active', 'inactive', 'pending'])
+  body('location').optional().trim(),
+  body('status').optional().isIn(['active', 'inactive', 'pending', 'on hold', 'Active', 'Inactive', 'Pending', 'On Hold'])
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -69,10 +70,10 @@ router.post('/', [
 
   try {
     const { 
-      name, email, phone, alternateNumber, address, aliasName, 
-      category, tier, talentRole, talentType, genre, source, spoc, 
+      artistName, email, phone, alternateNumber, location, contactName, 
+      category, tier, primaryRole, talentType, primaryGenres, source, spoc, 
       biography, bankName, accountNumber, ifscCode, panNumber, 
-      aadharNumber, membershipType, status, notes 
+      aadharNumber, status, notes 
     } = req.body;
 
     // Convert empty email to null to avoid unique constraint issues
@@ -87,17 +88,17 @@ router.post('/', [
     }
 
     const member = await Member.create({
-      name,
+      artistName,
       email: emailValue,
       phone,
       alternateNumber,
-      address,
-      aliasName,
+      location,
+      contactName,
       category,
       tier,
-      talentRole,
+      primaryRole,
       talentType,
-      genre,
+      primaryGenres,
       source,
       spoc,
       biography,
@@ -106,8 +107,7 @@ router.post('/', [
       ifscCode,
       panNumber,
       aadharNumber,
-      membershipType: membershipType || 'basic',
-      status: status || 'active',
+      status: status || 'pending',
       notes,
       createdBy: req.user?._id || null
     });
@@ -147,10 +147,10 @@ router.put('/:id', async (req, res) => {
     }
 
     const { 
-      name, email, phone, alternateNumber, address, aliasName, 
-      category, tier, talentRole, talentType, genre, source, spoc, 
+      artistName, email, phone, alternateNumber, location, contactName, 
+      category, tier, primaryRole, talentType, primaryGenres, source, spoc, 
       biography, bankName, accountNumber, ifscCode, panNumber, 
-      aadharNumber, membershipType, status, notes 
+      aadharNumber, status, notes 
     } = req.body;
 
     // Check if email is being changed and if it's already taken
@@ -164,10 +164,10 @@ router.put('/:id', async (req, res) => {
     const updatedMember = await Member.findByIdAndUpdate(
       req.params.id,
       { 
-        name, email, phone, alternateNumber, address, aliasName, 
-        category, tier, talentRole, talentType, genre, source, spoc, 
+        artistName, email, phone, alternateNumber, location, contactName, 
+        category, tier, primaryRole, talentType, primaryGenres, source, spoc, 
         biography, bankName, accountNumber, ifscCode, panNumber, 
-        aadharNumber, membershipType, status, notes 
+        aadharNumber, status, notes 
       },
       { new: true, runValidators: true }
     );

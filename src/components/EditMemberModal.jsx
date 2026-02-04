@@ -24,21 +24,21 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
     if (member) {
       const notes = member.notes ? member.notes.split(', ') : [];
       const category = notes.find(n => n.startsWith('Category:'))?.split(': ')[1] || member.category || 'Premier';
-      const talentRole = notes.find(n => n.startsWith('Role:'))?.split(': ')[1] || member.talentRole || '';
+      const talentRole = notes.find(n => n.startsWith('Role:'))?.split(': ')[1] || member.primaryRole || '';
       const source = notes.find(n => n.startsWith('Source:'))?.split(': ')[1] || member.source || 'Personal Reference';
       
       setFormData({
-        fullName: member.name || '',
-        aliasName: member.aliasName || '',
+        fullName: member.artistName || '',
+        aliasName: member.contactName || '',
         email: member.email || '',
         contactNumber: member.phone || '',
         alternateNumber: member.alternateNumber || '',
-        country: member.address || '',
+        country: member.location || '',
         category: member.category || category,
         tier: member.tier || 'Tier 1',
-        talentRole: member.talentRole || talentRole,
+        talentRole: member.primaryRole || talentRole,
         talentType: member.talentType || '',
-        genre: member.genre || '',
+        genre: member.primaryGenres || '',
         source: member.source || source,
         spoc: member.spoc || '',
         status: member.status?.charAt(0).toUpperCase() + member.status?.slice(1) || 'Active',
@@ -292,6 +292,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                   <option value="Cartel">Cartel</option>
                   <option value="Soumini">Soumini</option>
                   <option value="Marriot">Marriot</option>
+                  <option value="Website">Website</option>
                 </select>
               </div>
             </div>

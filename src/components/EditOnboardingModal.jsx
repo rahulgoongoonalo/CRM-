@@ -107,7 +107,7 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                   ) : (
                     members.map((member) => (
                       <option key={member._id} value={member._id}>
-                        {member.name} - {member.email}
+                        {member.artistName} - {member.email}
                       </option>
                     ))
                   )}

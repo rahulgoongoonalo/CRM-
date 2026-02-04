@@ -43,7 +43,7 @@ const MemberManagement = () => {
   // Filter members based on search query, status, and tier
   const filteredMembers = members.filter((member) => {
     const matchesSearch = 
-      member.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      member.artistName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       member.email?.toLowerCase().includes(searchQuery.toLowerCase());
     
     // Map status filter to backend enum values
@@ -102,17 +102,17 @@ const MemberManagement = () => {
       }
 
       const memberPayload = {
-        name: newMemberData.fullName,
+        artistName: newMemberData.fullName,
         email: newMemberData.email,
         phone: newMemberData.contactNumber,
         alternateNumber: newMemberData.alternateNumber,
-        address: newMemberData.country,
-        aliasName: newMemberData.aliasName,
+        location: newMemberData.country,
+        contactName: newMemberData.aliasName,
         category: newMemberData.category,
         tier: newMemberData.tier,
-        talentRole: newMemberData.talentRole,
+        primaryRole: newMemberData.talentRole,
         talentType: newMemberData.talentType,
-        genre: newMemberData.genre,
+        primaryGenres: newMemberData.genre,
         source: newMemberData.source,
         spoc: newMemberData.spoc,
         biography: newMemberData.biography,
@@ -142,8 +142,7 @@ const MemberManagement = () => {
   const handleViewMember = (member) => {
     // Add member ID for display
     const memberId = member.memberNumber || 'N/A';
-    const tier = member.membershipType === 'premium' ? 'Tier 1' : 
-                member.membershipType === 'basic' ? 'Tier 2' : 'Tier 3';
+    const tier = member.tier || 'Tier 1';
     
     const transformedMember = {
       ...member,
@@ -164,17 +163,17 @@ const MemberManagement = () => {
       }
 
       const memberPayload = {
-        name: updatedData.fullName,
+        artistName: updatedData.fullName,
         email: updatedData.email,
         phone: updatedData.contactNumber,
         alternateNumber: updatedData.alternateNumber,
-        address: updatedData.country,
-        aliasName: updatedData.aliasName,
+        location: updatedData.country,
+        contactName: updatedData.aliasName,
         category: updatedData.category,
         tier: updatedData.tier,
-        talentRole: updatedData.talentRole,
+        primaryRole: updatedData.talentRole,
         talentType: updatedData.talentType,
-        genre: updatedData.genre,
+        primaryGenres: updatedData.genre,
         source: updatedData.source,
         spoc: updatedData.spoc,
         biography: updatedData.biography,
@@ -375,13 +374,12 @@ const MemberManagement = () => {
               </tr>
             ) : (
               currentMembers.map((member) => {
-                const avatar = member.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'NA';
-                const genre = member.genre || 'N/A';
+                const avatar = member.artistName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'NA';
+                const genre = member.primaryGenres || 'N/A';
                 const spoc = member.spoc || 'N/A';
-                const talentRole = member.talentRole || 'N/A';
+                const talentRole = member.primaryRole || 'N/A';
                 const source = member.source || 'N/A';
-                const tier = member.membershipType === 'premium' ? 'Tier 1' : 
-                            member.membershipType === 'basic' ? 'Tier 2' : 'Tier 3';
+                const tier = member.tier || 'Tier 1';
                 
                 return (
                   <tr 
@@ -398,7 +396,7 @@ const MemberManagement = () => {
                           <div className="absolute -bottom-0.5 -right-0.5 bg-emerald-500 w-2.5 h-2.5 rounded-full border-2 border-surface"></div>
                         </div>
                         <div className="min-w-0">
-                          <div className="text-text-primary font-semibold text-sm truncate">{member.name}</div>
+                          <div className="text-text-primary font-semibold text-sm truncate">{member.artistName}</div>
                           <div className="text-text-muted text-xs truncate">{member.email}</div>
                         </div>
                       </div>
@@ -448,7 +446,7 @@ const MemberManagement = () => {
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDeleteMember(member._id, member.name);
+                            handleDeleteMember(member._id, member.artistName);
                           }}
                           className="text-text-muted hover:text-red-400 transition-colors"
                         >
@@ -476,9 +474,8 @@ const MemberManagement = () => {
           </div>
         ) : (
           currentMembers.map((member) => {
-            const avatar = member.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'NA';
-            const tier = member.membershipType === 'premium' ? 'Tier 1' : 
-                        member.membershipType === 'basic' ? 'Tier 2' : 'Tier 3';
+            const avatar = member.artistName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'NA';
+            const tier = member.tier || 'Tier 1';
             
             return (
               <div 
@@ -496,7 +493,7 @@ const MemberManagement = () => {
                       <div className="absolute -bottom-0.5 -right-0.5 bg-emerald-500 w-3 h-3 rounded-full border-2 border-surface"></div>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-text-primary font-bold text-base truncate">{member.name}</div>
+                      <div className="text-text-primary font-bold text-base truncate">{member.artistName}</div>
                       <div className="text-text-muted text-sm truncate">{member.email || 'No email'}</div>
                     </div>
                   </div>
@@ -509,11 +506,11 @@ const MemberManagement = () => {
                 <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
                   <div>
                     <span className="text-text-muted font-medium">Genre:</span>
-                    <span className="text-text-primary ml-1">{member.genre || 'N/A'}</span>
+                    <span className="text-text-primary ml-1">{member.primaryGenres || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="text-text-muted font-medium">Role:</span>
-                    <span className="text-text-primary ml-1">{member.talentRole || 'N/A'}</span>
+                    <span className="text-text-primary ml-1">{member.primaryRole || 'N/A'}</span>
                   </div>
                   <div>
                     <span className="text-text-muted font-medium">Source:</span>
@@ -551,7 +548,7 @@ const MemberManagement = () => {
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDeleteMember(member._id, member.name);
+                      handleDeleteMember(member._id, member.artistName);
                     }}
                     className="flex-1 flex items-center justify-center space-x-1 text-text-muted hover:text-red-400 py-2 transition-colors"
                   >

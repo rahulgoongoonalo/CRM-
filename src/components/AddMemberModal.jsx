@@ -84,12 +84,12 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Full Name <span className="text-red-400">*</span>
+                  Artist Name <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
                   name="fullName"
-                  placeholder="Enter full name"
+                  placeholder="Enter artist name"
                   value={formData.fullName}
                   onChange={handleChange}
                   required
@@ -98,12 +98,12 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Alias Name
+                  Contact Name
                 </label>
                 <input
                   type="text"
                   name="aliasName"
-                  placeholder="Enter alias/stage name"
+                  placeholder="Enter contact person name"
                   value={formData.aliasName}
                   onChange={handleChange}
                   className="input w-full"
@@ -145,6 +145,19 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  name="country"
+                  placeholder="Enter city or location"
+                  value={formData.country}
+                  onChange={handleChange}
+                  className="input w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Alternate Number
                 </label>
                 <input
@@ -155,23 +168,6 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   onChange={handleChange}
                   className="input w-full"
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Country
-                </label>
-                <select
-                  name="country"
-                  value={formData.country}
-                  onChange={handleChange}
-                  className="select w-full"
-                >
-                  <option value="">Select country</option>
-                  <option value="India">India</option>
-                  <option value="USA">USA</option>
-                  <option value="UK">UK</option>
-                  <option value="Canada">Canada</option>
-                </select>
               </div>
             </div>
 
@@ -224,7 +220,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Talent Role
+                  Primary Role
                 </label>
                 <input
                   type="text"
@@ -256,7 +252,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Genre
+                  Primary Genres
                 </label>
                 <input
                   type="text"
@@ -286,6 +282,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   <option value="Cartel">Cartel</option>
                   <option value="Soumini">Soumini</option>
                   <option value="Marriot">Marriot</option>
+                  <option value="Website">Website</option>
 
                 </select>
               </div>

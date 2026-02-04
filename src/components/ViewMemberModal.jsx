@@ -35,18 +35,18 @@ const ViewMemberModal = ({ isOpen, onClose, member }) => {
                 </label>
                 <input
                   type="text"
-                  value={member.name || ''}
+                  value={member.artistName || ''}
                   disabled
                   className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Alias Name
+                  Contact Name
                 </label>
                 <input
                   type="text"
-                  value={member.aliasName || ''}
+                  value={member.contactName || ''}
                   disabled
                   className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
@@ -92,11 +92,11 @@ const ViewMemberModal = ({ isOpen, onClose, member }) => {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Country
+                  Location
                 </label>
                 <input
                   type="text"
-                  value={member.address || ''}
+                  value={member.location || ''}
                   disabled
                   className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
@@ -131,11 +131,11 @@ const ViewMemberModal = ({ isOpen, onClose, member }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Talent Role
+                  Primary Role
                 </label>
                 <input
                   type="text"
-                  value={member.talentRole || ''}
+                  value={member.primaryRole || ''}
                   disabled
                   className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />
@@ -156,11 +156,11 @@ const ViewMemberModal = ({ isOpen, onClose, member }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Genre
+                  Primary Genres
                 </label>
                 <input
                   type="text"
-                  value={member.genre || ''}
+                  value={member.primaryGenres || ''}
                   disabled
                   className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
                 />

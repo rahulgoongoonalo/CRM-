@@ -12,6 +12,7 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
     cityCountry: '',
     yearsActive: '',
     artistBio: '',
+    listenerRegion: '',
     // Representation
     hasManager: 'No',
     managerName: '',
@@ -26,6 +27,9 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
     streamingLink: '',
     youtube: '',
     instagram: '',
+    facebook: '',
+    twitter: '',
+    soundcloud: '',
     otherPlatforms: '',
     // Existing Contracts
     hasDistributor: 'No',
@@ -35,8 +39,12 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
     // Goongoonalo Participation
     exclusiveReleases: 'Yes',
     openToCollabs: 'Yes',
+    performLive: '',
+    upcomingProject: '',
+    interestedInGatecrash: 'No',
     whyGoongoonalo: '',
     howHeard: '',
+    otherInfo: '',
     // KYC Information
     bankName: '',
     accountNumber: '',
@@ -216,6 +224,20 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
                   className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
                 />
               </div>
+
+              <div>
+                <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                  Listener Region
+                </label>
+                <input
+                  type="text"
+                  name="listenerRegion"
+                  value={formData.listenerRegion}
+                  onChange={handleChange}
+                  placeholder="e.g., India, USA, Global"
+                  className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
             </div>
 
             {/* REPRESENTATION */}
@@ -360,7 +382,7 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
                   className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
-<div className="grid grid-cols-2 gap-4">
+<div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-gray-400 text-sm mb-1.5 text-left">
                     YouTube Channel
@@ -387,18 +409,61 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
                   />
                 </div>
               </div>
-              
-              <div className="mt-4">
-                <label className="block text-gray-400 text-sm mb-1.5 text-left">
-                  Other Platforms
-                </label>
-                <input
-                  type="text"
-                  name="otherPlatforms"
-                  value={formData.otherPlatforms}
-                  onChange={handleChange}
-                  className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                />
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                    Facebook Link
+                  </label>
+                  <input
+                    type="text"
+                    name="facebook"
+                    value={formData.facebook}
+                    onChange={handleChange}
+                    className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                    Twitter Link
+                  </label>
+                  <input
+                    type="text"
+                    name="twitter"
+                    value={formData.twitter}
+                    onChange={handleChange}
+                    className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                    SoundCloud Link
+                  </label>
+                  <input
+                    type="text"
+                    name="soundcloud"
+                    value={formData.soundcloud}
+                    onChange={handleChange}
+                    className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                    Other Platforms
+                  </label>
+                  <input
+                    type="text"
+                    name="otherPlatforms"
+                    value={formData.otherPlatforms}
+                    onChange={handleChange}
+                    className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
               </div>
             </div>
 
@@ -504,7 +569,7 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-gray-400 text-sm mb-1.5 text-left">
                     Why Goongoonalo?
@@ -528,6 +593,67 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
                     value={formData.howHeard}
                     onChange={handleChange}
                     className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                    Perform Live?
+                  </label>
+                  <input
+                    type="text"
+                    name="performLive"
+                    value={formData.performLive}
+                    onChange={handleChange}
+                    placeholder="Yes/No or frequency"
+                    className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                    Upcoming Project
+                  </label>
+                  <input
+                    type="text"
+                    name="upcomingProject"
+                    value={formData.upcomingProject}
+                    onChange={handleChange}
+                    placeholder="Brief description"
+                    className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                    Interested in Gatecrash?
+                  </label>
+                  <select
+                    name="interestedInGatecrash"
+                    value={formData.interestedInGatecrash}
+                    onChange={handleChange}
+                    className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent cursor-pointer"
+                  >
+                    <option>No</option>
+                    <option>Yes</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-gray-400 text-sm mb-1.5 text-left">
+                    Other Info
+                  </label>
+                  <input
+                    type="text"
+                    name="otherInfo"
+                    value={formData.otherInfo}
+                    onChange={handleChange}
+                    placeholder="Any additional information"
+                    className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
               </div>
