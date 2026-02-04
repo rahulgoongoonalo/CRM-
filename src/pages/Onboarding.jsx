@@ -127,14 +127,16 @@ const Onboarding = () => {
   };
       
   const getStatusColor = (status) => {
+    const statusLower = status?.toLowerCase() || '';
     const statusMap = {
-      'contact-established': 'badge-primary',
-      'spoc-assigned': 'badge-primary',
-      'review-l2': 'badge-warning',
-      'closed-won': 'badge-success',
-      'closed-lost': 'badge-danger'
+      'pending': 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
+      'contact-established': 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
+      'spoc-assigned': 'bg-purple-500/20 text-purple-400 border border-purple-500/30',
+      'review-l2': 'bg-orange-500/20 text-orange-400 border border-orange-500/30',
+      'closed-won': 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
+      'closed-lost': 'bg-red-500/20 text-red-400 border border-red-500/30'
     };
-    return statusMap[status] || 'bg-surface-lighter/50 text-text-muted border border-border';
+    return statusMap[statusLower] || 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
   };
 
   const getTierColor = (tier) => {
@@ -146,14 +148,16 @@ const Onboarding = () => {
   };
 
   const formatStatus = (status) => {
+    const statusLower = status?.toLowerCase() || '';
     const statusMap = {
+      'pending': 'Pending',
       'contact-established': 'Contact Established',
       'spoc-assigned': 'SPOC Assigned',
       'review-l2': 'Review for L2',
       'closed-won': 'Closed Won',
       'closed-lost': 'Closed Lost'
     };
-    return statusMap[status] || status;
+    return statusMap[statusLower] || status || 'Pending';
   };
 
   const filteredOnboardings = activeFilter === 'All' 
@@ -299,7 +303,7 @@ const Onboarding = () => {
                       <span className="text-text-secondary text-xs">{item.spoc}</span>
                     </td>
                     <td className="px-4 py-2.5">
-                      <span className={`${getStatusColor(item.status)}`}>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold inline-block ${getStatusColor(item.status)}`}>
                         {formatStatus(item.status)}
                       </span>
                     </td>
@@ -367,14 +371,14 @@ const Onboarding = () => {
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
                       <span className="text-brand-accent font-bold text-sm">#{taskId}</span>
-                      <span className={`${getStatusColor(item.status)}`}>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold inline-block ${getStatusColor(item.status)}`}>
                         {formatStatus(item.status)}
                       </span>
                     </div>
                     <div className="text-text-primary font-bold text-base">{memberName}</div>
                   </div>
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap ml-2 ${getTierColor(tier)}`}>
-                    {tier === 'premium' ? 'Tier 1' : tier === 'basic' ? 'Tier 2' : 'Tier 3'}
+                    {tier}
                   </span>
                 </div>
 

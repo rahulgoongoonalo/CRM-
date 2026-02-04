@@ -38,7 +38,7 @@ const MemberManagement = () => {
     }
   };
 
-  const itemsPerPage = 5;
+  const itemsPerPage = 100;
 
   // Filter members based on search query, status, and tier
   const filteredMembers = members.filter((member) => {
@@ -376,7 +376,7 @@ const MemberManagement = () => {
               currentMembers.map((member) => {
                 const avatar = member.artistName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'NA';
                 const genre = member.primaryGenres || 'N/A';
-                const spoc = member.spoc || 'N/A';
+                const notes = member.notes || '';
                 const talentRole = member.primaryRole || 'N/A';
                 const source = member.source || 'N/A';
                 const tier = member.tier || 'Tier 1';
@@ -405,7 +405,7 @@ const MemberManagement = () => {
                       <span className="text-text-secondary text-sm">{genre}</span>
                     </td>
                     <td className="px-3 py-3">
-                      <span className="text-text-secondary text-sm truncate block">{spoc}</span>
+                      <span className="text-text-secondary text-sm truncate block">{notes}</span>
                     </td>
                     <td className="px-3 py-3">
                       <span className="text-text-secondary text-sm truncate block">{talentRole}</span>
@@ -575,19 +575,57 @@ const MemberManagement = () => {
           >
             Previous
           </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <button 
-              key={page}
-              onClick={() => setCurrentPage(page)}
-              className={`px-3 md:px-4 py-2 text-xs md:text-sm rounded-lg font-semibold transition-all ${
-                currentPage === page
-                  ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/30' 
-                  : 'text-text-muted hover:text-text-primary hover:bg-surface-lighter border border-border'
-              }`}
-            >
-              {page}
-            </button>
-          ))}
+          {(() => {
+            const pages = [];
+            const showEllipsis = totalPages > 7;
+            
+            if (!showEllipsis) {
+              // Show all pages if 7 or less
+              for (let i = 1; i <= totalPages; i++) {
+                pages.push(i);
+              }
+            } else {
+              // Always show first page
+              pages.push(1);
+              
+              if (currentPage > 3) {
+                pages.push('...');
+              }
+              
+              // Show pages around current page
+              const start = Math.max(2, currentPage - 1);
+              const end = Math.min(totalPages - 1, currentPage + 1);
+              
+              for (let i = start; i <= end; i++) {
+                if (!pages.includes(i)) pages.push(i);
+              }
+              
+              if (currentPage < totalPages - 2) {
+                pages.push('...');
+              }
+              
+              // Always show last page
+              if (!pages.includes(totalPages)) pages.push(totalPages);
+            }
+            
+            return pages.map((page, index) => (
+              page === '...' ? (
+                <span key={`ellipsis-${index}`} className="px-2 text-text-muted">...</span>
+              ) : (
+                <button 
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-3 md:px-4 py-2 text-xs md:text-sm rounded-lg font-semibold transition-all ${
+                    currentPage === page
+                      ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/30' 
+                      : 'text-text-muted hover:text-text-primary hover:bg-surface-lighter border border-border'
+                  }`}
+                >
+                  {page}
+                </button>
+              )
+            ));
+          })()}
           <button 
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
             disabled={currentPage === totalPages}
