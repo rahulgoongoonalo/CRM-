@@ -1,4 +1,4 @@
-import { RiUserAddLine, RiEyeLine, RiEditLine, RiDeleteBinLine, RiSendPlaneLine } from 'react-icons/ri';
+import { RiUserAddLine, RiEyeLine, RiEditLine, RiDeleteBinLine, RiSendPlaneLine, RiSearchLine } from 'react-icons/ri';
 import { useState, useEffect } from 'react';
 import AddOnboardingModal from '../components/AddOnboardingModal';
 import ViewOnboardingModal from '../components/ViewOnboardingModal';
@@ -13,6 +13,7 @@ const Onboarding = () => {
   const [isL2ReviewModalOpen, setIsL2ReviewModalOpen] = useState(false);
   const [selectedOnboarding, setSelectedOnboarding] = useState(null);
   const [activeFilter, setActiveFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
   const [onboardings, setOnboardings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -162,9 +163,16 @@ const Onboarding = () => {
     return statusMap[statusLower] || status || 'Pending';
   };
 
-  const filteredOnboardings = activeFilter === 'All' 
-    ? onboardings 
-    : onboardings.filter(o => formatStatus(o.status) === activeFilter);
+  const filteredOnboardings = onboardings.filter((o) => {
+    const matchesSearch = 
+      o.artistName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      o.spoc?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      o.source?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesFilter = activeFilter === 'All' || formatStatus(o.status) === activeFilter;
+    
+    return matchesSearch && matchesFilter;
+  });
 
   // Pagination logic
   const totalPages = Math.ceil(filteredOnboardings.length / itemsPerPage);
@@ -175,6 +183,11 @@ const Onboarding = () => {
   // Reset to page 1 when filter changes
   const handleFilterChange = (filter) => {
     setActiveFilter(filter);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
     setCurrentPage(1);
   };
 
@@ -225,8 +238,24 @@ const Onboarding = () => {
         ))}
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center space-x-2 mb-6 overflow-x-auto">
+      {/* Search and Filter Section */}
+      <div className="card shadow-lg shadow-brand-primary/10 mb-6">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
+          {/* Search Input */}
+          <div className="relative flex-1 max-w-full sm:max-w-md">
+            <RiSearchLine className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted text-sm" />
+            <input
+              type="text"
+              placeholder="Search by artist name, SPOC, or source..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="input w-full text-sm pl-9"
+            />
+          </div>
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="flex items-center space-x-2 overflow-x-auto">
         {filters.map((filter) => (
           <button
             key={filter}
@@ -240,6 +269,7 @@ const Onboarding = () => {
             {filter}
           </button>
         ))}
+        </div>
       </div>
 
       {/* Table - Desktop View */}
