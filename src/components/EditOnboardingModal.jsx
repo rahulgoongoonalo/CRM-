@@ -133,13 +133,12 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                 {/* SPOC */}
                 <div>
                   <label className="block text-sm font-semibold text-text-secondary mb-2">
-                    Assign SPOC <span className="text-red-400">*</span>
+                    Assign SPOC
                   </label>
                   <select
                     name="spoc"
                     value={formData.spoc}
                     onChange={handleChange}
-                    required
                     className="select w-full cursor-pointer"
                   >
                     <option value="">Select SPOC</option>
@@ -172,13 +171,12 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
               {/* Status */}
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Status <span className="text-red-400">*</span>
+                  Status
                 </label>
                 <select
                   name="status"
                   value={formData.status}
                   onChange={handleChange}
-                  required
                   className="select w-full cursor-pointer"
                 >
                   <option value="contact-established">Contact Established</option>

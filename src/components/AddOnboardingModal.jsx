@@ -145,13 +145,12 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
               {/* Assign SPOC */}
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Assign SPOC <span className="text-red-400">*</span>
+                  Assign SPOC
                 </label>
                 <select
                   name="spoc"
                   value={formData.spoc}
                   onChange={handleChange}
-                  required
                   className="select w-full cursor-pointer"
                 >
                   <option value="">Select SPOC</option>

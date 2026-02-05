@@ -68,7 +68,7 @@ const Step1Modal = ({ isOpen, onClose, onboardingId, memberName, taskId }) => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Source <span className="text-red-500">*</span>
+                Source
               </label>
               <select
                 value={formData.source}
@@ -87,7 +87,7 @@ const Step1Modal = ({ isOpen, onClose, onboardingId, memberName, taskId }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Contact Status <span className="text-red-500">*</span>
+                Contact Status
               </label>
               <select
                 value={formData.contactStatus}

@@ -114,7 +114,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Email Address <span className="text-red-400">*</span>
+                  Email Address
                 </label>
                 <input
                   type="email"
@@ -122,13 +122,12 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   placeholder="Enter email address"
                   value={formData.email}
                   onChange={handleChange}
-                  required
                   className="input w-full"
                 />
               </div>
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Contact Number <span className="text-red-400">*</span>
+                  Contact Number
                 </label>
                 <input
                   type="tel"
@@ -137,7 +136,6 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   value={formData.contactNumber}
                   onChange={handleChange}
                   className="input w-full"
-                  required
                 />
               </div>
             </div>
@@ -265,13 +263,12 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Source <span className="text-red-400">*</span>
+                  Source
                 </label>
                 <select
                   name="source"
                   value={formData.source}
                   onChange={handleChange}
-                  required
                   className="select w-full"
                 >
                   <option value="">Select source</option>

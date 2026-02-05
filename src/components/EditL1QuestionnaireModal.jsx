@@ -149,7 +149,6 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
           <div>
             <h2 className="text-xl font-semibold text-white">Edit L1 Questionnaire</h2>
             <p className="text-green-100 text-sm">Task ID: {taskId} | Member: {memberName}</p>
-            <p className="text-green-100 text-xs mt-1">Only Artist Name and Phone are required</p>
           </div>
           <button
             onClick={onClose}
@@ -169,14 +168,13 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Artist / Band Name <span className="text-red-400">*</span>
+                    Artist / Band Name
                   </label>
                   <input
                     type="text"
                     name="artistName"
                     value={formData.artistName}
                     onChange={handleChange}
-                    required
                     className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
@@ -211,14 +209,13 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Phone <span className="text-red-400">*</span>
+                    Phone
                   </label>
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    required
                     className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>

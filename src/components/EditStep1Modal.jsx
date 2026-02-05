@@ -82,13 +82,12 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
           {/* Source */}
           <div>
             <label className="block text-sm font-semibold text-text-secondary mb-2">
-              Source <span className="text-red-400">*</span>
+              Source
             </label>
             <select
               name="source"
               value={formData.source}
               onChange={handleChange}
-              required
               className="select w-full"
             >
               <option value="">Select Source</option>
@@ -106,13 +105,12 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
           {/* Contact Status */}
           <div>
             <label className="block text-sm font-semibold text-text-secondary mb-2">
-              Contact Status <span className="text-red-400">*</span>
+              Contact Status
             </label>
             <select
               name="contactStatus"
               value={formData.contactStatus}
               onChange={handleChange}
-              required
               className="select w-full"
             >
               <option value="">Select Status</option>

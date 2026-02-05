@@ -109,7 +109,7 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
         <div className="bg-green-600 px-6 py-4 rounded-t-lg flex justify-between items-center sticky top-0 z-10">
           <div>
             <h2 className="text-xl font-semibold text-white">L1 Questionnaire - Initial Contact</h2>
-            <p className="text-green-100 text-sm">Only Artist Name and Phone are required</p>
+            <p className="text-green-100 text-sm">Fill in the questionnaire details</p>
           </div>
           <button
             onClick={onClose}
@@ -129,14 +129,13 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-gray-400 text-sm mb-1.5 text-left">
-                    Artist / Band Name <span className="text-red-400">*</span>
+                    Artist / Band Name
                   </label>
                   <input
                     type="text"
                     name="artistName"
                     value={formData.artistName}
                     onChange={handleChange}
-                    required
                     className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
@@ -171,14 +170,13 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
                 
                 <div>
                   <label className="block text-gray-400 text-sm mb-1.5 text-left">
-                    Phone / WhatsApp <span className="text-red-400">*</span>
+                    Phone / WhatsApp
                   </label>
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    required
                     className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
