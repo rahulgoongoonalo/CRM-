@@ -25,7 +25,7 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
   if (!isOpen || !onboarding) return null;
 
   const taskId = onboarding.taskNumber || 'N/A';
-  const memberName = onboarding.memberName || onboarding.member?.name || 'N/A';
+  const memberName = onboarding.artistName || onboarding.member?.artistName || 'N/A';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -99,6 +99,10 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
                   <option value="Soumini">Soumini</option>
                   <option value="Marriot">Marriot</option>
                   <option value="Website">Website</option>
+                  <option value="SVF">SVF</option>
+                  <option value="AME">AME</option>
+                  <option value="Caartel Music">Caartel Music</option>
+                  <option value="Manipuri Zone">Manipuri Zone</option>
             </select>
           </div>
 

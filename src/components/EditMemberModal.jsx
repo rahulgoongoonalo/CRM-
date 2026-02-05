@@ -290,6 +290,10 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                   <option value="Soumini">Soumini</option>
                   <option value="Marriot">Marriot</option>
                   <option value="Website">Website</option>
+                  <option value="SVF">SVF</option>
+                  <option value="AME">AME</option>
+                  <option value="Caartel Music">Caartel Music</option>
+                  <option value="Manipuri Zone">Manipuri Zone</option>
                 </select>
               </div>
             </div>

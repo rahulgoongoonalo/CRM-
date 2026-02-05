@@ -98,7 +98,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
   if (!isOpen || !onboarding) return null;
 
   const taskId = onboarding.taskNumber || 'N/A';
-  const memberName = onboarding.memberName || onboarding.member?.name || 'N/A';
+  const memberName = onboarding.artistName || onboarding.member?.artistName || 'N/A';
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;

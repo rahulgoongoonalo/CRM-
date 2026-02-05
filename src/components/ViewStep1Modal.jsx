@@ -5,7 +5,7 @@ const ViewStep1Modal = ({ isOpen, onClose, onboarding }) => {
 
   const step1Data = onboarding.step1Data || {};
   const taskId = onboarding.taskNumber || 'N/A';
-  const memberName = onboarding.memberName || onboarding.member?.name || 'N/A';
+  const memberName = onboarding.artistName || onboarding.member?.artistName || 'N/A';
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-[60] p-4" onClick={onClose}>
