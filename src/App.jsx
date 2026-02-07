@@ -10,6 +10,7 @@ import Onboarding from './pages/Onboarding';
 import Reporting from './pages/Reporting';
 import Campaigns from './pages/Campaigns';
 import Settings from './pages/Settings';
+import MemberOnboardingStatus from './pages/MemberOnboardingStatus';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
             <Route path="members" element={<MemberManagement />} />
             <Route path="onboarding" element={<Onboarding />} />
             <Route path="reporting" element={<Reporting />} />
+            <Route path="member-onboarding-status" element={<MemberOnboardingStatus />} />
             <Route path="campaigns" element={<Campaigns />} />
             <Route path="settings" element={<Settings />} />
           </Route>

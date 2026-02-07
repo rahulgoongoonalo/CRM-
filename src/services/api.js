@@ -1,7 +1,8 @@
 import axios from 'axios';
 
-// API URL - reads from .env file (VITE_API_URL)
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// API URL - in development, use relative URL to leverage Vite proxy
+// In production, use environment variable or full URL
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // Create axios instance
 const api = axios.create({
@@ -95,6 +96,12 @@ export const onboardingAPI = {
     const response = await api.patch(`/onboarding/${id}/l2-review`, l2Data);
     return response.data;
   }
+};
+
+// Reports API
+export const getOnboardingStatusReport = async () => {
+  const response = await api.get('/onboarding/reports/onboarding-status');
+  return response.data;
 };
 
 export default api;

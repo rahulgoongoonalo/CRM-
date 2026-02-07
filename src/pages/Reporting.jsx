@@ -1,48 +1,57 @@
 import { RiUserLine, RiTicket2Line, RiCheckboxCircleLine, RiTimeLine, RiFileTextLine, RiLayoutGridLine } from 'react-icons/ri';
+import { useNavigate } from 'react-router-dom';
 
 const Reporting = () => {
+  const navigate = useNavigate();
+  
   const reportCards = [
     {
       icon: <RiUserLine className="text-2xl" />,
-      title: 'Member Status Report',
-      description: 'Overview of all member statuses and classifications',
+      title: 'Member Onboarding Status',
+      description: 'Overview of all member onboarding progress and status',
       iconBg: 'bg-brand-primary/20',
-      iconColor: 'text-brand-accent'
+      iconColor: 'text-brand-accent',
+      route: '/member-onboarding-status'
     },
     {
       icon: <RiTicket2Line className="text-2xl" />,
       title: 'Tickets & SLA Report',
       description: 'Support ticket analytics and SLA compliance',
       iconBg: 'bg-brand-secondary/20',
-      iconColor: 'text-brand-highlight'
+      iconColor: 'text-brand-highlight',
+      route: null
     },
     {
       icon: <RiFileTextLine className="text-2xl" />,
       title: 'CRM Task Report',
       description: 'Pending, completed & overdue tasks by owner',
       iconBg: 'bg-brand-primary/20',
-      iconColor: 'text-brand-accent'
+      iconColor: 'text-brand-accent',
+      route: null
     },
     {
       icon: <RiLayoutGridLine className="text-2xl" />,
       title: 'Onboarding Pipeline',
       description: 'Member onboarding progress across stages',
       iconBg: 'bg-brand-secondary/20',
-      iconColor: 'text-brand-highlight'
+      iconColor: 'text-brand-highlight',
+      route: null
     },
     {
       icon: <RiCheckboxCircleLine className="text-2xl" />,
       title: 'KYC Compliance Report',
       description: 'KYC verification status across members',
       iconBg: 'bg-brand-primary/20',
-      iconColor: 'text-brand-accent'
+      iconColor: 'text-brand-accent',
+      route: null
     },
     {
       icon: <RiTimeLine className="text-2xl" />,
       title: 'Agreement Expiry Report',
       description: 'Upcoming and expired agreements',
       iconBg: 'bg-brand-secondary/20',
-      iconColor: 'text-brand-highlight'
+      iconColor: 'text-brand-highlight',
+      route: null
     },
   ];
 
@@ -73,7 +82,8 @@ const Reporting = () => {
         {reportCards.map((card, index) => (
           <div 
             key={index}
-            className="bg-surface-card rounded-lg p-6 border border-border hover:bg-surface-lighter hover:shadow-lg hover:shadow-brand-primary/10 transition-all cursor-pointer group"
+            onClick={() => card.route && navigate(card.route)}
+            className={`bg-surface-card rounded-lg p-6 border border-border hover:bg-surface-lighter hover:shadow-lg hover:shadow-brand-primary/10 transition-all ${card.route ? 'cursor-pointer' : 'cursor-default'} group`}
           >
             <div className={`${card.iconBg} ${card.iconColor} w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:bg-brand-primary/30 transition-colors`}>
               {card.icon}

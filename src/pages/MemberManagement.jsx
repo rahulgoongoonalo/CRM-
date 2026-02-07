@@ -245,14 +245,50 @@ const MemberManagement = () => {
     }
   };
 
+  // Clean and normalize tier values
+  const cleanTierValue = (tier) => {
+    if (!tier || tier === 'N/A') return 'N/A';
+    const tierStr = tier.toString().toLowerCase();
+    // Extract tier number from formats like "tier 3 - 500k" or "tier3"
+    const tierMatch = tierStr.match(/tier\s*(\d+)/);
+    if (tierMatch) {
+      return `Tier ${tierMatch[1]}`;
+    }
+    return tier;
+  };
+
+  // Clean genre values - truncate long genre lists
+  const cleanGenreValue = (genre) => {
+    if (!genre || genre === 'N/A') return 'N/A';
+    // If genre is too long, take first 2-3 genres
+    const genreList = genre.split(',').map(g => g.trim());
+    if (genreList.length > 2) {
+      return genreList.slice(0, 2).join(', ') + '...';
+    }
+    return genre;
+  };
+
   const getTierColor = (tier) => {
-    switch (tier) {
+    const cleanTier = cleanTierValue(tier);
+    switch (cleanTier) {
       case 'Tier 1':
-        return 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-md shadow-brand-primary/30';
+        return 'bg-yellow-500/10 text-yellow-400 border border-yellow-400/30';
       case 'Tier 2':
-        return 'bg-gradient-to-r from-brand-accent to-brand-highlight text-white shadow-md shadow-brand-accent/30';
+        return 'bg-purple-500/10 text-purple-400 border border-purple-400/30';
+      case 'Tier 3':
+        return 'bg-blue-500/10 text-blue-400 border border-blue-400/30';
+      case 'Tier 4':
+        return 'bg-green-500/10 text-green-400 border border-green-400/30';
+      case 'Tier 5':
+        return 'bg-orange-500/10 text-orange-400 border border-orange-400/30';
+      case 'Tier 6':
+        return 'bg-pink-500/10 text-pink-400 border border-pink-400/30';
+      case 'Tier 7':
+        return 'bg-cyan-500/10 text-cyan-400 border border-cyan-400/30';
+      case 'Tier 8':
+        return 'bg-gray-500/10 text-gray-400 border border-gray-400/30';
       default:
-        return 'bg-surface-lighter text-text-secondary';
+        return 'bg-surface-lighter text-text-secondary border border-border';
     }
   };
 
@@ -376,11 +412,11 @@ const MemberManagement = () => {
             ) : (
               currentMembers.map((member) => {
                 const avatar = member.artistName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'NA';
-                const genre = member.primaryGenres || 'N/A';
+                const genre = cleanGenreValue(member.primaryGenres || 'N/A');
                 const notes = member.notes || '';
                 const talentRole = member.primaryRole || 'N/A';
                 const source = member.source || 'N/A';
-                const tier = member.tier || 'Tier 1';
+                const tier = cleanTierValue(member.tier || 'Tier 1');
                 
                 return (
                   <tr 
@@ -403,7 +439,7 @@ const MemberManagement = () => {
                       </div>
                     </td>
                     <td className="px-3 py-3">
-                      <span className="text-text-secondary text-sm">{genre}</span>
+                      <span className="text-text-secondary text-sm truncate block max-w-[150px]" title={member.primaryGenres}>{genre}</span>
                     </td>
                     <td className="px-3 py-3">
                       <span className="text-text-secondary text-sm truncate block">{notes}</span>
@@ -476,7 +512,7 @@ const MemberManagement = () => {
         ) : (
           currentMembers.map((member) => {
             const avatar = member.artistName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'NA';
-            const tier = member.tier || 'Tier 1';
+            const tier = cleanTierValue(member.tier || 'Tier 1');
             
             return (
               <div 

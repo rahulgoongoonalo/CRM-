@@ -4,6 +4,78 @@ import Member from '../models/Member.js';
 
 const router = express.Router();
 
+// Get onboarding status report data (must be before /:id route)
+router.get('/reports/onboarding-status', async (req, res) => {
+  try {
+    const onboardings = await Onboarding.find()
+      .populate('member', 'artistName primaryGenres source tier')
+      .sort({ createdAt: -1 });
+    
+    // Transform data for the report
+    const reportData = onboardings.map((onboarding, index) => {
+      const member = onboarding.member;
+      const etaClosure = onboarding.etaClosure;
+      
+      // Calculate days from ETA
+      let daysFromETA = null;
+      if (etaClosure) {
+        const today = new Date();
+        const eta = new Date(etaClosure);
+        const timeDiff = today - eta;
+        daysFromETA = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+      }
+      
+      // Format onboarding status
+      const statusMapping = {
+        'contact-established': 'Contact Established',
+        'spoc-assigned': 'SPOC Assigned',
+        'review-l2': 'Review L2',
+        'closed-won': 'Closed Won',
+        'closed-lost': 'Closed Lost',
+        'pending': 'Pending'
+      };
+      
+      // Clean and normalize tier value
+      let cleanTier = 'N/A';
+      if (member?.tier) {
+        const tierStr = member.tier.toString().toLowerCase();
+        // Extract tier number from formats like "tier 3 - 500k" or "tier3"
+        const tierMatch = tierStr.match(/tier\s*(\d+)/);
+        if (tierMatch) {
+          cleanTier = `tier${tierMatch[1]}`;
+        } else {
+          cleanTier = tierStr;
+        }
+      }
+      
+      return {
+        serialNo: index + 1,
+        artistName: member?.artistName || onboarding.artistName || 'N/A',
+        genre: member?.primaryGenres || 'N/A',
+        source: member?.source || onboarding.step1Data?.source || 'N/A',
+        spoc: onboarding.spoc || 'N/A',
+        tier: cleanTier,
+        onboardingStatus: statusMapping[onboarding.status.toLowerCase()] || statusMapping[onboarding.status] || onboarding.status,
+        etaClosure: etaClosure ? new Date(etaClosure).toLocaleDateString() : 'N/A',
+        daysFromETA: daysFromETA !== null ? daysFromETA : 'N/A',
+        rawEtaClosure: etaClosure
+      };
+    });
+    
+    res.json({
+      success: true,
+      data: reportData
+    });
+  } catch (error) {
+    console.error('Error fetching onboarding status report:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch onboarding status report',
+      error: error.message
+    });
+  }
+});
+
 // Get all onboardings with member details
 router.get('/', async (req, res) => {
   try {
