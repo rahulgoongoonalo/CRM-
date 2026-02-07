@@ -1,8 +1,119 @@
 import { RiUserLine, RiTicket2Line, RiCheckboxCircleLine, RiTimeLine, RiFileTextLine, RiLayoutGridLine } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { membersAPI, onboardingAPI } from '../services/api';
 
 const Reporting = () => {
   const navigate = useNavigate();
+  const [membersByTier, setMembersByTier] = useState([]);
+  const [onboardingSources, setOnboardingSources] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchReportData();
+  }, []);
+
+  const fetchReportData = async () => {
+    try {
+      setLoading(true);
+      const [membersResponse, onboardingResponse] = await Promise.all([
+        membersAPI.getAll(),
+        onboardingAPI.getAll()
+      ]);
+
+      if (membersResponse.success) {
+        calculateMembersByTier(membersResponse.data);
+      }
+
+      if (onboardingResponse.success) {
+        calculateOnboardingSources(onboardingResponse.data);
+      }
+    } catch (error) {
+      console.error('Error fetching report data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateMembersByTier = (members) => {
+    const tierCounts = {};
+    const totalMembers = members.length;
+
+    // Count members by tier
+    members.forEach(member => {
+      const tier = member.tier || 'N/A';
+      const tierKey = tier.toString().toLowerCase();
+      const tierMatch = tierKey.match(/tier\s*(\d+)/);
+      const tierLabel = tierMatch ? `Tier ${tierMatch[1]}` : tier;
+      
+      if (!tierCounts[tierLabel]) {
+        tierCounts[tierLabel] = 0;
+      }
+      tierCounts[tierLabel]++;
+    });
+
+    // Convert to array and calculate percentages
+    const tierColors = {
+      'Tier 1': 'bg-gradient-to-r from-yellow-500 to-yellow-600',
+      'Tier 2': 'bg-gradient-to-r from-purple-500 to-purple-600',
+      'Tier 3': 'bg-gradient-to-r from-blue-500 to-blue-600',
+      'Tier 4': 'bg-gradient-to-r from-green-500 to-green-600',
+      'Tier 5': 'bg-gradient-to-r from-orange-500 to-orange-600',
+      'Tier 6': 'bg-gradient-to-r from-pink-500 to-pink-600',
+      'Tier 7': 'bg-gradient-to-r from-cyan-500 to-cyan-600',
+      'Tier 8': 'bg-gradient-to-r from-gray-500 to-gray-600',
+    };
+
+    const tierData = Object.entries(tierCounts)
+      .map(([tier, count]) => ({
+        tier,
+        count,
+        percentage: totalMembers > 0 ? Math.round((count / totalMembers) * 100) : 0,
+        color: tierColors[tier] || 'bg-gradient-to-r from-gray-500 to-gray-600'
+      }))
+      .sort((a, b) => {
+        const tierNumA = parseInt(a.tier.match(/\d+/)?.[0] || '999');
+        const tierNumB = parseInt(b.tier.match(/\d+/)?.[0] || '999');
+        return tierNumA - tierNumB;
+      });
+
+    setMembersByTier(tierData);
+  };
+
+  const calculateOnboardingSources = (onboardings) => {
+    const sourceCounts = {};
+    const total = onboardings.length;
+
+    // Count onboardings by source
+    onboardings.forEach(onboarding => {
+      const source = onboarding.step1Data?.source || onboarding.member?.source || 'Unknown';
+      if (!sourceCounts[source]) {
+        sourceCounts[source] = 0;
+      }
+      sourceCounts[source]++;
+    });
+
+    // Convert to array and calculate percentages
+    const sourceColors = [
+      'bg-gradient-to-r from-brand-primary to-brand-secondary',
+      'bg-gradient-to-r from-brand-secondary to-brand-accent',
+      'bg-gradient-to-r from-brand-accent to-brand-highlight',
+      'bg-gradient-to-r from-brand-highlight to-brand-accent',
+      'bg-gradient-to-r from-purple-500 to-pink-500',
+      'bg-gradient-to-r from-blue-500 to-cyan-500',
+    ];
+
+    const sourceData = Object.entries(sourceCounts)
+      .map(([source, count], index) => ({
+        source: source === 'Unknown' ? 'Not Specified' : source,
+        count,
+        percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+        color: sourceColors[index % sourceColors.length]
+      }))
+      .sort((a, b) => b.count - a.count);
+
+    setOnboardingSources(sourceData);
+  };
   
   const reportCards = [
     {
@@ -62,19 +173,6 @@ const Reporting = () => {
     { value: '8', label: 'Expiring Soon', color: 'bg-orange-500/10', textColor: 'text-orange-400', bgDark: 'bg-surface-lighter' },
   ];
 
-  const membersByTier = [
-    { tier: 'Tier 1 (Premier)', count: 156, percentage: 52, color: 'bg-gradient-to-r from-yellow-500 to-yellow-600' },
-    { tier: 'Tier 2 (Elite)', count: 124, percentage: 41, color: 'bg-gradient-to-r from-brand-primary to-brand-secondary' },
-    { tier: 'Tier 3 (Standard)', count: 67, percentage: 22, color: 'bg-gradient-to-r from-gray-500 to-gray-600' },
-  ];
-
-  const onboardingSources = [
-    { source: 'Personal References', count: 89, percentage: 78, color: 'bg-gradient-to-r from-brand-primary to-brand-secondary' },
-    { source: 'Curated Artists', count: 67, percentage: 59, color: 'bg-gradient-to-r from-brand-secondary to-brand-accent' },
-    { source: 'Open Inbound', count: 45, percentage: 39, color: 'bg-gradient-to-r from-brand-accent to-brand-highlight' },
-    { source: 'Special Curated', count: 23, percentage: 20, color: 'bg-gradient-to-r from-brand-highlight to-brand-accent' },
-  ];
-
   return (
     <div className="p-6">
       {/* Report Cards Grid */}
@@ -115,43 +213,63 @@ const Reporting = () => {
         {/* Members by Tier */}
         <div className="bg-surface-card rounded-lg p-6 border border-border">
           <h3 className="text-text-primary font-semibold text-lg mb-6">Members by Tier</h3>
-          <div className="space-y-6">
-            {membersByTier.map((item, index) => (
-              <div key={index}>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-text-primary text-sm font-medium">{item.tier}</span>
-                  <span className="text-text-secondary text-sm">{item.count} members</span>
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
+            </div>
+          ) : membersByTier.length === 0 ? (
+            <div className="text-center py-12 text-text-secondary">
+              No member data available
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {membersByTier.map((item, index) => (
+                <div key={index}>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-text-primary text-sm font-medium">{item.tier}</span>
+                    <span className="text-text-secondary text-sm">{item.count} members</span>
+                  </div>
+                  <div className="w-full bg-surface-lighter rounded-full h-2">
+                    <div 
+                      className={`${item.color} h-2 rounded-full transition-all duration-500`}
+                      style={{ width: `${item.percentage}%` }}
+                    ></div>
+                  </div>
                 </div>
-                <div className="w-full bg-surface-lighter rounded-full h-2">
-                  <div 
-                    className={`${item.color} h-2 rounded-full transition-all duration-500`}
-                    style={{ width: `${item.percentage}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Onboarding Sources */}
         <div className="bg-surface-card rounded-lg p-6 border border-border">
           <h3 className="text-text-primary font-semibold text-lg mb-6">Onboarding Sources</h3>
-          <div className="space-y-6">
-            {onboardingSources.map((item, index) => (
-              <div key={index}>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-text-primary text-sm font-medium">{item.source}</span>
-                  <span className="text-text-secondary text-sm">{item.count}</span>
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
+            </div>
+          ) : onboardingSources.length === 0 ? (
+            <div className="text-center py-12 text-text-secondary">
+              No onboarding data available
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {onboardingSources.map((item, index) => (
+                <div key={index}>
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-text-primary text-sm font-medium">{item.source}</span>
+                    <span className="text-text-secondary text-sm">{item.count}</span>
+                  </div>
+                  <div className="w-full bg-surface-lighter rounded-full h-2">
+                    <div 
+                      className={`${item.color} h-2 rounded-full transition-all duration-500`}
+                      style={{ width: `${item.percentage}%` }}
+                    ></div>
+                  </div>
                 </div>
-                <div className="w-full bg-surface-lighter rounded-full h-2">
-                  <div 
-                    className={`${item.color} h-2 rounded-full transition-all duration-500`}
-                    style={{ width: `${item.percentage}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
