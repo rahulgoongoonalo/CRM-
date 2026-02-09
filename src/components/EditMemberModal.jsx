@@ -41,7 +41,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
         genre: member.primaryGenres || '',
         source: member.source || source,
         spoc: member.spoc || '',
-        status: member.status?.charAt(0).toUpperCase() + member.status?.slice(1) || 'Active',
+        status: member.status?.charAt(0).toUpperCase() + member.status?.slice(1) || 'Updated',
         biography: member.biography || '',
       });
     }
@@ -294,6 +294,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                   <option value="AME">AME</option>
                   <option value="Caartel Music">Caartel Music</option>
                   <option value="Manipuri Zone">Manipuri Zone</option>
+                  <option value="Getgrist">Getgrist</option>
                 </select>
               </div>
             </div>
@@ -323,7 +324,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                   className="select w-full"
                 >
                   <option value="Pending">Pending</option>
-                  <option value="Active">Active</option>
+                  <option value="Updated">Updated</option>
                   <option value="On Hold">On Hold</option>
                 </select>
               </div>

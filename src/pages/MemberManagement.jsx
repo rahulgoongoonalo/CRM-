@@ -55,8 +55,8 @@ const MemberManagement = () => {
       const filterStatus = statusFilter.toLowerCase();
       const memberStatus = member.status?.toLowerCase();
       
-      if (filterStatus === 'active') {
-        matchesStatus = memberStatus === 'active';
+      if (filterStatus === 'updated') {
+        matchesStatus = memberStatus === 'active' || memberStatus === 'updated';
       } else if (filterStatus === 'on hold') {
         matchesStatus = memberStatus === 'inactive';
       } else if (filterStatus === 'pending') {
@@ -156,7 +156,7 @@ const MemberManagement = () => {
   const handleEditMember = async (updatedData) => {
     try {
       // Map status values to match backend enum
-      let backendStatus = updatedData.status?.toLowerCase() || 'active';
+      let backendStatus = updatedData.status?.toLowerCase() || 'updated';
       if (backendStatus === 'on hold') {
         backendStatus = 'inactive';
       }
@@ -230,7 +230,7 @@ const MemberManagement = () => {
   const getStatusColor = (status) => {
     const normalizedStatus = status?.toLowerCase() || '';
     
-    if (normalizedStatus === 'active') {
+    if (normalizedStatus === 'active' || normalizedStatus === 'updated') {
       return 'badge-success';
     } else if (normalizedStatus === 'inactive' || normalizedStatus === 'on hold') {
       return 'badge-warning';
@@ -244,8 +244,8 @@ const MemberManagement = () => {
   const getStatusDisplay = (status) => {
     const normalizedStatus = status?.toLowerCase() || '';
     
-    if (normalizedStatus === 'active') {
-      return 'Active';
+    if (normalizedStatus === 'active' || normalizedStatus === 'updated') {
+      return 'Updated';
     } else if (normalizedStatus === 'inactive') {
       return 'On Hold';
     } else if (normalizedStatus === 'pending') {
@@ -338,7 +338,7 @@ const MemberManagement = () => {
             className="select flex-1"
           >
             <option>All Status</option>
-            <option>Active</option>
+            <option>Updated</option>
             <option>On Hold</option>
             <option>Pending</option>
           </select>

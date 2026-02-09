@@ -105,6 +105,7 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
                   <option value="AME">AME</option>
                   <option value="Caartel Music">Caartel Music</option>
                   <option value="Manipuri Zone">Manipuri Zone</option>
+                  <option value="Getgrist">Getgrist</option>
             </select>
           </div>
 

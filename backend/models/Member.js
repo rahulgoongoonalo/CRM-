@@ -91,7 +91,7 @@ const memberSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['active', 'inactive', 'pending', 'on hold', 'Active', 'Inactive', 'Pending', 'On Hold'],
+    enum: ['active', 'inactive', 'pending', 'on hold', 'updated', 'Active', 'Inactive', 'Pending', 'On Hold', 'Updated'],
     default: 'pending'
   },
   joinDate: {
