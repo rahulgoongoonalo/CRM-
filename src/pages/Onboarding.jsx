@@ -210,6 +210,7 @@ const Onboarding = () => {
 
   const filters = [
     'All',
+    'Pending',
     'SPOC Assigned',
     'Contact Established',
     'Review for L2',

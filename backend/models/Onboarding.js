@@ -32,7 +32,7 @@ const onboardingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['contact-established', 'spoc-assigned', 'review-l2', 'closed-won', 'closed-lost'],
+    enum: ['pending', 'contact-established', 'spoc-assigned', 'review-l2', 'closed-won', 'closed-lost'],
     default: 'contact-established'
   },
   // Step 1: Initial Contact Data
