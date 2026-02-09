@@ -27,7 +27,7 @@ function App() {
               <Layout />
             </ProtectedRoute>
           }>
-            <Route index element={<Dashboard />} />
+            <Route index element={<Navigate to="/members" replace />} />
             <Route path="members" element={<MemberManagement />} />
             <Route path="onboarding" element={<Onboarding />} />
             <Route path="reporting" element={<Reporting />} />

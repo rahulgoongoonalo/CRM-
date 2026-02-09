@@ -19,11 +19,12 @@ const Sidebar = ({ isOpen, isMobile, onClose }) => {
   };
 
   const navItems = [
-    { path: '/', icon: RiDashboardLine, label: 'Dashboard' },
+    // { path: '/', icon: RiDashboardLine, label: 'Dashboard' },
     { path: '/members', icon: RiUserLine, label: 'Member Management' },
     { path: '/onboarding', icon: RiUserAddLine, label: 'Onboarding' },
-    { path: '/reporting', icon: RiBarChartLine, label: 'Reporting' },
-    { path: '/campaigns', icon: RiMegaphoneLine, label: 'Campaigns' },
+    { path: '/member-onboarding-status', icon: RiBarChartLine, label: 'Member Onboarding Status Report' },
+    // { path: '/reporting', icon: RiBarChartLine, label: 'Reporting' },
+    // { path: '/campaigns', icon: RiMegaphoneLine, label: 'Campaigns' },
   ];
 
   return (
@@ -82,7 +83,7 @@ const Sidebar = ({ isOpen, isMobile, onClose }) => {
 
       {/* Bottom Section */}
       <div className="border-t border-border">
-        <NavLink
+        {/* <NavLink
           to="/settings"
           onClick={handleNavClick}
           className={({ isActive }) =>
@@ -95,7 +96,7 @@ const Sidebar = ({ isOpen, isMobile, onClose }) => {
         >
           <RiSettings4Line className="text-xl flex-shrink-0" />
           {(isOpen || isMobile) && <span className="text-sm font-semibold">Settings</span>}
-        </NavLink>
+        </NavLink> */}
         
         <button 
           onClick={handleLogout}

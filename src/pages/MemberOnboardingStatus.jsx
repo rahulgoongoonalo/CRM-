@@ -165,13 +165,13 @@ const MemberOnboardingStatus = () => {
     <div className="p-6">
       {/* Header */}
       <div className="mb-6">
-        <button
+        {/* <button
           onClick={() => navigate('/reporting')}
           className="flex items-center text-text-secondary hover:text-brand-accent transition-colors mb-4"
         >
           <RiArrowLeftLine className="mr-2" />
           Back to Reports
-        </button>
+        </button> */}
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-text-primary mb-2">Member Onboarding Status</h1>
