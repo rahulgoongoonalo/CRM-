@@ -2,6 +2,7 @@ import { RiCloseLine, RiFileTextLine } from 'react-icons/ri';
 import { useState } from 'react';
 import L1QuestionnaireModal from './L1QuestionnaireModal';
 import { onboardingAPI } from '../services/api';
+import { useToast } from './ToastNotification';
 
 const Step1Modal = ({ isOpen, onClose, onboardingId, memberName, taskId }) => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,7 @@ const Step1Modal = ({ isOpen, onClose, onboardingId, memberName, taskId }) => {
   });
   const [isQuestionnaireOpen, setIsQuestionnaireOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const toast = useToast();
 
   if (!isOpen) return null;
 
@@ -25,12 +27,12 @@ const Step1Modal = ({ isOpen, onClose, onboardingId, memberName, taskId }) => {
         });
         
         if (response.success) {
-          alert('Step 1 data saved successfully');
+          toast.success('Step 1 data saved successfully');
           onClose();
         }
       } catch (error) {
         console.error('Error saving step 1:', error);
-        alert('Failed to save step 1 data');
+        toast.error('Failed to save step 1 data');
       } finally {
         setSaving(false);
       }

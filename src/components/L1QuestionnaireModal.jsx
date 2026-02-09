@@ -1,6 +1,7 @@
 import { RiCloseLine } from 'react-icons/ri';
 import { useState } from 'react';
 import { onboardingAPI } from '../services/api';
+import { useToast } from './ToastNotification';
 
 const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskId }) => {
   const [formData, setFormData] = useState({
@@ -58,6 +59,7 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
     understandPayout: false,
   });
   const [saving, setSaving] = useState(false);
+  const toast = useToast();
 
   if (!isOpen) return null;
 
@@ -74,7 +76,7 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
     
     // Validate all checkboxes are checked
     if (!formData.confirmRights || !formData.acceptTerms || !formData.consentEditorial || !formData.understandPayout) {
-      alert('Please check all agreement checkboxes before submitting the questionnaire.');
+      toast.warning('Please check all agreement checkboxes before submitting the questionnaire.');
       return;
     }
     
@@ -83,12 +85,12 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
       const response = await onboardingAPI.updateL1Questionnaire(onboardingId, formData);
       
       if (response.success) {
-        alert('L1 Questionnaire submitted successfully! Status updated to Review for L2.');
+        toast.success('L1 Questionnaire submitted successfully! Status updated to Review for L2.');
         onClose();
       }
     } catch (error) {
       console.error('Error submitting L1 questionnaire:', error);
-      alert('Failed to submit L1 questionnaire');
+      toast.error('Failed to submit L1 questionnaire');
     } finally {
       setSaving(false);
     }

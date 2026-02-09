@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { RiCloseLine } from 'react-icons/ri';
+import { useToast } from './ToastNotification';
 
 const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
     membershipType: '',
     notes: ''
   });
+  const toast = useToast();
 
   if (!isOpen) return null;
 
@@ -28,12 +30,12 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
   const handleSubmit = (status) => {
     // Validation: Check if all required fields are filled
     if (!formData.meetingScheduledOn) {
-      alert('Please select a meeting date');
+      toast.warning('Please select a meeting date');
       return;
     }
 
     if (!formData.membershipType) {
-      alert('Please select a membership type');
+      toast.warning('Please select a membership type');
       return;
     }
 
@@ -47,7 +49,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
       formData.contentIngestion;
 
     if (!allChecklistChecked) {
-      alert('Please complete all 6 checklist items before submitting');
+      toast.warning('Please complete all 6 checklist items before submitting');
       return;
     }
 

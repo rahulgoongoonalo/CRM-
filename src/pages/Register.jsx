@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../components/ToastNotification';
 import { FaUser, FaLock, FaEnvelope, FaUserPlus, FaIdCard, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Register = () => {
@@ -17,6 +18,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const { register, user } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -64,7 +66,7 @@ const Register = () => {
     });
     
     if (result.success) {
-      alert('Registration successful! Please login with your credentials.');
+      toast.success('Registration successful! Please login with your credentials.');
       navigate('/login');
     } else {
       setError(result.error);

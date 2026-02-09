@@ -4,6 +4,7 @@ import AddMemberModal from '../components/AddMemberModal';
 import ViewMemberModal from '../components/ViewMemberModal';
 import EditMemberModal from '../components/EditMemberModal';
 import { membersAPI } from '../services/api';
+import { useToast, useConfirm } from '../components/ToastNotification';
 
 const MemberManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -17,6 +18,8 @@ const MemberManagement = () => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const toast = useToast();
+  const confirm = useConfirm();
 
   // Fetch members from backend
   useEffect(() => {
@@ -125,13 +128,13 @@ const MemberManagement = () => {
       const response = await membersAPI.create(memberPayload);
       
       if (response.success) {
-        alert('Member added successfully!');
+        toast.success('Member added successfully!');
         fetchMembers(); // Refresh the list
         setIsModalOpen(false);
       }
     } catch (error) {
       console.error('Error adding member:', error);
-      alert(error.response?.data?.message || 'Failed to add member. Please try again.');
+      toast.error(error.response?.data?.message || 'Failed to add member. Please try again.');
     }
   };
 
@@ -186,14 +189,14 @@ const MemberManagement = () => {
       const response = await membersAPI.update(updatedData.id, memberPayload);
       
       if (response.success) {
-        alert('Member updated successfully!');
+        toast.success('Member updated successfully!');
         fetchMembers(); // Refresh the list
         setIsEditModalOpen(false);
         setSelectedMember(null);
       }
     } catch (error) {
       console.error('Error updating member:', error);
-      alert(error.response?.data?.message || 'Failed to update member. Please try again.');
+      toast.error(error.response?.data?.message || 'Failed to update member. Please try again.');
     }
   };
 
@@ -203,16 +206,23 @@ const MemberManagement = () => {
   };
 
   const handleDeleteMember = async (memberId, memberName) => {
-    if (window.confirm(`Are you sure you want to delete ${memberName}? This action cannot be undone.`)) {
+    const confirmed = await confirm({
+      title: 'Delete Member',
+      message: `Are you sure you want to delete ${memberName}? This action cannot be undone.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger',
+    });
+    if (confirmed) {
       try {
         const response = await membersAPI.delete(memberId);
         if (response.success) {
           await fetchMembers();
-          alert('Member deleted successfully');
+          toast.success('Member deleted successfully');
         }
       } catch (error) {
         console.error('Error deleting member:', error);
-        alert('Failed to delete member');
+        toast.error('Failed to delete member');
       }
     }
   };

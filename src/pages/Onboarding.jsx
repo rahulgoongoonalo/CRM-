@@ -5,6 +5,7 @@ import ViewOnboardingModal from '../components/ViewOnboardingModal';
 import EditOnboardingModal from '../components/EditOnboardingModal';
 import L2ReviewModal from '../components/L2ReviewModal';
 import { onboardingAPI } from '../services/api';
+import { useToast, useConfirm } from '../components/ToastNotification';
 
 const Onboarding = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,6 +19,8 @@ const Onboarding = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 100;
+  const toast = useToast();
+  const confirm = useConfirm();
 
   useEffect(() => {
     fetchOnboardings();
@@ -57,21 +60,28 @@ const Onboarding = () => {
       }
     } catch (error) {
       console.error('Error creating onboarding:', error);
-      alert('Failed to create onboarding');
+      toast.error('Failed to create onboarding');
     }
   };
 
   const handleDeleteOnboarding = async (onboardingId) => {
-    if (window.confirm('Are you sure you want to delete this onboarding?')) {
+    const confirmed = await confirm({
+      title: 'Delete Onboarding',
+      message: 'Are you sure you want to delete this onboarding? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger',
+    });
+    if (confirmed) {
       try {
         const response = await onboardingAPI.delete(onboardingId);
         if (response.success) {
           await fetchOnboardings();
-          alert('Onboarding deleted successfully');
+          toast.success('Onboarding deleted successfully');
         }
       } catch (error) {
         console.error('Error deleting onboarding:', error);
-        alert('Failed to delete onboarding');
+        toast.error('Failed to delete onboarding');
       }
     }
   };
@@ -101,11 +111,11 @@ const Onboarding = () => {
         await fetchOnboardings();
         setIsEditModalOpen(false);
         setSelectedOnboarding(null);
-        alert('Onboarding updated successfully');
+        toast.success('Onboarding updated successfully');
       }
     } catch (error) {
       console.error('Error updating onboarding:', error);
-      alert('Failed to update onboarding');
+      toast.error('Failed to update onboarding');
     }
   };
 
@@ -121,11 +131,11 @@ const Onboarding = () => {
         await fetchOnboardings();
         setIsL2ReviewModalOpen(false);
         setSelectedOnboarding(null);
-        alert('L2 Review saved successfully');
+        toast.success('L2 Review saved successfully');
       }
     } catch (error) {
       console.error('Error saving L2 review:', error);
-      alert('Failed to save L2 review');
+      toast.error('Failed to save L2 review');
     }
   };
       

@@ -1,6 +1,7 @@
 import { RiCloseLine } from 'react-icons/ri';
 import { useState, useEffect } from 'react';
 import { onboardingAPI } from '../services/api';
+import { useToast } from './ToastNotification';
 
 const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
   const [formData, setFormData] = useState({
@@ -95,6 +96,8 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
     }
   }, [isOpen, onboarding]);
 
+  const toast = useToast();
+
   if (!isOpen || !onboarding) return null;
 
   const taskId = onboarding.taskNumber || 'N/A';
@@ -113,7 +116,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
     
     // Validate all checkboxes are checked
     if (!formData.confirmRights || !formData.acceptTerms || !formData.consentEditorial || !formData.understandPayout) {
-      alert('Please check all agreement checkboxes before submitting the questionnaire.');
+      toast.warning('Please check all agreement checkboxes before submitting the questionnaire.');
       return;
     }
     
@@ -122,12 +125,12 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
       const response = await onboardingAPI.updateL1Questionnaire(onboarding._id, formData);
       
       if (response.success) {
-        alert('L1 Questionnaire updated successfully!');
+        toast.success('L1 Questionnaire updated successfully!');
         onClose(true); // Pass true to indicate data was updated
       }
     } catch (error) {
       console.error('Error updating L1 questionnaire:', error);
-      alert('Failed to update L1 questionnaire');
+      toast.error('Failed to update L1 questionnaire');
     } finally {
       setSaving(false);
     }

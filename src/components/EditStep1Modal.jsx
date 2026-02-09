@@ -2,6 +2,7 @@ import { RiCloseLine } from 'react-icons/ri';
 import { useState, useEffect } from 'react';
 import { onboardingAPI } from '../services/api';
 import EditL1QuestionnaireModal from './EditL1QuestionnaireModal';
+import { useToast } from './ToastNotification';
 
 const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,7 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
   });
   const [isQuestionnaireOpen, setIsQuestionnaireOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     if (isOpen && onboarding) {
@@ -41,7 +43,7 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
       const response = await onboardingAPI.updateStep1(onboarding._id, formData);
       
       if (response.success) {
-        alert('Step 1 updated successfully!');
+        toast.success('Step 1 updated successfully!');
         if (action === 'submit-l2') {
           onClose(true); // Pass true to indicate data was updated
           setIsQuestionnaireOpen(true);
@@ -51,7 +53,7 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
       }
     } catch (error) {
       console.error('Error updating step 1:', error);
-      alert('Failed to update step 1 data');
+      toast.error('Failed to update step 1 data');
     } finally {
       setSaving(false);
     }

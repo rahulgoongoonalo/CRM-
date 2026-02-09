@@ -166,3 +166,83 @@
     background: linear-gradient(135deg, rgba(91, 14, 182, 0.1) 0%, rgba(128, 21, 213, 0.05) 100%);
   }
 }
+
+/* Toast Notification Animations */
+@keyframes toast-enter {
+  0% {
+    opacity: 0;
+    transform: translateX(100%) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes toast-exit {
+  0% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%) scale(0.95);
+  }
+}
+
+.animate-toast-enter {
+  animation: toast-enter 0.4s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+}
+
+.animate-toast-exit {
+  animation: toast-exit 0.3s cubic-bezier(0.06, 0.71, 0.55, 1) forwards;
+}
+
+/* Confirmation Modal Animations */
+@keyframes confirm-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes confirm-exit {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+  }
+}
+
+@keyframes confirm-backdrop-enter {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes confirm-backdrop-exit {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.animate-confirm-enter {
+  animation: confirm-enter 0.25s cubic-bezier(0.21, 1.02, 0.73, 1) forwards;
+}
+
+.animate-confirm-exit {
+  animation: confirm-exit 0.2s cubic-bezier(0.06, 0.71, 0.55, 1) forwards;
+}
+
+.animate-confirm-backdrop-enter {
+  animation: confirm-backdrop-enter 0.2s ease-out forwards;
+}
+
+.animate-confirm-backdrop-exit {
+  animation: confirm-backdrop-exit 0.2s ease-in forwards;
+}
