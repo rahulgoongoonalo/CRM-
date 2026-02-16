@@ -31,7 +31,7 @@ const ViewMemberModal = ({ isOpen, onClose, member }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Full Name
+                  Artist Name
                 </label>
                 <input
                   type="text"
@@ -106,7 +106,7 @@ const ViewMemberModal = ({ isOpen, onClose, member }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Category
+                  Category (Based on Spotify Monthly Listeners)
                 </label>
                 <input
                   type="text"
@@ -117,7 +117,7 @@ const ViewMemberModal = ({ isOpen, onClose, member }) => {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Tier
+                  Tier (Based on Instagram Followers)
                 </label>
                 <input
                   type="text"
@@ -205,7 +205,7 @@ const ViewMemberModal = ({ isOpen, onClose, member }) => {
 
             <div>
               <label className="block text-sm font-semibold text-text-secondary mb-2">
-                Biography
+                Biography based on Spotify
               </label>
               <textarea
                 value={member.biography || ''}

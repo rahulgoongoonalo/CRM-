@@ -10,6 +10,7 @@ const MemberManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [tierFilter, setTierFilter] = useState('All Tiers');
+  const [sourceFilter, setSourceFilter] = useState('All Sources');
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
@@ -72,7 +73,13 @@ const MemberManagement = () => {
       matchesTier = memberTier.includes(filterTier.split(' - ')[0].toLowerCase());
     }
     
-    return matchesSearch && matchesStatus && matchesTier;
+    // Filter by source
+    let matchesSource = true;
+    if (sourceFilter !== 'All Sources') {
+      matchesSource = (member.source || '') === sourceFilter;
+    }
+
+    return matchesSearch && matchesStatus && matchesTier && matchesSource;
   });
 
   // Pagination logic
@@ -341,6 +348,28 @@ const MemberManagement = () => {
             <option>Updated</option>
             <option>On Hold</option>
             <option>Pending</option>
+          </select>
+
+          <select
+            value={sourceFilter}
+            onChange={handleFilterChange(setSourceFilter)}
+            className="select flex-1"
+          >
+            <option>All Sources</option>
+            <option>Personal Reference</option>
+            <option>Curated Artist</option>
+            <option>Open Inbound</option>
+            <option>Special Curated</option>
+            <option>Cartel</option>
+            <option>Soumini</option>
+            <option>Marriot</option>
+            <option>Website</option>
+            <option>SVF</option>
+            <option>AME</option>
+            <option>Caartel Music</option>
+            <option>Manipuri Zone</option>
+            <option>Getgrist</option>
+            <option>Artist or Fan Onboarding Management</option>
           </select>
 
           <select

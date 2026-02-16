@@ -13,6 +13,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
     cityCountry: '',
     yearsActive: '',
     artistBio: '',
+    listenerRegion: '',
     // Representation
     hasManager: 'No',
     managerName: '',
@@ -27,6 +28,9 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
     streamingLink: '',
     youtube: '',
     instagram: '',
+    facebook: '',
+    twitter: '',
+    soundcloud: '',
     otherPlatforms: '',
     // Existing Contracts
     hasDistributor: 'No',
@@ -36,8 +40,12 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
     // Goongoonalo Participation
     exclusiveReleases: 'Yes',
     openToCollabs: 'Yes',
+    performLive: '',
+    upcomingProject: '',
+    interestedInGatecrash: 'No',
     whyGoongoonalo: '',
     howHeard: '',
+    otherInfo: '',
     // KYC Information
     bankName: '',
     accountNumber: '',
@@ -63,6 +71,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
         cityCountry: data.cityCountry || '',
         yearsActive: data.yearsActive || '',
         artistBio: data.artistBio || '',
+        listenerRegion: data.listenerRegion || '',
         hasManager: data.hasManager || 'No',
         managerName: data.managerName || '',
         hasLabel: data.hasLabel || 'No',
@@ -74,6 +83,9 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
         streamingLink: data.streamingLink || '',
         youtube: data.youtube || '',
         instagram: data.instagram || '',
+        facebook: data.facebook || '',
+        twitter: data.twitter || '',
+        soundcloud: data.soundcloud || '',
         otherPlatforms: data.otherPlatforms || '',
         hasDistributor: data.hasDistributor || 'No',
         distributorName: data.distributorName || '',
@@ -81,8 +93,12 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
         contractValidUntil: data.contractValidUntil || '',
         exclusiveReleases: data.exclusiveReleases || 'Yes',
         openToCollabs: data.openToCollabs || 'Yes',
+        performLive: data.performLive || '',
+        upcomingProject: data.upcomingProject || '',
+        interestedInGatecrash: data.interestedInGatecrash || 'No',
         whyGoongoonalo: data.whyGoongoonalo || '',
         howHeard: data.howHeard || '',
+        otherInfo: data.otherInfo || '',
         bankName: data.bankName || '',
         accountNumber: data.accountNumber || '',
         ifscCode: data.ifscCode || '',
@@ -114,6 +130,14 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validate streaming & social media fields are filled
+    const streamingFields = ['streamingLink', 'youtube', 'instagram', 'facebook', 'twitter', 'soundcloud', 'otherPlatforms'];
+    const missingStreaming = streamingFields.filter(f => !formData[f]?.trim());
+    if (missingStreaming.length > 0) {
+      toast.warning('Please fill in all Streaming & Social Media fields before submitting.');
+      return;
+    }
+
     // Validate all checkboxes are checked
     if (!formData.confirmRights || !formData.acceptTerms || !formData.consentEditorial || !formData.understandPayout) {
       toast.warning('Please check all agreement checkboxes before submitting the questionnaire.');
@@ -184,7 +208,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Primary Contact Person
+                    Primary Contact Name
                   </label>
                   <input
                     type="text"
@@ -199,7 +223,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Email
+                    Email Address
                   </label>
                   <input
                     type="email"
@@ -212,7 +236,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Phone
+                    Phone / WhatsApp
                   </label>
                   <input
                     type="tel"
@@ -227,7 +251,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    City / Country
+                    City & Country
                   </label>
                   <input
                     type="text"
@@ -240,7 +264,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Years Active
+                    Year Actively in Music
                   </label>
                   <input
                     type="text"
@@ -255,7 +279,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Artist Bio / Background
+                  Short Artist Bio
                 </label>
                 <textarea
                   name="artistBio"
@@ -264,6 +288,20 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
                   placeholder="Tell us about your musical journey..."
                   rows="3"
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Listener Region
+                </label>
+                <input
+                  type="text"
+                  name="listenerRegion"
+                  value={formData.listenerRegion}
+                  onChange={handleChange}
+                  placeholder="e.g., India, USA, Global"
+                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
             </div>
@@ -346,7 +384,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Primary Role
+                    Primary Role(s)
                   </label>
                   <input
                     type="text"
@@ -375,7 +413,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Language(s) of Music
+                  Languages You Create In
                 </label>
                 <input
                   type="text"
@@ -389,7 +427,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Sub-genre / Style
+                  Sub-Genre / Style
                 </label>
                 <input
                   type="text"
@@ -408,13 +446,14 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
               
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Streaming Platform Link
+                  Streaming Platform Link <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="url"
                   name="streamingLink"
                   value={formData.streamingLink}
                   onChange={handleChange}
+                  required
                   placeholder="Spotify, Apple Music, etc."
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
@@ -423,13 +462,14 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    YouTube Channel
+                    YouTube Channel <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="url"
                     name="youtube"
                     value={formData.youtube}
                     onChange={handleChange}
+                    required
                     placeholder="https://youtube.com/..."
                     className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
@@ -437,31 +477,79 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Instagram Handle
+                    Instagram Profile <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="text"
                     name="instagram"
                     value={formData.instagram}
                     onChange={handleChange}
+                    required
                     placeholder="@username"
                     className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Other Platforms
-                </label>
-                <input
-                  type="text"
-                  name="otherPlatforms"
-                  value={formData.otherPlatforms}
-                  onChange={handleChange}
-                  placeholder="TikTok, SoundCloud, etc."
-                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Facebook Link <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="facebook"
+                    value={formData.facebook}
+                    onChange={handleChange}
+                    required
+                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Twitter Link <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="twitter"
+                    value={formData.twitter}
+                    onChange={handleChange}
+                    required
+                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    SoundCloud Link <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="soundcloud"
+                    value={formData.soundcloud}
+                    onChange={handleChange}
+                    required
+                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Other Platforms <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="otherPlatforms"
+                    value={formData.otherPlatforms}
+                    onChange={handleChange}
+                    required
+                    placeholder="TikTok, SoundCloud, etc."
+                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
               </div>
             </div>
 
@@ -600,6 +688,67 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
                   placeholder="Referral, social media, search, etc."
                   className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Perform Live?
+                  </label>
+                  <input
+                    type="text"
+                    name="performLive"
+                    value={formData.performLive}
+                    onChange={handleChange}
+                    placeholder="Yes/No or frequency"
+                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Upcoming Project
+                  </label>
+                  <input
+                    type="text"
+                    name="upcomingProject"
+                    value={formData.upcomingProject}
+                    onChange={handleChange}
+                    placeholder="Brief description"
+                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Interested in Gatecrash?
+                  </label>
+                  <select
+                    name="interestedInGatecrash"
+                    value={formData.interestedInGatecrash}
+                    onChange={handleChange}
+                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                    <option value="No">No</option>
+                    <option value="Yes">Yes</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Other Info
+                  </label>
+                  <input
+                    type="text"
+                    name="otherInfo"
+                    value={formData.otherInfo}
+                    onChange={handleChange}
+                    placeholder="Any additional information"
+                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
               </div>
             </div>
 

@@ -9,6 +9,7 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
     description: '',
     spoc: '',
     etaClosure: '',
+    status: 'contact-established',
     notes: '',
   });
   const [isStep1ModalOpen, setIsStep1ModalOpen] = useState(false);
@@ -178,6 +179,25 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
                   className="input w-full"
                 />
               </div>
+            </div>
+
+            {/* Status */}
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-text-secondary mb-2">
+                Status
+              </label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="select w-full cursor-pointer"
+              >
+                <option value="contact-established">Contact Established</option>
+                <option value="spoc-assigned">SPOC Assigned</option>
+                <option value="review-l2">Review for L2</option>
+                <option value="closed-won">Closed Won</option>
+                <option value="closed-lost">Closed Lost</option>
+              </select>
             </div>
 
             {/* Notes */}

@@ -74,6 +74,14 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validate streaming & social media fields are filled
+    const streamingFields = ['streamingLink', 'youtube', 'instagram', 'facebook', 'twitter', 'soundcloud', 'otherPlatforms'];
+    const missingStreaming = streamingFields.filter(f => !formData[f]?.trim());
+    if (missingStreaming.length > 0) {
+      toast.warning('Please fill in all Streaming & Social Media fields before submitting.');
+      return;
+    }
+
     // Validate all checkboxes are checked
     if (!formData.confirmRights || !formData.acceptTerms || !formData.consentEditorial || !formData.understandPayout) {
       toast.warning('Please check all agreement checkboxes before submitting the questionnaire.');
@@ -371,13 +379,14 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
               
               <div className="mb-4">
                 <label className="block text-gray-400 text-sm mb-1.5 text-left">
-                  Streaming Platform Link
+                  Streaming Platform Link <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
                   name="streamingLink"
                   value={formData.streamingLink}
                   onChange={handleChange}
+                  required
                   placeholder="Spotify, Apple Music, etc."
                   className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
@@ -385,26 +394,28 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
 <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-gray-400 text-sm mb-1.5 text-left">
-                    YouTube Channel
+                    YouTube Channel <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="text"
                     name="youtube"
                     value={formData.youtube}
                     onChange={handleChange}
+                    required
                     className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
                   <label className="block text-gray-400 text-sm mb-1.5 text-left">
-                    Instagram Profile
+                    Instagram Profile <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="text"
                     name="instagram"
                     value={formData.instagram}
                     onChange={handleChange}
+                    required
                     className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
@@ -413,26 +424,28 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-gray-400 text-sm mb-1.5 text-left">
-                    Facebook Link
+                    Facebook Link <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="text"
                     name="facebook"
                     value={formData.facebook}
                     onChange={handleChange}
+                    required
                     className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
                   <label className="block text-gray-400 text-sm mb-1.5 text-left">
-                    Twitter Link
+                    Twitter Link <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="text"
                     name="twitter"
                     value={formData.twitter}
                     onChange={handleChange}
+                    required
                     className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
@@ -441,26 +454,28 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-gray-400 text-sm mb-1.5 text-left">
-                    SoundCloud Link
+                    SoundCloud Link <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="text"
                     name="soundcloud"
                     value={formData.soundcloud}
                     onChange={handleChange}
+                    required
                     className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
                   <label className="block text-gray-400 text-sm mb-1.5 text-left">
-                    Other Platforms
+                    Other Platforms <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="text"
                     name="otherPlatforms"
                     value={formData.otherPlatforms}
                     onChange={handleChange}
+                    required
                     className="w-full bg-[#2c3e50] border border-slate-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
@@ -550,6 +565,7 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
                   >
                     <option>Yes</option>
                     <option>No</option>
+                    <option>Maybe</option>
                   </select>
                 </div>
                 
@@ -565,6 +581,7 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
                   >
                     <option>Yes</option>
                     <option>No</option>
+                    <option>Maybe</option>
                   </select>
                 </div>
               </div>

@@ -90,7 +90,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Full Name <span className="text-red-400">*</span>
+                  Artist Name <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -104,12 +104,12 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Alias Name
+                  Contact Name
                 </label>
                 <input
                   type="text"
                   name="aliasName"
-                  placeholder="Enter alias/stage name"
+                  placeholder="Enter contact person name"
                   value={formData.aliasName}
                   onChange={handleChange}
                   className="input w-full"
@@ -162,20 +162,16 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
               </div>
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Country
+                  Location
                 </label>
-                <select
+                <input
+                  type="text"
                   name="country"
+                  placeholder="Enter city or location"
                   value={formData.country}
                   onChange={handleChange}
-                  className="select w-full"
-                >
-                  <option value="">Select country</option>
-                  <option value="India">India</option>
-                  <option value="USA">USA</option>
-                  <option value="UK">UK</option>
-                  <option value="Canada">Canada</option>
-                </select>
+                  className="input w-full"
+                />
               </div>
             </div>
 
@@ -228,7 +224,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Talent Role
+                  Primary Role
                 </label>
                 <input
                   type="text"
@@ -260,7 +256,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Genre
+                  Primary Genres
                 </label>
                 <input
                   type="text"

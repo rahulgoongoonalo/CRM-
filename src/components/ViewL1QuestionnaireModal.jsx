@@ -48,7 +48,7 @@ const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
 
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Primary Contact Person
+                  Primary Contact Name
                 </label>
                 <input
                   type="text"
@@ -62,7 +62,7 @@ const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Email
+                  Email Address
                 </label>
                 <input
                   type="text"
@@ -74,7 +74,7 @@ const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
 
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Phone
+                  Phone / WhatsApp
                 </label>
                 <input
                   type="text"
@@ -88,7 +88,7 @@ const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  City / Country
+                  City & Country
                 </label>
                 <input
                   type="text"
@@ -100,7 +100,7 @@ const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
 
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Years Active
+                  Year Actively in Music
                 </label>
                 <input
                   type="text"
@@ -113,13 +113,25 @@ const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
 
             <div>
               <label className="block text-sm font-semibold text-text-secondary mb-2">
-                Artist Bio / Background
+                Short Artist Bio
               </label>
               <textarea
                 value={data.artistBio || 'N/A'}
                 disabled
                 rows="3"
                 className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed resize-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-text-secondary mb-2">
+                Listener Region
+              </label>
+              <input
+                type="text"
+                value={data.listenerRegion || 'N/A'}
+                disabled
+                className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
               />
             </div>
           </div>
@@ -188,7 +200,7 @@ const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2">
-                  Primary Role
+                  Primary Role(s)
                 </label>
                 <input
                   type="text"
@@ -213,7 +225,7 @@ const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
 
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-2">
-                Language(s) of Music
+                Languages You Create In
               </label>
               <input
                 type="text"
@@ -225,7 +237,7 @@ const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
 
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-2">
-                Sub-genre / Style
+                Sub-Genre / Style
               </label>
               <input
                 type="text"
@@ -267,7 +279,7 @@ const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
 
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2">
-                  Instagram Handle
+                  Instagram Profile
                 </label>
                 <input
                   type="text"
@@ -278,16 +290,56 @@ const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-2">
-                Other Platforms
-              </label>
-              <input
-                type="text"
-                value={data.otherPlatforms || 'N/A'}
-                disabled
-                className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Facebook Link
+                </label>
+                <input
+                  type="text"
+                  value={data.facebook || 'N/A'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Twitter Link
+                </label>
+                <input
+                  type="text"
+                  value={data.twitter || 'N/A'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  SoundCloud Link
+                </label>
+                <input
+                  type="text"
+                  value={data.soundcloud || 'N/A'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Other Platforms
+                </label>
+                <input
+                  type="text"
+                  value={data.otherPlatforms || 'N/A'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              </div>
             </div>
           </div>
 
@@ -400,6 +452,58 @@ const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
                 disabled
                 className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Perform Live?
+                </label>
+                <input
+                  type="text"
+                  value={data.performLive || 'N/A'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Upcoming Project
+                </label>
+                <input
+                  type="text"
+                  value={data.upcomingProject || 'N/A'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Interested in Gatecrash?
+                </label>
+                <input
+                  type="text"
+                  value={data.interestedInGatecrash || 'N/A'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Other Info
+                </label>
+                <input
+                  type="text"
+                  value={data.otherInfo || 'N/A'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              </div>
             </div>
           </div>
 

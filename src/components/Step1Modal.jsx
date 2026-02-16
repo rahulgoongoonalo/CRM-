@@ -7,7 +7,7 @@ import { useToast } from './ToastNotification';
 const Step1Modal = ({ isOpen, onClose, onboardingId, memberName, taskId }) => {
   const [formData, setFormData] = useState({
     source: 'Personal Reference',
-    contactStatus: 'New',
+    contactStatus: 'First Contact',
     notes: ''
   });
   const [isQuestionnaireOpen, setIsQuestionnaireOpen] = useState(false);
@@ -84,6 +84,7 @@ const Step1Modal = ({ isOpen, onClose, onboardingId, memberName, taskId }) => {
                   <option value="Cartel">Cartel</option>
                   <option value="Soumini">Soumini</option>
                   <option value="Marriot">Marriot</option>
+                  <option value="Website">Website</option>
                   <option value="SVF">SVF</option>
                   <option value="AME">AME</option>
                   <option value="Caartel Music">Caartel Music</option>
@@ -101,10 +102,11 @@ const Step1Modal = ({ isOpen, onClose, onboardingId, memberName, taskId }) => {
                 onChange={(e) => setFormData({ ...formData, contactStatus: e.target.value })}
                 className="w-full bg-[#2d3748] border border-slate-600 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
               >
-                <option>New</option>
-                <option>Contacted</option>
-                <option>In Progress</option>
-                <option>Follow-up Required</option>
+                <option value="First Contact">First Contact</option>
+                <option value="Follow-up Scheduled">Follow-up Scheduled</option>
+                <option value="Information Shared">Information Shared</option>
+                <option value="Awaiting Response">Awaiting Response</option>
+                <option value="Ready for L1">Ready for L1</option>
               </select>
             </div>
           </div>
