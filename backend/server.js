@@ -1,27 +1,22 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import memberRoutes from './routes/memberRoutes.js';
 import onboardingRoutes from './routes/onboardingRoutes.js';
+import glossaryRoutes from './routes/glossaryRoutes.js';
 import User from './models/User.js';
 
 // Load environment variables
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, '.env') });
 
-// Connect to MongoDB
-connectDB();
-
-const app = express();
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Initialize default admin user
-const initializeAdmin = async () => {
+// Connect to MongoDB and initialize admin
+connectDB().then(async () => {
   try {
     const adminExists = await User.findOne({ role: 'administrator' });
     if (!adminExists) {
@@ -36,15 +31,20 @@ const initializeAdmin = async () => {
   } catch (error) {
     console.error('Error creating admin user:', error);
   }
-};
+});
 
-// Initialize admin after DB connection
-setTimeout(initializeAdmin, 2000);
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/onboarding', onboardingRoutes);
+app.use('/api/glossary', glossaryRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

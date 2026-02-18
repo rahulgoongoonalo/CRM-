@@ -98,6 +98,37 @@ export const onboardingAPI = {
   }
 };
 
+// Glossary API
+export const glossaryAPI = {
+  getAll: async () => {
+    const response = await api.get('/glossary');
+    return response.data;
+  },
+  getById: async (id) => {
+    const response = await api.get(`/glossary/${id}`);
+    return response.data;
+  },
+  create: async (formData) => {
+    const response = await api.post('/glossary', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+  update: async (id, formData) => {
+    const response = await api.put(`/glossary/${id}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/glossary/${id}`);
+    return response.data;
+  },
+  download: (id) => {
+    return `${API_URL}/glossary/${id}/download`;
+  },
+};
+
 // Reports API
 export const getOnboardingStatusReport = async () => {
   const response = await api.get('/onboarding/reports/onboarding-status');

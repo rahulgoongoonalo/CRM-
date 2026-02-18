@@ -15,7 +15,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
     talentType: '',
     genre: '',
     source: '',
-    spoc: '',
+    notes: '',
     status: 'Pending',
     biography: '',
     digitalPayout: false,
@@ -49,7 +49,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
       talentType: '',
       genre: '',
       source: '',
-      spoc: '',
+      notes: '',
       status: 'Pending',
       biography: '',
       digitalPayout: false,
@@ -296,9 +296,9 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                 </label>
                 <input
                   type="text"
-                  name="spoc"
+                  name="notes"
                   placeholder="Enter note"
-                  value={formData.spoc}
+                  value={formData.notes}
                   onChange={handleChange}
                   className="input w-full"
                 />

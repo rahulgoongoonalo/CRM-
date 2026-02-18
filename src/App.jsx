@@ -12,6 +12,8 @@ import Reporting from './pages/Reporting';
 import Campaigns from './pages/Campaigns';
 import Settings from './pages/Settings';
 import MemberOnboardingStatus from './pages/MemberOnboardingStatus';
+import DataHygiene from './pages/DataHygiene';
+import Glossary from './pages/Glossary';
 
 function App() {
   return (
@@ -34,6 +36,8 @@ function App() {
             <Route path="onboarding" element={<Onboarding />} />
             <Route path="reporting" element={<Reporting />} />
             <Route path="member-onboarding-status" element={<MemberOnboardingStatus />} />
+            <Route path="data-hygiene" element={<DataHygiene />} />
+            <Route path="glossary" element={<Glossary />} />
             <Route path="campaigns" element={<Campaigns />} />
             <Route path="settings" element={<Settings />} />
           </Route>

@@ -15,7 +15,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
     talentType: '',
     genre: '',
     source: '',
-    spoc: '',
+    notes: '',
     status: 'Pending',
     biography: '',
   });
@@ -40,7 +40,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
         talentType: member.talentType || '',
         genre: member.primaryGenres || '',
         source: member.source || source,
-        spoc: member.spoc || '',
+        notes: member.notes || '',
         status: member.status?.charAt(0).toUpperCase() + member.status?.slice(1) || 'Updated',
         biography: member.biography || '',
       });
@@ -302,9 +302,9 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                 </label>
                 <input
                   type="text"
-                  name="spoc"
+                  name="notes"
                   placeholder="Enter note"
-                  value={formData.spoc}
+                  value={formData.notes}
                   onChange={handleChange}
                   className="input w-full"
                 />
