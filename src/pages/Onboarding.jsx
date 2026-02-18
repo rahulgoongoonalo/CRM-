@@ -49,7 +49,7 @@ const Onboarding = () => {
         spoc: formData.spoc,
         etaClosure: formData.etaClosure,
         notes: formData.notes,
-        status: 'contact-established'
+        status: 'warm'
       });
       
       if (response.success) {
@@ -142,12 +142,12 @@ const Onboarding = () => {
   const getStatusColor = (status) => {
     const statusLower = status?.toLowerCase() || '';
     const statusMap = {
-      'pending': 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
-      'contact-established': 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
-      'spoc-assigned': 'bg-purple-500/20 text-purple-400 border border-purple-500/30',
-      'review-l2': 'bg-orange-500/20 text-orange-400 border border-orange-500/30',
-      'closed-won': 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
-      'closed-lost': 'bg-red-500/20 text-red-400 border border-red-500/30'
+      'hot': 'bg-red-500/20 text-red-400 border border-red-500/30',
+      'warm': 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
+      'cold': 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
+      'closed-won': 'bg-green-500/20 text-green-400 border border-green-500/30',
+      'closed-lost': 'bg-red-700/20 text-red-500 border border-red-700/30',
+      'cold-storage': 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
     };
     return statusMap[statusLower] || 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
   };
@@ -163,14 +163,14 @@ const Onboarding = () => {
   const formatStatus = (status) => {
     const statusLower = status?.toLowerCase() || '';
     const statusMap = {
-      'pending': 'Pending',
-      'contact-established': 'Contact Established',
-      'spoc-assigned': 'SPOC Assigned',
-      'review-l2': 'Review for L2',
+      'hot': 'Hot',
+      'warm': 'Warm',
+      'cold': 'Cold',
       'closed-won': 'Closed Won',
-      'closed-lost': 'Closed Lost'
+      'closed-lost': 'Closed Lost',
+      'cold-storage': 'Cold Storage'
     };
-    return statusMap[statusLower] || status || 'Pending';
+    return statusMap[statusLower] || status || 'Warm';
   };
 
   const filteredOnboardings = onboardings.filter((o) => {
@@ -203,19 +203,19 @@ const Onboarding = () => {
 
   const stats = [
     { number: onboardings.length.toString(), label: 'Total Onboarding', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-brand-primary to-brand-secondary' },
-    { number: onboardings.filter(o => ['contact-established', 'spoc-assigned', 'review-l2'].includes(o.status)).length.toString(), label: 'In Progress', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-brand-accent to-brand-highlight' },
-    { number: onboardings.filter(o => o.status === 'closed-won').length.toString(), label: 'Closed Won', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-emerald-600 to-emerald-700' },
-    { number: onboardings.filter(o => o.status === 'closed-lost').length.toString(), label: 'Closed Lost', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-red-600 to-red-700' },
+    { number: onboardings.filter(o => o.status === 'closed-won').length.toString(), label: 'Closed Won', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-green-600 to-green-700' },
+    { number: onboardings.filter(o => o.status === 'closed-lost').length.toString(), label: 'Closed Lost', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-red-800 to-red-900' },
+    { number: onboardings.filter(o => o.status === 'cold-storage').length.toString(), label: 'Cold Storage', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-purple-600 to-purple-700' },
   ];
 
   const filters = [
     'All',
-    'Pending',
-    'SPOC Assigned',
-    'Contact Established',
-    'Review for L2',
+    'Hot',
+    'Warm',
+    'Cold',
     'Closed Won',
-    'Closed Lost'
+    'Closed Lost',
+    'Cold Storage'
   ];
 
   return (
@@ -233,7 +233,7 @@ const Onboarding = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 mb-6">
         {stats.map((stat, index) => (
           <div key={index} className={`${stat.bgColor} card card-hover shadow-lg shadow-brand-primary/5 border-border`}>
             <div className="flex items-start justify-between">

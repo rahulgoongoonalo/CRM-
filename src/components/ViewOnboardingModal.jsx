@@ -2,10 +2,12 @@ import { RiCloseLine } from 'react-icons/ri';
 import { useState } from 'react';
 import ViewStep1Modal from './ViewStep1Modal';
 import ViewL1QuestionnaireModal from './ViewL1QuestionnaireModal';
+import ViewL2ReviewModal from './ViewL2ReviewModal';
 
 const ViewOnboardingModal = ({ isOpen, onClose, onboarding }) => {
   const [isStep1Open, setIsStep1Open] = useState(false);
   const [isQuestionnaireOpen, setIsQuestionnaireOpen] = useState(false);
+  const [isL2ReviewOpen, setIsL2ReviewOpen] = useState(false);
   
   if (!isOpen || !onboarding) return null;
 
@@ -19,11 +21,12 @@ const ViewOnboardingModal = ({ isOpen, onClose, onboarding }) => {
   const memberName = onboarding.artistName || onboarding.member?.artistName || 'N/A';
   const memberEmail = onboarding.member?.email || 'N/A';
   const statusDisplay = {
-    'contact-established': 'Contact Established',
-    'spoc-assigned': 'SPOC Assigned',
-    'review-l2': 'Review for L2',
+    'hot': 'Hot',
+    'warm': 'Warm',
+    'cold': 'Cold',
     'closed-won': 'Closed Won',
-    'closed-lost': 'Closed Lost'
+    'closed-lost': 'Closed Lost',
+    'cold-storage': 'Cold Storage'
   }[onboarding.status] || onboarding.status;
 
   return (
@@ -168,6 +171,13 @@ const ViewOnboardingModal = ({ isOpen, onClose, onboarding }) => {
               >
                 View L1 Questionnaire
               </button>
+              <button
+                type="button"
+                onClick={() => setIsL2ReviewOpen(true)}
+                className="px-6 py-2.5 rounded-lg font-medium bg-gradient-to-r from-orange-600 to-orange-500 text-white hover:from-orange-500 hover:to-orange-400 transition-all shadow-lg shadow-orange-600/30"
+              >
+                View L2 Review
+              </button>
             </div>
             <button
               type="button"
@@ -191,6 +201,13 @@ const ViewOnboardingModal = ({ isOpen, onClose, onboarding }) => {
       <ViewL1QuestionnaireModal
         isOpen={isQuestionnaireOpen}
         onClose={() => setIsQuestionnaireOpen(false)}
+        onboarding={onboarding}
+      />
+      
+      {/* L2 Review Modal */}
+      <ViewL2ReviewModal
+        isOpen={isL2ReviewOpen}
+        onClose={() => setIsL2ReviewOpen(false)}
         onboarding={onboarding}
       />
     </div>

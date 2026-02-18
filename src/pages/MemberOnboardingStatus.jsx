@@ -65,12 +65,9 @@ const MemberOnboardingStatus = () => {
 
   const getStatusColor = (status) => {
     const colors = {
-      'Contact Established': 'bg-blue-500/10 text-blue-400 border-blue-400/20',
-      'SPOC Assigned': 'bg-purple-500/10 text-purple-400 border-purple-400/20',
-      'Review L2': 'bg-yellow-500/10 text-yellow-400 border-yellow-400/20',
-      'Closed Won': 'bg-emerald-500/10 text-emerald-400 border-emerald-400/20',
-      'Closed Lost': 'bg-red-500/10 text-red-400 border-red-400/20',
-      'Pending': 'bg-orange-500/10 text-orange-400 border-orange-400/20'
+      'Hot': 'bg-red-500/10 text-red-400 border-red-400/20',
+      'Warm': 'bg-amber-500/10 text-amber-400 border-amber-400/20',
+      'Cold': 'bg-blue-500/10 text-blue-400 border-blue-400/20'
     };
     return colors[status] || 'bg-gray-500/10 text-gray-400 border-gray-400/20';
   };
@@ -211,11 +208,9 @@ const MemberOnboardingStatus = () => {
               className="w-full pl-10 pr-4 py-2 bg-surface-lighter border border-border rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary appearance-none cursor-pointer"
             >
               <option value="all">All Statuses</option>
-              <option value="Contact Established">Contact Established</option>
-              <option value="SPOC Assigned">SPOC Assigned</option>
-              <option value="Review L2">Review L2</option>
-              <option value="Closed Won">Closed Won</option>
-              <option value="Closed Lost">Closed Lost</option>
+              <option value="Hot">Hot</option>
+              <option value="Warm">Warm</option>
+              <option value="Cold">Cold</option>
             </select>
           </div>
 

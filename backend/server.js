@@ -8,6 +8,7 @@ import authRoutes from './routes/authRoutes.js';
 import memberRoutes from './routes/memberRoutes.js';
 import onboardingRoutes from './routes/onboardingRoutes.js';
 import glossaryRoutes from './routes/glossaryRoutes.js';
+import faqRoutes from './routes/faqRoutes.js';
 import User from './models/User.js';
 
 // Load environment variables
@@ -40,11 +41,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/glossary', glossaryRoutes);
+app.use('/api/faq', faqRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

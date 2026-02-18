@@ -9,7 +9,7 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
     description: '',
     spoc: '',
     etaClosure: '',
-    status: 'contact-established',
+    status: 'warm',
     notes: '',
   });
   const [isStep1ModalOpen, setIsStep1ModalOpen] = useState(false);
@@ -192,11 +192,9 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
                 onChange={handleChange}
                 className="select w-full cursor-pointer"
               >
-                <option value="contact-established">Contact Established</option>
-                <option value="spoc-assigned">SPOC Assigned</option>
-                <option value="review-l2">Review for L2</option>
-                <option value="closed-won">Closed Won</option>
-                <option value="closed-lost">Closed Lost</option>
+                <option value="hot">Hot</option>
+                <option value="warm">Warm</option>
+                <option value="cold">Cold</option>
               </select>
             </div>
 

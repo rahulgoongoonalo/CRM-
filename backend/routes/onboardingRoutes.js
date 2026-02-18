@@ -1,6 +1,32 @@
 import express from 'express';
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
 import Onboarding from '../models/Onboarding.js';
 import Member from '../models/Member.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Configure multer storage
+const uploadsDir = path.join(__dirname, '..', 'uploads', 'documents');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+});
 
 const router = express.Router();
 
@@ -27,12 +53,9 @@ router.get('/reports/onboarding-status', async (req, res) => {
       
       // Format onboarding status
       const statusMapping = {
-        'contact-established': 'Contact Established',
-        'spoc-assigned': 'SPOC Assigned',
-        'review-l2': 'Review L2',
-        'closed-won': 'Closed Won',
-        'closed-lost': 'Closed Lost',
-        'pending': 'Pending'
+        'hot': 'Hot',
+        'warm': 'Warm',
+        'cold': 'Cold'
       };
       
       // Clean and normalize tier value
@@ -321,6 +344,12 @@ router.patch('/:id/l2-review', async (req, res) => {
   try {
     const { l2ReviewData, status } = req.body;
     
+    // Preserve existing documents when updating L2 review
+    const existing = await Onboarding.findById(req.params.id);
+    if (existing && existing.l2ReviewData && existing.l2ReviewData.documents) {
+      l2ReviewData.documents = existing.l2ReviewData.documents;
+    }
+    
     const updatedOnboarding = await Onboarding.findByIdAndUpdate(
       req.params.id,
       {
@@ -349,6 +378,87 @@ router.patch('/:id/l2-review', async (req, res) => {
       message: 'Failed to update L2 review',
       error: error.message
     });
+  }
+});
+
+// Upload document for L2 Review
+router.post('/:id/l2-review/upload-document', upload.single('document'), async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+
+    if (!title) {
+      return res.status(400).json({ success: false, message: 'Document title is required' });
+    }
+
+    const docEntry = {
+      title,
+      description: description || '',
+      fileName: file.originalname,
+      filePath: '/uploads/documents/' + file.filename,
+      fileType: file.mimetype,
+      fileSize: file.size,
+      uploadedAt: new Date()
+    };
+
+    const updatedOnboarding = await Onboarding.findByIdAndUpdate(
+      req.params.id,
+      { $push: { 'l2ReviewData.documents': docEntry } },
+      { new: true, runValidators: true }
+    ).populate('member', 'artistName email phone primaryGenres source tier');
+
+    if (!updatedOnboarding) {
+      return res.status(404).json({ success: false, message: 'Onboarding not found' });
+    }
+
+    res.json({
+      success: true,
+      data: updatedOnboarding,
+      message: 'Document uploaded successfully'
+    });
+  } catch (error) {
+    console.error('Error uploading document:', error);
+    res.status(500).json({ success: false, message: 'Failed to upload document', error: error.message });
+  }
+});
+
+// Delete document from L2 Review
+router.delete('/:id/l2-review/document/:docIndex', async (req, res) => {
+  try {
+    const { id, docIndex } = req.params;
+    const onboarding = await Onboarding.findById(id);
+
+    if (!onboarding) {
+      return res.status(404).json({ success: false, message: 'Onboarding not found' });
+    }
+
+    const docs = onboarding.l2ReviewData?.documents || [];
+    const idx = parseInt(docIndex);
+    if (idx < 0 || idx >= docs.length) {
+      return res.status(400).json({ success: false, message: 'Invalid document index' });
+    }
+
+    // Remove the file from disk
+    const filePath = path.join(__dirname, '..', docs[idx].filePath);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+
+    docs.splice(idx, 1);
+    onboarding.l2ReviewData.documents = docs;
+    await onboarding.save();
+
+    const populated = await Onboarding.findById(id)
+      .populate('member', 'artistName email phone primaryGenres source tier');
+
+    res.json({ success: true, data: populated, message: 'Document deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting document:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete document', error: error.message });
   }
 });
 

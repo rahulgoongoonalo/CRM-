@@ -32,8 +32,8 @@ const onboardingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'contact-established', 'spoc-assigned', 'review-l2', 'closed-won', 'closed-lost'],
-    default: 'contact-established'
+    enum: ['hot', 'warm', 'cold', 'closed-won', 'closed-lost', 'cold-storage'],
+    default: 'warm'
   },
   // Step 1: Initial Contact Data
   step1Data: {
@@ -123,7 +123,16 @@ const onboardingSchema = new mongoose.Schema({
       type: String,
       enum: ['artist-investor', 'partner-artist']
     },
-    notes: String
+    notes: String,
+    documents: [{
+      title: String,
+      description: String,
+      fileName: String,
+      filePath: String,
+      fileType: String,
+      fileSize: Number,
+      uploadedAt: { type: Date, default: Date.now }
+    }]
     },
     default: {}
   },

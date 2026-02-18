@@ -95,6 +95,16 @@ export const onboardingAPI = {
   updateL2Review: async (id, l2Data) => {
     const response = await api.patch(`/onboarding/${id}/l2-review`, l2Data);
     return response.data;
+  },
+  uploadDocument: async (id, formData) => {
+    const response = await api.post(`/onboarding/${id}/l2-review/upload-document`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  },
+  deleteDocument: async (id, docIndex) => {
+    const response = await api.delete(`/onboarding/${id}/l2-review/document/${docIndex}`);
+    return response.data;
   }
 };
 
@@ -126,6 +136,26 @@ export const glossaryAPI = {
   },
   download: (id) => {
     return `${API_URL}/glossary/${id}/download`;
+  },
+};
+
+// FAQ API
+export const faqAPI = {
+  getAll: async () => {
+    const response = await api.get('/faq');
+    return response.data;
+  },
+  create: async (data) => {
+    const response = await api.post('/faq', data);
+    return response.data;
+  },
+  update: async (id, data) => {
+    const response = await api.put(`/faq/${id}`, data);
+    return response.data;
+  },
+  delete: async (id) => {
+    const response = await api.delete(`/faq/${id}`);
+    return response.data;
   },
 };
 

@@ -14,6 +14,7 @@ import Settings from './pages/Settings';
 import MemberOnboardingStatus from './pages/MemberOnboardingStatus';
 import DataHygiene from './pages/DataHygiene';
 import Glossary from './pages/Glossary';
+import FAQ from './pages/FAQ';
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
             <Route path="member-onboarding-status" element={<MemberOnboardingStatus />} />
             <Route path="data-hygiene" element={<DataHygiene />} />
             <Route path="glossary" element={<Glossary />} />
+            <Route path="faq" element={<FAQ />} />
             <Route path="campaigns" element={<Campaigns />} />
             <Route path="settings" element={<Settings />} />
           </Route>

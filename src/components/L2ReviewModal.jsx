@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { RiCloseLine } from 'react-icons/ri';
+import { RiCloseLine, RiUploadCloud2Line, RiDeleteBin6Line, RiFileTextLine } from 'react-icons/ri';
 import { useToast } from './ToastNotification';
+import { onboardingAPI } from '../services/api';
 
 const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -15,6 +16,11 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
     membershipType: '',
     notes: ''
   });
+  const [docTitle, setDocTitle] = useState('');
+  const [docDescription, setDocDescription] = useState('');
+  const [docFile, setDocFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedDocs, setUploadedDocs] = useState(onboarding?.l2ReviewData?.documents || []);
   const toast = useToast();
 
   if (!isOpen) return null;
@@ -91,6 +97,58 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
 
   const taskId = `ONB-${onboarding?._id?.slice(-4).toUpperCase()}`;
   const artistName = onboarding?.member?.name || 'N/A';
+
+  const handleUploadDocument = async () => {
+    if (!docTitle.trim()) {
+      toast.warning('Please enter a document title');
+      return;
+    }
+    if (!docFile) {
+      toast.warning('Please select a file to upload');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const formDataUpload = new FormData();
+      formDataUpload.append('document', docFile);
+      formDataUpload.append('title', docTitle);
+      formDataUpload.append('description', docDescription);
+
+      const response = await onboardingAPI.uploadDocument(onboarding._id, formDataUpload);
+      if (response.success) {
+        setUploadedDocs(response.data.l2ReviewData?.documents || []);
+        setDocTitle('');
+        setDocDescription('');
+        setDocFile(null);
+        toast.success('Document uploaded successfully');
+      }
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      toast.error('Failed to upload document');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDeleteDocument = async (docIndex) => {
+    try {
+      const response = await onboardingAPI.deleteDocument(onboarding._id, docIndex);
+      if (response.success) {
+        setUploadedDocs(response.data.l2ReviewData?.documents || []);
+        toast.success('Document deleted');
+      }
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      toast.error('Failed to delete document');
+    }
+  };
+
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -287,6 +345,100 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
               <option value="artist-investor">Artist Investor (rs 2500 per share investment)</option>
               <option value="partner-artist">Partner Artist (Distribution + Events)</option>
             </select>
+          </div>
+
+          {/* Upload Documents Section */}
+          <div>
+            <h3 className="text-yellow-500 font-bold text-sm mb-4">UPLOAD DOCUMENTS</h3>
+            
+            {/* Upload Form */}
+            <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-semibold text-text-secondary mb-1">
+                    Title <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={docTitle}
+                    onChange={(e) => setDocTitle(e.target.value)}
+                    placeholder="e.g. Contract Agreement"
+                    className="input w-full text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-text-secondary mb-1">
+                    Description
+                  </label>
+                  <input
+                    type="text"
+                    value={docDescription}
+                    onChange={(e) => setDocDescription(e.target.value)}
+                    placeholder="Brief description..."
+                    className="input w-full text-sm"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <label className="flex-1 flex items-center gap-2 px-4 py-2.5 bg-[#2d3748] border border-dashed border-slate-500 rounded-lg cursor-pointer hover:border-orange-400 transition-colors">
+                  <RiUploadCloud2Line className="text-orange-400 text-lg" />
+                  <span className="text-sm text-text-secondary truncate">
+                    {docFile ? docFile.name : 'Choose file (max 10MB)'}
+                  </span>
+                  <input
+                    type="file"
+                    onChange={(e) => setDocFile(e.target.files[0])}
+                    className="hidden"
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt"
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={handleUploadDocument}
+                  disabled={uploading}
+                  className="px-5 py-2.5 rounded-lg font-medium bg-gradient-to-r from-orange-600 to-orange-500 text-white hover:from-orange-500 hover:to-orange-400 transition-all shadow-lg shadow-orange-600/30 disabled:opacity-50 whitespace-nowrap text-sm"
+                >
+                  {uploading ? 'Uploading...' : 'Upload'}
+                </button>
+              </div>
+            </div>
+
+            {/* Uploaded Documents List */}
+            {uploadedDocs.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {uploadedDocs.map((doc, index) => (
+                  <div key={index} className="flex items-center justify-between bg-slate-900/50 rounded-lg px-4 py-3 border border-slate-700">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <RiFileTextLine className="text-orange-400 text-lg flex-shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-white text-sm font-medium truncate">{doc.title}</div>
+                        <div className="text-gray-400 text-xs truncate">
+                          {doc.fileName} • {formatFileSize(doc.fileSize)}
+                          {doc.description && ` • ${doc.description}`}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                      <a
+                        href={`http://localhost:5000${doc.filePath}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-300 text-xs underline"
+                      >
+                        View
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteDocument(index)}
+                        className="text-red-400 hover:text-red-300 p-1"
+                      >
+                        <RiDeleteBin6Line size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Notes */}
