@@ -120,6 +120,11 @@ const Onboarding = () => {
   };
 
   const handleOpenL2Review = (onboarding) => {
+    const doneStatuses = ['closed-won', 'closed-lost', 'cold-storage'];
+    if (doneStatuses.includes(onboarding.status)) {
+      toast.info('L2 Review is already done for this onboarding');
+      return;
+    }
     setSelectedOnboarding(onboarding);
     setIsL2ReviewModalOpen(true);
   };
@@ -384,7 +389,11 @@ const Onboarding = () => {
                         </button>
                         <button 
                           onClick={() => handleOpenL2Review(item)}
-                          className="text-text-muted hover:text-emerald-400 transition-colors p-1"
+                          className={`transition-colors p-1 ${
+                            ['closed-won', 'closed-lost', 'cold-storage'].includes(item.status)
+                              ? 'text-text-muted/30 cursor-not-allowed'
+                              : 'text-text-muted hover:text-emerald-400'
+                          }`}
                         >
                           <RiSendPlaneLine className="text-base" />
                         </button>
@@ -478,7 +487,11 @@ const Onboarding = () => {
                   </button>
                   <button 
                     onClick={() => handleOpenL2Review(item)}
-                    className="flex-1 flex items-center justify-center space-x-1 text-text-muted hover:text-emerald-400 py-2 transition-colors"
+                    className={`flex-1 flex items-center justify-center space-x-1 py-2 transition-colors ${
+                      ['closed-won', 'closed-lost', 'cold-storage'].includes(item.status)
+                        ? 'text-text-muted/30 cursor-not-allowed'
+                        : 'text-text-muted hover:text-emerald-400'
+                    }`}
                   >
                     <RiSendPlaneLine className="text-lg" />
                     <span className="text-sm font-medium">Review</span>
