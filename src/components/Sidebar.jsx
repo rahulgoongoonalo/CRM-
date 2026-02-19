@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { RiDashboardLine, RiUserLine, RiUserAddLine, RiBarChartLine, RiMegaphoneLine, RiSettings4Line, RiLogoutBoxLine, RiMusicLine, RiCloseLine, RiShieldCheckLine, RiBookOpenLine, RiQuestionAnswerLine } from 'react-icons/ri';
+import { RiDashboardLine, RiUserLine, RiUserAddLine, RiBarChartLine, RiMegaphoneLine, RiSettings4Line, RiLogoutBoxLine, RiMusicLine, RiCloseLine, RiShieldCheckLine, RiBookOpenLine, RiQuestionAnswerLine, RiListSettingsLine } from 'react-icons/ri';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ isOpen, isMobile, onClose }) => {
@@ -100,8 +100,23 @@ const Sidebar = ({ isOpen, isMobile, onClose }) => {
           <RiSettings4Line className="text-xl flex-shrink-0" />
           {(isOpen || isMobile) && <span className="text-sm font-semibold">Settings</span>}
         </NavLink> */}
-        
-        <button 
+
+        <NavLink
+          to="/picklist"
+          onClick={handleNavClick}
+          className={({ isActive }) =>
+            `flex items-center space-x-3 px-6 py-3 mx-2 my-2 rounded-lg transition-all ${
+              isActive
+                ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/30'
+                : 'text-text-secondary hover:bg-brand-primary/10 hover:text-text-primary'
+            }`
+          }
+        >
+          <RiListSettingsLine className="text-xl flex-shrink-0" />
+          {(isOpen || isMobile) && <span className="text-sm font-semibold">Picklist</span>}
+        </NavLink>
+
+        <button
           onClick={handleLogout}
           className="flex items-center space-x-3 px-6 py-3 mx-2 mb-4 w-auto rounded-lg text-text-secondary hover:bg-red-500/10 hover:text-red-400 transition-all text-left"
         >

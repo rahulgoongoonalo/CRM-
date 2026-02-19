@@ -1,7 +1,11 @@
 import { RiCloseLine } from 'react-icons/ri';
 import { useState } from 'react';
+import { usePicklist } from '../hooks/usePicklist';
 
 const Step1InitialContactModal = ({ isOpen, onClose, memberName, taskId }) => {
+  const { items: sourceOptions } = usePicklist('source');
+  const { items: contactStatusOptions } = usePicklist('contactStatus');
+
   const [formData, setFormData] = useState({
     source: 'Personal Reference',
     contactStatus: 'New',
@@ -66,18 +70,10 @@ const Step1InitialContactModal = ({ isOpen, onClose, memberName, taskId }) => {
                   required
                   className="w-full bg-[#2d3748] text-white px-4 py-2.5 rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
                 >
-                  <option>Personal Reference</option>
-                  <option>Open Inbound</option>
-                  <option>Special-Curated</option>
-                  <option>Curated Artist</option>
-          <option value="Cartel">Cartel</option>
-                  <option value="Soumini">Soumini</option>
-                  <option value="Marriot">Marriot</option>
-                    <option value="Website">Website</option>
-                  <option value="SVF">SVF</option>
-                  <option value="AME">AME</option>
-                  <option value="Caartel Music">Caartel Music</option>
-                  <option value="Manipuri Zone">Manipuri Zone</option>
+                  <option value="">Select source</option>
+                  {sourceOptions.map(item => (
+                    <option key={item._id} value={item.value}>{item.label}</option>
+                  ))}
                 </select>
               </div>
 
@@ -93,10 +89,9 @@ const Step1InitialContactModal = ({ isOpen, onClose, memberName, taskId }) => {
                   required
                   className="w-full bg-[#2d3748] text-white px-4 py-2.5 rounded-lg border border-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer"
                 >
-                  <option>New</option>
-                  <option>Contacted</option>
-                  <option>In Discussion</option>
-                  <option>Follow-up Required</option>
+                  {contactStatusOptions.map(item => (
+                    <option key={item._id} value={item.value}>{item.label}</option>
+                  ))}
                 </select>
               </div>
             </div>

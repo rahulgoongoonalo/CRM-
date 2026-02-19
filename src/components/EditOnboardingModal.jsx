@@ -3,8 +3,12 @@ import { useState, useEffect } from 'react';
 import { membersAPI } from '../services/api';
 import EditStep1Modal from './EditStep1Modal';
 import EditL1QuestionnaireModal from './EditL1QuestionnaireModal';
+import { usePicklist } from '../hooks/usePicklist';
 
 const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
+  const { items: spocOptions } = usePicklist('spoc');
+  const { items: onboardingStatuses } = usePicklist('onboardingStatus');
+
   const [formData, setFormData] = useState({
     member: '',
     description: '',
@@ -142,15 +146,9 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                     className="select w-full cursor-pointer"
                   >
                     <option value="">Select SPOC</option>
-                    <option>Vishal Onkar</option>
-                    <option>Soumini Paul</option>
-                    <option>Aayan De</option>
-                    <option>Joshua Singh</option>
-                    <option>Racheal Singh</option>
-                    <option>Aayush Jain</option>
-                    <option>Pooja Gupta</option>
-                    <option>Rahul Jadhav</option>
-                    <option>Vaishali</option>
+                    {spocOptions.map(item => (
+                      <option key={item._id} value={item.value}>{item.label}</option>
+                    ))}
                   </select>
                 </div>
 
@@ -180,9 +178,9 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                   onChange={handleChange}
                   className="select w-full cursor-pointer"
                 >
-                  <option value="hot">Hot</option>
-                  <option value="warm">Warm</option>
-                  <option value="cold">Cold</option>
+                  {onboardingStatuses.map(item => (
+                    <option key={item._id} value={item.value}>{item.label}</option>
+                  ))}
                 </select>
               </div>
 

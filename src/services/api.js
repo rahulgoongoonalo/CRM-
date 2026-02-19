@@ -26,6 +26,19 @@ api.interceptors.request.use(
   }
 );
 
+// Handle 401 responses - auto logout on invalid token
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Auth API
 export const authAPI = {
   login: async (email, password) => {
@@ -157,6 +170,26 @@ export const faqAPI = {
     const response = await api.delete(`/faq/${id}`);
     return response.data;
   },
+};
+
+// Picklist API
+export const picklistAPI = {
+  getAll: async () => {
+    const response = await api.get('/picklists');
+    return response.data;
+  },
+  getByName: async (name) => {
+    const response = await api.get(`/picklists/${name}`);
+    return response.data;
+  },
+  addItem: async (name, itemData) => {
+    const response = await api.post(`/picklists/${name}/items`, itemData);
+    return response.data;
+  },
+  deleteItem: async (name, itemId) => {
+    const response = await api.delete(`/picklists/${name}/items/${itemId}`);
+    return response.data;
+  }
 };
 
 // Reports API

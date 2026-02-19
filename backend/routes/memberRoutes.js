@@ -57,7 +57,7 @@ router.post('/', [
   body('email').optional({ checkFalsy: true }).isEmail().withMessage('Valid email is required'),
   body('phone').optional().trim(),
   body('location').optional().trim(),
-  body('status').optional().isIn(['active', 'inactive', 'pending', 'on hold', 'Active', 'Inactive', 'Pending', 'On Hold'])
+  body('status').optional().trim()
 ], async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {

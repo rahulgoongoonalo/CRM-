@@ -2,8 +2,12 @@ import { useState } from 'react';
 import { RiCloseLine, RiUploadCloud2Line, RiDeleteBin6Line, RiFileTextLine } from 'react-icons/ri';
 import { useToast } from './ToastNotification';
 import { onboardingAPI } from '../services/api';
+import { usePicklist } from '../hooks/usePicklist';
 
 const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
+  const { items: meetingTypes } = usePicklist('meetingType');
+  const { items: membershipTypes } = usePicklist('membershipType');
+
   const [formData, setFormData] = useState({
     meetingScheduledOn: '',
     meetingType: 'In-Person',
@@ -203,8 +207,9 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                 onChange={handleChange}
                 className="select w-full"
               >
-                <option value="In-Person">In-Person</option>
-                <option value="Google Meet">Google Meet</option>
+                {meetingTypes.map(item => (
+                  <option key={item._id} value={item.value}>{item.label}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -342,8 +347,9 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
               required
             >
               <option value="">Select membership type</option>
-              <option value="artist-investor">Artist Investor (rs 2500 per share investment)</option>
-              <option value="partner-artist">Partner Artist (Distribution + Events)</option>
+              {membershipTypes.map(item => (
+                <option key={item._id} value={item.value}>{item.label}</option>
+              ))}
             </select>
           </div>
 

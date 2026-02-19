@@ -3,8 +3,12 @@ import { useState, useEffect } from 'react';
 import { onboardingAPI } from '../services/api';
 import EditL1QuestionnaireModal from './EditL1QuestionnaireModal';
 import { useToast } from './ToastNotification';
+import { usePicklist } from '../hooks/usePicklist';
 
 const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
+  const { items: sourceOptions } = usePicklist('source');
+  const { items: contactStatusOptions } = usePicklist('contactStatus');
+
   const [formData, setFormData] = useState({
     source: '',
     contactStatus: '',
@@ -93,19 +97,9 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
               className="select w-full"
             >
               <option value="">Select Source</option>
-                 <option value="Personal Reference">Personal Reference</option>
-                  <option value="Curated Artist">Curated Artist</option>
-                  <option value="Open Inbound">Open Inbound</option>
-                  <option value="Special Curated">Special Curated</option>
-                  <option value="Cartel">Cartel</option>
-                  <option value="Soumini">Soumini</option>
-                  <option value="Marriott">Marriott</option>
-                  <option value="Website">Website</option>
-                  <option value="SVF">SVF</option>
-                  <option value="AME">AME</option>
-                  <option value="Caartel Music">Caartel Music</option>
-                  <option value="Manipuri Zone">Manipuri Zone</option>
-                  <option value="Getgrist">Getgrist</option>
+              {sourceOptions.map(item => (
+                <option key={item._id} value={item.value}>{item.label}</option>
+              ))}
             </select>
           </div>
 
@@ -121,11 +115,9 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
               className="select w-full"
             >
               <option value="">Select Status</option>
-              <option value="First Contact">First Contact</option>
-              <option value="Follow-up Scheduled">Follow-up Scheduled</option>
-              <option value="Information Shared">Information Shared</option>
-              <option value="Awaiting Response">Awaiting Response</option>
-              <option value="Ready for L1">Ready for L1</option>
+              {contactStatusOptions.map(item => (
+                <option key={item._id} value={item.value}>{item.label}</option>
+              ))}
             </select>
           </div>
 

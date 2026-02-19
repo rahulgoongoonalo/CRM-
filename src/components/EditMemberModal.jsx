@@ -1,7 +1,14 @@
 import { RiCloseLine } from 'react-icons/ri';
 import { useState, useEffect } from 'react';
+import { usePicklist } from '../hooks/usePicklist';
 
 const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
+  const { items: categories } = usePicklist('category');
+  const { items: tiers } = usePicklist('tier');
+  const { items: talentTypes } = usePicklist('talentType');
+  const { items: sources } = usePicklist('source');
+  const { items: statuses } = usePicklist('memberStatus');
+
   const [formData, setFormData] = useState({
     fullName: '',
     aliasName: '',
@@ -187,15 +194,9 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                   className="select w-full"
                 >
                   <option value="">Select category</option>
-                  <option value="Premier 1 - 20M">Premier 1 - 20M</option>
-                  <option value="Premier 2 - 10M">Premier 2 - 10M</option>
-                  <option value="Premier 3 - 5M">Premier 3 - 5M</option>
-                  <option value="Elite 1 - 1M">Elite 1 - 1M</option>
-                  <option value="Elite 2 - 600K">Elite 2 - 600K</option>
-                  <option value="Elite 3 - 100K">Elite 3 - 100K</option>
-                  <option value="Standard 1 - 50K">Standard 1 - 50K</option>
-                  <option value="Standard 2 - 10K">Standard 2 - 10K</option>
-                  <option value="Standard 3 - Below 10K">Standard 3 - Below 10K</option>
+                  {categories.map(item => (
+                    <option key={item._id} value={item.value}>{item.label}</option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -209,14 +210,9 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                   className="select w-full"
                 >
                   <option value="">Select tier</option>
-                  <option value="Tier 1 - 1M">Tier 1 - 1M</option>
-                  <option value="Tier 2 - 750K">Tier 2 - 750K</option>
-                  <option value="Tier 3 - 500K">Tier 3 - 500K</option>
-                  <option value="Tier 4 - 250K">Tier 4 - 250K</option>
-                  <option value="Tier 5 - 100K">Tier 5 - 100K</option>
-                  <option value="Tier 6 - 50K">Tier 6 - 50K</option>
-                  <option value="Tier 7 - 10K">Tier 7 - 10K</option>
-                  <option value="Tier 8 - Below 10K">Tier 8 - Below 10K</option>
+                  {tiers.map(item => (
+                    <option key={item._id} value={item.value}>{item.label}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -246,9 +242,9 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                   className="select w-full"
                 >
                   <option value="">Select type</option>
-                  <option value="Individual">Individual</option>
-                  <option value="Band">Band</option>
-                  <option value="Group">Group</option>
+                  {talentTypes.map(item => (
+                    <option key={item._id} value={item.value}>{item.label}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -278,19 +274,9 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                   className="select w-full"
                 >
                   <option value="">Select source</option>
-                  <option value="Personal Reference">Personal Reference</option>
-                  <option value="Curated Artist">Curated Artist</option>
-                  <option value="Open Inbound">Open Inbound</option>
-                  <option value="Special Curated">Special Curated</option>
-                  <option value="Cartel">Cartel</option>
-                  <option value="Soumini">Soumini</option>
-                  <option value="Marriott">Marriott</option>
-                  <option value="Website">Website</option>
-                  <option value="SVF">SVF</option>
-                  <option value="AME">AME</option>
-                  <option value="Caartel Music">Caartel Music</option>
-                  <option value="Manipuri Zone">Manipuri Zone</option>
-                  <option value="Getgrist">Getgrist</option>
+                  {sources.map(item => (
+                    <option key={item._id} value={item.value}>{item.label}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -319,9 +305,9 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                   onChange={handleChange}
                   className="select w-full"
                 >
-                  <option value="Pending">Pending</option>
-                  <option value="Updated">Updated</option>
-                  <option value="On Hold">On Hold</option>
+                  {statuses.map(item => (
+                    <option key={item._id} value={item.value}>{item.label}</option>
+                  ))}
                 </select>
               </div>
             </div>

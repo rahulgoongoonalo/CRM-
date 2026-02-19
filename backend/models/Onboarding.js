@@ -32,7 +32,7 @@ const onboardingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['hot', 'warm', 'cold', 'closed-won', 'closed-lost', 'cold-storage'],
+    // enum managed via Picklist collection
     default: 'warm'
   },
   // Step 1: Initial Contact Data
@@ -108,7 +108,6 @@ const onboardingSchema = new mongoose.Schema({
       meetingScheduledOn: Date,
     meetingType: {
       type: String,
-      enum: ['In-Person', 'Google Meet'],
       default: 'In-Person'
     },
     checklist: {
@@ -120,8 +119,7 @@ const onboardingSchema = new mongoose.Schema({
       contentIngestion: { type: Boolean, default: false }
     },
     membershipType: {
-      type: String,
-      enum: ['artist-investor', 'partner-artist']
+      type: String
     },
     notes: String,
     documents: [{

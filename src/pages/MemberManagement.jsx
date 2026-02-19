@@ -5,6 +5,7 @@ import ViewMemberModal from '../components/ViewMemberModal';
 import EditMemberModal from '../components/EditMemberModal';
 import { membersAPI } from '../services/api';
 import { useToast, useConfirm } from '../components/ToastNotification';
+import { usePicklist } from '../hooks/usePicklist';
 
 const MemberManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -21,6 +22,8 @@ const MemberManagement = () => {
   const [error, setError] = useState(null);
   const toast = useToast();
   const confirm = useConfirm();
+  const { items: sourceOptions } = usePicklist('source');
+  const { items: tierOptions } = usePicklist('tier');
 
   // Fetch members from backend
   useEffect(() => {
@@ -356,20 +359,9 @@ const MemberManagement = () => {
             className="select flex-1"
           >
             <option>All Sources</option>
-            <option>Personal Reference</option>
-            <option>Curated Artist</option>
-            <option>Open Inbound</option>
-            <option>Special Curated</option>
-            <option>Cartel</option>
-            <option>Soumini</option>
-            <option>Marriott</option>
-            <option>Website</option>
-            <option>SVF</option>
-            <option>AME</option>
-            <option>Caartel Music</option>
-            <option>Manipuri Zone</option>
-            <option>Getgrist</option>
-            <option>Artist or Fan Onboarding Management</option>
+            {sourceOptions.map(item => (
+              <option key={item._id} value={item.value}>{item.label}</option>
+            ))}
           </select>
 
           <select
@@ -378,14 +370,9 @@ const MemberManagement = () => {
             className="select flex-1"
           >
             <option>All Tiers</option>
-            <option>Tier 1 - 1M</option>
-            <option>Tier 2 - 750K</option>
-            <option>Tier 3 - 500K</option>
-            <option>Tier 4 - 250K</option>
-            <option>Tier 5 - 100K</option>
-            <option>Tier 6 - 50K</option>
-            <option>Tier 7 - 10K</option>
-            <option>Tier 8 - Below 10K</option>
+            {tierOptions.map(item => (
+              <option key={item._id} value={item.value}>{item.label}</option>
+            ))}
           </select>
         </div>
       </div>

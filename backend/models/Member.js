@@ -91,7 +91,7 @@ const memberSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['active', 'inactive', 'pending', 'on hold', 'updated', 'Active', 'Inactive', 'Pending', 'On Hold', 'Updated'],
+    // enum managed via Picklist collection
     default: 'pending'
   },
   joinDate: {
