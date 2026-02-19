@@ -69,6 +69,30 @@ const memberSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  instagramFollowers: {
+    type: Number,
+    default: null
+  },
+  spotifyMonthlyListeners: {
+    type: Number,
+    default: null
+  },
+  youtubeSubscribers: {
+    type: Number,
+    default: null
+  },
+  facebookFollowers: {
+    type: Number,
+    default: null
+  },
+  twitterFollowers: {
+    type: Number,
+    default: null
+  },
+  soundcloudFollowers: {
+    type: Number,
+    default: null
+  },
   bankName: {
     type: String,
     trim: true

@@ -30,6 +30,34 @@ const upload = multer({
 
 const router = express.Router();
 
+// @route   PUT /api/onboarding/renumber
+// @desc    Renumber all onboarding tasks sequentially starting from 1
+// @access  Private
+router.put('/renumber', async (req, res) => {
+  try {
+    const onboardings = await Onboarding.find().sort({ taskNumber: 1 });
+
+    let count = 0;
+    for (let i = 0; i < onboardings.length; i++) {
+      const newNumber = i + 1;
+      if (onboardings[i].taskNumber !== newNumber) {
+        await Onboarding.findByIdAndUpdate(onboardings[i]._id, { taskNumber: newNumber });
+        count++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Renumbered ${count} onboarding tasks. Total: ${onboardings.length}`,
+      total: onboardings.length,
+      updated: count
+    });
+  } catch (error) {
+    console.error('Error renumbering onboarding tasks:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Get onboarding status report data (must be before /:id route)
 router.get('/reports/onboarding-status', async (req, res) => {
   try {
@@ -151,7 +179,16 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { member, artistName, description, spoc, etaClosure, notes, status, createdBy } = req.body;
-    
+
+    // Check if onboarding already exists for this member
+    const existingOnboarding = await Onboarding.findOne({ member });
+    if (existingOnboarding) {
+      return res.status(400).json({
+        success: false,
+        message: `Onboarding for "${existingOnboarding.artistName}" already exists`
+      });
+    }
+
     const newOnboarding = new Onboarding({
       member,
       artistName,

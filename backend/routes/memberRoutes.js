@@ -28,6 +28,98 @@ router.get('/', async (req, res) => {
   }
 });
 
+// @route   PUT /api/members/renumber
+// @desc    Renumber all members sequentially starting from 1
+// @access  Private
+router.put('/renumber', async (req, res) => {
+  try {
+    const members = await Member.find().sort({ memberNumber: 1 });
+
+    let count = 0;
+    for (let i = 0; i < members.length; i++) {
+      const newNumber = i + 1;
+      if (members[i].memberNumber !== newNumber) {
+        await Member.findByIdAndUpdate(members[i]._id, { memberNumber: newNumber });
+        count++;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Renumbered ${count} members. Total members: ${members.length}`,
+      total: members.length,
+      updated: count
+    });
+  } catch (error) {
+    console.error('Error renumbering members:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// @route   PUT /api/members/bulk-update
+// @desc    Bulk update social media stats for multiple members
+// @access  Private
+router.put('/bulk-update', async (req, res) => {
+  try {
+    const { updates } = req.body;
+
+    if (!Array.isArray(updates) || updates.length === 0) {
+      return res.status(400).json({ message: 'Updates array is required' });
+    }
+
+    const results = [];
+    const skipped = [];
+    const errors = [];
+
+    for (const item of updates) {
+      try {
+        const member = await Member.findById(item.memberId);
+        if (!member) {
+          errors.push(`Member ID ${item.memberId} not found`);
+          continue;
+        }
+
+        // Check if any value actually changed
+        let hasChanges = false;
+        for (const [key, val] of Object.entries(item.data)) {
+          const current = member[key];
+          if (val === null && (current === null || current === undefined)) continue;
+          if (val !== current) { hasChanges = true; break; }
+        }
+
+        if (!hasChanges) {
+          skipped.push(member.artistName || item.memberId);
+          continue;
+        }
+
+        await Member.findByIdAndUpdate(item.memberId, item.data, { runValidators: true });
+        results.push(item.memberId);
+      } catch (err) {
+        errors.push(`Failed to update ${item.memberId}: ${err.message}`);
+      }
+    }
+
+    // If nothing was actually updated
+    if (results.length === 0 && skipped.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No changes detected. This data is already present.',
+        skipped: skipped.length
+      });
+    }
+
+    res.json({
+      success: true,
+      updated: results.length,
+      skipped: skipped.length,
+      errors
+    });
+  } catch (error) {
+    console.error('Error in bulk update:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // @route   GET /api/members/:id
 // @desc    Get single member
 // @access  Private
@@ -69,12 +161,22 @@ router.post('/', [
   }
 
   try {
-    const { 
-      artistName, email, phone, alternateNumber, location, contactName, 
-      category, tier, primaryRole, talentType, primaryGenres, source, spoc, 
-      biography, bankName, accountNumber, ifscCode, panNumber, 
-      aadharNumber, status, notes 
+    const {
+      artistName, email, phone, alternateNumber, location, contactName,
+      category, tier, primaryRole, talentType, primaryGenres, source, spoc,
+      biography, instagramFollowers, spotifyMonthlyListeners, youtubeSubscribers,
+      facebookFollowers, twitterFollowers, soundcloudFollowers,
+      bankName, accountNumber, ifscCode, panNumber,
+      aadharNumber, status, notes
     } = req.body;
+
+    // Check if member with same artist name already exists (case-insensitive)
+    const duplicateName = await Member.findOne({
+      artistName: { $regex: new RegExp(`^${artistName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+    });
+    if (duplicateName) {
+      return res.status(400).json({ message: `Member "${duplicateName.artistName}" already exists` });
+    }
 
     // Convert empty email to null to avoid unique constraint issues
     const emailValue = email && email.trim() !== '' ? email : null;
@@ -102,6 +204,12 @@ router.post('/', [
       source,
       spoc,
       biography,
+      instagramFollowers,
+      spotifyMonthlyListeners,
+      youtubeSubscribers,
+      facebookFollowers,
+      twitterFollowers,
+      soundcloudFollowers,
       bankName,
       accountNumber,
       ifscCode,
@@ -146,11 +254,13 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Member not found' });
     }
 
-    const { 
-      artistName, email, phone, alternateNumber, location, contactName, 
-      category, tier, primaryRole, talentType, primaryGenres, source, spoc, 
-      biography, bankName, accountNumber, ifscCode, panNumber, 
-      aadharNumber, status, notes 
+    const {
+      artistName, email, phone, alternateNumber, location, contactName,
+      category, tier, primaryRole, talentType, primaryGenres, source, spoc,
+      biography, instagramFollowers, spotifyMonthlyListeners, youtubeSubscribers,
+      facebookFollowers, twitterFollowers, soundcloudFollowers,
+      bankName, accountNumber, ifscCode, panNumber,
+      aadharNumber, status, notes
     } = req.body;
 
     // Check if email is being changed and if it's already taken
@@ -163,11 +273,13 @@ router.put('/:id', async (req, res) => {
 
     const updatedMember = await Member.findByIdAndUpdate(
       req.params.id,
-      { 
-        artistName, email, phone, alternateNumber, location, contactName, 
-        category, tier, primaryRole, talentType, primaryGenres, source, spoc, 
-        biography, bankName, accountNumber, ifscCode, panNumber, 
-        aadharNumber, status, notes 
+      {
+        artistName, email, phone, alternateNumber, location, contactName,
+        category, tier, primaryRole, talentType, primaryGenres, source, spoc,
+        biography, instagramFollowers, spotifyMonthlyListeners, youtubeSubscribers,
+        facebookFollowers, twitterFollowers, soundcloudFollowers,
+        bankName, accountNumber, ifscCode, panNumber,
+        aadharNumber, status, notes
       },
       { new: true, runValidators: true }
     );

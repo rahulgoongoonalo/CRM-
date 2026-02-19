@@ -72,6 +72,10 @@ export const membersAPI = {
   delete: async (id) => {
     const response = await api.delete(`/members/${id}`);
     return response.data;
+  },
+  bulkUpdate: async (updates) => {
+    const response = await api.put('/members/bulk-update', { updates });
+    return response.data;
   }
 };
 

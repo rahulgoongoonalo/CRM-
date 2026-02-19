@@ -1,11 +1,28 @@
-import { useState, useEffect } from 'react';
-import { RiSearchLine, RiEyeLine, RiEditLine, RiAddLine, RiDeleteBinLine } from 'react-icons/ri';
+import { useState, useEffect, useMemo } from 'react';
+import { RiSearchLine, RiEyeLine, RiEditLine, RiAddLine, RiDeleteBinLine, RiArrowUpSLine, RiArrowDownSLine } from 'react-icons/ri';
 import AddMemberModal from '../components/AddMemberModal';
 import ViewMemberModal from '../components/ViewMemberModal';
 import EditMemberModal from '../components/EditMemberModal';
 import { membersAPI } from '../services/api';
 import { useToast, useConfirm } from '../components/ToastNotification';
 import { usePicklist } from '../hooks/usePicklist';
+
+const SortIcon = ({ active, direction }) => {
+  if (!active) {
+    return (
+      <div className="inline-flex flex-col -space-y-1.5 text-text-muted/40 ml-1">
+        <RiArrowUpSLine className="text-xs" />
+        <RiArrowDownSLine className="text-xs" />
+      </div>
+    );
+  }
+  return (
+    <div className="inline-flex flex-col -space-y-1.5 ml-1">
+      <RiArrowUpSLine className={`text-xs ${direction === 'asc' ? 'text-brand-primary' : 'text-text-muted/30'}`} />
+      <RiArrowDownSLine className={`text-xs ${direction === 'desc' ? 'text-brand-primary' : 'text-text-muted/30'}`} />
+    </div>
+  );
+};
 
 const MemberManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,10 +37,23 @@ const MemberManagement = () => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const toast = useToast();
   const confirm = useConfirm();
   const { items: sourceOptions } = usePicklist('source');
   const { items: tierOptions } = usePicklist('tier');
+
+  const handleSort = (key) => {
+    setSortConfig(prev => {
+      if (prev.key === key) {
+        if (prev.direction === 'asc') return { key, direction: 'desc' };
+        if (prev.direction === 'desc') return { key: null, direction: null };
+      }
+      return { key, direction: 'asc' };
+    });
+    setCurrentPage(1);
+  };
 
   // Fetch members from backend
   useEffect(() => {
@@ -45,45 +75,55 @@ const MemberManagement = () => {
     }
   };
 
-  const itemsPerPage = 100;
+  // Filter and sort members
+  const filteredMembers = useMemo(() => {
+    let result = members.filter((member) => {
+      const matchesSearch =
+        member.artistName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        member.email?.toLowerCase().includes(searchQuery.toLowerCase());
 
-  // Filter members based on search query, status, and tier
-  const filteredMembers = members.filter((member) => {
-    const matchesSearch = 
-      member.artistName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.email?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Map status filter to backend enum values
-    let matchesStatus = true;
-    if (statusFilter !== 'All Status') {
-      const filterStatus = statusFilter.toLowerCase();
-      const memberStatus = member.status?.toLowerCase();
-      
-      if (filterStatus === 'updated') {
-        matchesStatus = memberStatus === 'active' || memberStatus === 'updated';
-      } else if (filterStatus === 'on hold') {
-        matchesStatus = memberStatus === 'inactive';
-      } else if (filterStatus === 'pending') {
-        matchesStatus = memberStatus === 'pending';
+      let matchesStatus = true;
+      if (statusFilter !== 'All Status') {
+        const filterStatus = statusFilter.toLowerCase();
+        const memberStatus = member.status?.toLowerCase();
+
+        if (filterStatus === 'updated') {
+          matchesStatus = memberStatus === 'active' || memberStatus === 'updated';
+        } else if (filterStatus === 'on hold') {
+          matchesStatus = memberStatus === 'inactive';
+        } else if (filterStatus === 'pending') {
+          matchesStatus = memberStatus === 'pending';
+        }
       }
-    }
-    
-    // Map tier filter to tier field
-    let matchesTier = true;
-    if (tierFilter !== 'All Tiers') {
-      const memberTier = member.tier?.toLowerCase() || '';
-      const filterTier = tierFilter.toLowerCase();
-      matchesTier = memberTier.includes(filterTier.split(' - ')[0].toLowerCase());
-    }
-    
-    // Filter by source
-    let matchesSource = true;
-    if (sourceFilter !== 'All Sources') {
-      matchesSource = (member.source || '') === sourceFilter;
+
+      let matchesTier = true;
+      if (tierFilter !== 'All Tiers') {
+        const memberTier = member.tier?.toLowerCase() || '';
+        const filterTier = tierFilter.toLowerCase();
+        matchesTier = memberTier.includes(filterTier.split(' - ')[0].toLowerCase());
+      }
+
+      let matchesSource = true;
+      if (sourceFilter !== 'All Sources') {
+        matchesSource = (member.source || '') === sourceFilter;
+      }
+
+      return matchesSearch && matchesStatus && matchesTier && matchesSource;
+    });
+
+    // Apply sorting
+    if (sortConfig.key && sortConfig.direction) {
+      result = [...result].sort((a, b) => {
+        const dir = sortConfig.direction === 'asc' ? 1 : -1;
+        const valA = a[sortConfig.key] || '';
+        const valB = b[sortConfig.key] || '';
+        if (typeof valA === 'string') return dir * valA.localeCompare(valB);
+        return dir * ((valA || 0) - (valB || 0));
+      });
     }
 
-    return matchesSearch && matchesStatus && matchesTier && matchesSource;
-  });
+    return result;
+  }, [members, searchQuery, statusFilter, tierFilter, sourceFilter, sortConfig]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredMembers.length / itemsPerPage);
@@ -396,8 +436,8 @@ const MemberManagement = () => {
         <table className="w-full table-fixed">
           <thead className="bg-surface-lighter border-b border-border">
             <tr>
-              <th className="text-left px-4 py-3 text-xs font-bold text-text-muted uppercase tracking-wider w-[22%]">
-                Member
+              <th onClick={() => handleSort('artistName')} className="text-left px-4 py-3 text-xs font-bold text-text-muted uppercase tracking-wider w-[22%] cursor-pointer select-none hover:text-text-primary transition-colors">
+                <div className="flex items-center">Member<SortIcon active={sortConfig.key === 'artistName'} direction={sortConfig.direction} /></div>
               </th>
               <th className="text-left px-3 py-3 text-xs font-bold text-text-muted uppercase tracking-wider w-[11%]">
                 Genre
@@ -627,11 +667,26 @@ const MemberManagement = () => {
 
       {/* Pagination */}
       <div className="card shadow-lg shadow-brand-primary/10 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="text-sm text-text-muted text-center sm:text-left font-medium">
-          Showing {startIndex + 1} to {Math.min(endIndex, filteredMembers.length)} of {filteredMembers.length} members
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-text-muted font-medium">
+            Showing <span className="font-semibold text-text-primary">{startIndex + 1}</span> to <span className="font-semibold text-text-primary">{Math.min(endIndex, filteredMembers.length)}</span> of <span className="font-semibold text-text-primary">{filteredMembers.length}</span> members
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-text-muted">Per page:</label>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+              className="px-2.5 py-1 bg-surface-card border border-border rounded-lg text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
         </div>
         <div className="flex items-center space-x-2 flex-wrap justify-center">
-          <button 
+          <button
             onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
             className="btn-secondary px-3 md:px-4 py-2 text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
@@ -641,46 +696,33 @@ const MemberManagement = () => {
           {(() => {
             const pages = [];
             const showEllipsis = totalPages > 7;
-            
+
             if (!showEllipsis) {
-              // Show all pages if 7 or less
               for (let i = 1; i <= totalPages; i++) {
                 pages.push(i);
               }
             } else {
-              // Always show first page
               pages.push(1);
-              
-              if (currentPage > 3) {
-                pages.push('...');
-              }
-              
-              // Show pages around current page
+              if (currentPage > 3) pages.push('...');
               const start = Math.max(2, currentPage - 1);
               const end = Math.min(totalPages - 1, currentPage + 1);
-              
               for (let i = start; i <= end; i++) {
                 if (!pages.includes(i)) pages.push(i);
               }
-              
-              if (currentPage < totalPages - 2) {
-                pages.push('...');
-              }
-              
-              // Always show last page
+              if (currentPage < totalPages - 2) pages.push('...');
               if (!pages.includes(totalPages)) pages.push(totalPages);
             }
-            
+
             return pages.map((page, index) => (
               page === '...' ? (
                 <span key={`ellipsis-${index}`} className="px-2 text-text-muted">...</span>
               ) : (
-                <button 
+                <button
                   key={page}
                   onClick={() => setCurrentPage(page)}
                   className={`px-3 md:px-4 py-2 text-xs md:text-sm rounded-lg font-semibold transition-all ${
                     currentPage === page
-                      ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/30' 
+                      ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/30'
                       : 'text-text-muted hover:text-text-primary hover:bg-surface-lighter border border-border'
                   }`}
                 >
@@ -689,7 +731,7 @@ const MemberManagement = () => {
               )
             ));
           })()}
-          <button 
+          <button
             onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
             disabled={currentPage === totalPages}
             className="btn-secondary px-3 md:px-4 py-2 text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"

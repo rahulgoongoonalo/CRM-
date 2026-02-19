@@ -1,11 +1,28 @@
-import { RiUserAddLine, RiEyeLine, RiEditLine, RiDeleteBinLine, RiSendPlaneLine, RiSearchLine } from 'react-icons/ri';
-import { useState, useEffect } from 'react';
+import { RiUserAddLine, RiEyeLine, RiEditLine, RiDeleteBinLine, RiSendPlaneLine, RiSearchLine, RiArrowUpSLine, RiArrowDownSLine } from 'react-icons/ri';
+import { useState, useEffect, useMemo } from 'react';
 import AddOnboardingModal from '../components/AddOnboardingModal';
 import ViewOnboardingModal from '../components/ViewOnboardingModal';
 import EditOnboardingModal from '../components/EditOnboardingModal';
 import L2ReviewModal from '../components/L2ReviewModal';
 import { onboardingAPI } from '../services/api';
 import { useToast, useConfirm } from '../components/ToastNotification';
+
+const SortIcon = ({ active, direction }) => {
+  if (!active) {
+    return (
+      <div className="inline-flex flex-col -space-y-1.5 text-text-muted/40 ml-1">
+        <RiArrowUpSLine className="text-xs" />
+        <RiArrowDownSLine className="text-xs" />
+      </div>
+    );
+  }
+  return (
+    <div className="inline-flex flex-col -space-y-1.5 ml-1">
+      <RiArrowUpSLine className={`text-xs ${direction === 'asc' ? 'text-brand-primary' : 'text-text-muted/30'}`} />
+      <RiArrowDownSLine className={`text-xs ${direction === 'desc' ? 'text-brand-primary' : 'text-text-muted/30'}`} />
+    </div>
+  );
+};
 
 const Onboarding = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,9 +35,21 @@ const Onboarding = () => {
   const [onboardings, setOnboardings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 100;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
   const toast = useToast();
   const confirm = useConfirm();
+
+  const handleSort = (key) => {
+    setSortConfig(prev => {
+      if (prev.key === key) {
+        if (prev.direction === 'asc') return { key, direction: 'desc' };
+        if (prev.direction === 'desc') return { key: null, direction: null };
+      }
+      return { key, direction: 'asc' };
+    });
+    setCurrentPage(1);
+  };
 
   useEffect(() => {
     fetchOnboardings();
@@ -60,7 +89,7 @@ const Onboarding = () => {
       }
     } catch (error) {
       console.error('Error creating onboarding:', error);
-      toast.error('Failed to create onboarding');
+      toast.error(error.response?.data?.message || 'Failed to create onboarding');
     }
   };
 
@@ -178,16 +207,30 @@ const Onboarding = () => {
     return statusMap[statusLower] || status || 'Warm';
   };
 
-  const filteredOnboardings = onboardings.filter((o) => {
-    const matchesSearch = 
-      o.artistName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      o.spoc?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      o.source?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesFilter = activeFilter === 'All' || formatStatus(o.status) === activeFilter;
-    
-    return matchesSearch && matchesFilter;
-  });
+  const filteredOnboardings = useMemo(() => {
+    let result = onboardings.filter((o) => {
+      const matchesSearch =
+        o.artistName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        o.spoc?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        o.source?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesFilter = activeFilter === 'All' || formatStatus(o.status) === activeFilter;
+
+      return matchesSearch && matchesFilter;
+    });
+
+    // Apply sorting (only artistName)
+    if (sortConfig.key && sortConfig.direction) {
+      result = [...result].sort((a, b) => {
+        const dir = sortConfig.direction === 'asc' ? 1 : -1;
+        const valA = a[sortConfig.key] || '';
+        const valB = b[sortConfig.key] || '';
+        return dir * valA.localeCompare(valB);
+      });
+    }
+
+    return result;
+  }, [onboardings, searchQuery, activeFilter, sortConfig]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredOnboardings.length / itemsPerPage);
@@ -296,8 +339,8 @@ const Onboarding = () => {
               <th className="text-left px-4 py-2 text-xs font-bold text-text-muted uppercase tracking-wider">
                 Task #
               </th>
-              <th className="text-left px-4 py-2 text-xs font-bold text-text-muted uppercase tracking-wider">
-                Artist Name
+              <th onClick={() => handleSort('artistName')} className="text-left px-4 py-2 text-xs font-bold text-text-muted uppercase tracking-wider cursor-pointer select-none hover:text-text-primary transition-colors">
+                <div className="flex items-center">Artist Name<SortIcon active={sortConfig.key === 'artistName'} direction={sortConfig.direction} /></div>
               </th>
               <th className="text-left px-4 py-2 text-xs font-bold text-text-muted uppercase tracking-wider">
                 Start Date
@@ -506,11 +549,26 @@ const Onboarding = () => {
       {/* Pagination */}
       {filteredOnboardings.length > 0 && (
         <div className="card shadow-lg shadow-brand-primary/10 flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
-          <div className="text-sm text-text-muted text-center sm:text-left font-medium">
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredOnboardings.length)} of {filteredOnboardings.length} onboardings
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-text-muted font-medium">
+              Showing <span className="font-semibold text-text-primary">{startIndex + 1}</span> to <span className="font-semibold text-text-primary">{Math.min(endIndex, filteredOnboardings.length)}</span> of <span className="font-semibold text-text-primary">{filteredOnboardings.length}</span> onboardings
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-text-muted">Per page:</label>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                className="px-2.5 py-1 bg-surface-card border border-border rounded-lg text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/40"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+            </div>
           </div>
           <div className="flex items-center space-x-2 flex-wrap justify-center">
-            <button 
+            <button
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
               className="btn-secondary px-3 md:px-4 py-2 text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
@@ -520,42 +578,33 @@ const Onboarding = () => {
             {(() => {
               const pages = [];
               const showEllipsis = totalPages > 7;
-              
+
               if (!showEllipsis) {
                 for (let i = 1; i <= totalPages; i++) {
                   pages.push(i);
                 }
               } else {
                 pages.push(1);
-                
-                if (currentPage > 3) {
-                  pages.push('...');
-                }
-                
+                if (currentPage > 3) pages.push('...');
                 const start = Math.max(2, currentPage - 1);
                 const end = Math.min(totalPages - 1, currentPage + 1);
-                
                 for (let i = start; i <= end; i++) {
                   if (!pages.includes(i)) pages.push(i);
                 }
-                
-                if (currentPage < totalPages - 2) {
-                  pages.push('...');
-                }
-                
+                if (currentPage < totalPages - 2) pages.push('...');
                 if (!pages.includes(totalPages)) pages.push(totalPages);
               }
-              
+
               return pages.map((page, index) => (
                 page === '...' ? (
                   <span key={`ellipsis-${index}`} className="px-2 text-text-muted">...</span>
                 ) : (
-                  <button 
+                  <button
                     key={page}
                     onClick={() => setCurrentPage(page)}
                     className={`px-3 md:px-4 py-2 text-xs md:text-sm rounded-lg font-semibold transition-all ${
                       currentPage === page
-                        ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/30' 
+                        ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/30'
                         : 'text-text-muted hover:text-text-primary hover:bg-surface-lighter border border-border'
                     }`}
                   >
@@ -564,7 +613,7 @@ const Onboarding = () => {
                 )
               ));
             })()}
-            <button 
+            <button
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
               className="btn-secondary px-3 md:px-4 py-2 text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
