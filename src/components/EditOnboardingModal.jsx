@@ -150,6 +150,7 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                     <option>Aayush Jain</option>
                     <option>Pooja Gupta</option>
                     <option>Rahul Jadhav</option>
+                    <option>Vaishali</option>
                   </select>
                 </div>
 

@@ -362,7 +362,7 @@ const MemberManagement = () => {
             <option>Special Curated</option>
             <option>Cartel</option>
             <option>Soumini</option>
-            <option>Marriot</option>
+            <option>Marriott</option>
             <option>Website</option>
             <option>SVF</option>
             <option>AME</option>

@@ -278,7 +278,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   <option value="Special Curated">Special Curated</option>
                   <option value="Cartel">Cartel</option>
                   <option value="Soumini">Soumini</option>
-                  <option value="Marriot">Marriot</option>
+                  <option value="Marriott">Marriott</option>
                   <option value="Website">Website</option>
                   <option value="SVF">SVF</option>
                   <option value="AME">AME</option>
