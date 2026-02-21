@@ -123,9 +123,9 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
           </div>
 
           {/* Documents */}
-          {documents.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-orange-400 border-b border-border pb-2">UPLOADED DOCUMENTS</h3>
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-orange-400 border-b border-border pb-2">UPLOADED DOCUMENTS</h3>
+            {documents.length > 0 ? (
               <div className="space-y-2">
                 {documents.map((doc, index) => (
                   <div key={index} className="flex items-center justify-between bg-slate-900/50 rounded-lg px-4 py-3 border border-slate-700">
@@ -150,8 +150,12 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="bg-slate-900/50 rounded-lg px-4 py-3 border border-slate-700 text-gray-400 text-sm">
+                No documents uploaded
+              </div>
+            )}
+          </div>
 
           {/* Notes */}
           <div className="space-y-4">
