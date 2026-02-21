@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RiCloseLine, RiUploadCloud2Line, RiDeleteBin6Line, RiFileTextLine } from 'react-icons/ri';
+import { RiCloseLine, RiUploadCloud2Line, RiDeleteBin6Line, RiFileTextLine, RiArrowDownSLine, RiAddLine } from 'react-icons/ri';
 import { useToast } from './ToastNotification';
 import { onboardingAPI } from '../services/api';
 import { usePicklist } from '../hooks/usePicklist';
@@ -7,6 +7,8 @@ import { usePicklist } from '../hooks/usePicklist';
 const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
   const { items: meetingTypes } = usePicklist('meetingType');
   const { items: membershipTypes } = usePicklist('membershipType');
+  const { items: spocOptions } = usePicklist('spoc');
+  const { items: closureStatuses } = usePicklist('closureStatus');
 
   const [formData, setFormData] = useState({
     meetingScheduledOn: '',
@@ -17,13 +19,15 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
     contractDiscussion: false,
     techOnboarding: false,
     contentIngestion: false,
-    membershipType: '',
+    membershipType: [],
+    closureChecklist: [],
     notes: ''
   });
   const [docTitle, setDocTitle] = useState('');
   const [docDescription, setDocDescription] = useState('');
   const [docFile, setDocFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [membershipOpen, setMembershipOpen] = useState(false);
   const [uploadedDocs, setUploadedDocs] = useState(onboarding?.l2ReviewData?.documents || []);
   const toast = useToast();
 
@@ -44,8 +48,8 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
       return;
     }
 
-    if (!formData.membershipType) {
-      toast.warning('Please select a membership type');
+    if (!formData.membershipType || formData.membershipType.length === 0) {
+      toast.warning('Please select at least one membership type');
       return;
     }
 
@@ -78,6 +82,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
           contentIngestion: formData.contentIngestion
         },
         membershipType: formData.membershipType,
+        closureChecklist: formData.closureChecklist,
         notes: formData.notes
       }
     };
@@ -94,7 +99,8 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
       contractDiscussion: false,
       techOnboarding: false,
       contentIngestion: false,
-      membershipType: '',
+      membershipType: [],
+      closureChecklist: [],
       notes: ''
     });
   };
@@ -163,7 +169,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
 
       {/* Modal */}
       <div 
-        className="relative bg-surface-card rounded-lg shadow-2xl shadow-orange-600/20 w-full max-w-3xl max-h-[90vh] overflow-hidden border border-border"
+        className="relative bg-surface-card rounded-lg shadow-2xl shadow-orange-600/20 w-full max-w-5xl max-h-[95vh] overflow-hidden border border-border"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -181,7 +187,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
         </div>
 
         {/* Form Content */}
-        <div className="overflow-y-auto max-h-[calc(90vh-80px)] p-6 space-y-6">
+        <div className="overflow-y-auto max-h-[calc(95vh-80px)] p-6 space-y-6">
           {/* Meeting Details */}
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -335,22 +341,166 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
           </div>
 
           {/* Membership Type */}
-          <div>
+          <div className="relative">
             <label className="block text-sm font-semibold text-text-secondary mb-2">
               Membership Type <span className="text-red-400">*</span>
             </label>
-            <select
-              name="membershipType"
-              value={formData.membershipType}
-              onChange={handleChange}
-              className="select w-full"
-              required
+            <button
+              type="button"
+              onClick={() => setMembershipOpen(prev => !prev)}
+              className="w-full flex items-center justify-between px-4 py-2.5 bg-[#2d3748] border border-slate-600 rounded-lg text-sm text-left hover:border-orange-400 transition-colors"
             >
-              <option value="">Select membership type</option>
-              {membershipTypes.map(item => (
-                <option key={item._id} value={item.value}>{item.label}</option>
-              ))}
-            </select>
+              <span className={formData.membershipType.length > 0 ? 'text-white' : 'text-gray-400'}>
+                {formData.membershipType.length > 0
+                  ? `${formData.membershipType.length} selected`
+                  : 'Select membership type'}
+              </span>
+              <RiArrowDownSLine className={`text-lg text-gray-400 transition-transform ${membershipOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {membershipOpen && (
+              <div className="mt-2 space-y-2">
+                {membershipTypes.map(item => (
+                  <label key={item._id} className="flex items-center gap-3 bg-slate-900/50 rounded-lg px-4 py-3 border border-slate-700 cursor-pointer hover:border-orange-400 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={formData.membershipType.includes(item.value)}
+                      onChange={(e) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          membershipType: e.target.checked
+                            ? [...prev.membershipType, item.value]
+                            : prev.membershipType.filter(v => v !== item.value)
+                        }));
+                      }}
+                      className="w-4 h-4 text-orange-600 bg-slate-800 border-slate-600 rounded focus:ring-orange-500"
+                    />
+                    <span className="text-white text-sm">{item.label}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Closure Checklist */}
+          <div>
+            <h3 className="text-yellow-500 font-bold text-sm mb-4">CLOSURE CHECKLIST</h3>
+            
+            {/* Add row */}
+            <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-700 mb-4">
+              <div className="flex items-center gap-3">
+                <select
+                  id="closureStatusSelect"
+                  className="flex-1 bg-[#2d3748] border border-slate-600 rounded-lg px-4 py-2.5 text-sm text-white focus:border-orange-400 focus:ring-1 focus:ring-orange-400 transition-colors outline-none"
+                  defaultValue=""
+                >
+                  <option value="" disabled>Select status to add...</option>
+                  {closureStatuses
+                    .filter(cs => !formData.closureChecklist.some(r => r.status === cs.value))
+                    .map(cs => (
+                      <option key={cs.value || cs._id} value={cs.value}>{cs.label}</option>
+                    ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const sel = document.getElementById('closureStatusSelect');
+                    const statusVal = sel.value;
+                    if (!statusVal) return;
+                    const membershipDisplay = formData.membershipType.length >= 2
+                      ? 'Both'
+                      : formData.membershipType.length === 1
+                        ? (membershipTypes.find(m => m.value === formData.membershipType[0])?.label || formData.membershipType[0])
+                        : 'N/A';
+                    setFormData(prev => ({
+                      ...prev,
+                      closureChecklist: [...prev.closureChecklist, { status: statusVal, membershipType: membershipDisplay, spoc: '', eta: '' }]
+                    }));
+                    sel.value = '';
+                  }}
+                  className="px-5 py-2.5 rounded-lg font-medium bg-gradient-to-r from-orange-600 to-orange-500 text-white hover:from-orange-500 hover:to-orange-400 transition-all shadow-lg shadow-orange-600/30 text-sm flex items-center gap-1.5 whitespace-nowrap"
+                >
+                  <RiAddLine className="text-base" /> Add
+                </button>
+              </div>
+            </div>
+
+            {/* Added items */}
+            {formData.closureChecklist.length > 0 ? (
+              <div className="space-y-3">
+                {formData.closureChecklist.map((row, idx) => {
+                  const statusLabel = closureStatuses.find(c => c.value === row.status)?.label || row.status;
+                  // Recompute membership type based on current selection
+                  const currentMembership = formData.membershipType.length >= 2
+                    ? 'Both'
+                    : formData.membershipType.length === 1
+                      ? (membershipTypes.find(m => m.value === formData.membershipType[0])?.label || formData.membershipType[0])
+                      : 'N/A';
+                  return (
+                    <div key={row.status + idx} className="bg-slate-900/50 rounded-xl border border-slate-700 p-4 hover:border-slate-600 transition-colors">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <span className="w-7 h-7 rounded-full bg-orange-500/20 text-orange-400 text-xs font-bold flex items-center justify-center">{idx + 1}</span>
+                          <span className="text-white font-medium text-sm">{statusLabel}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, closureChecklist: prev.closureChecklist.filter((_, i) => i !== idx) }))}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg p-1.5 transition-colors"
+                        >
+                          <RiDeleteBin6Line size={16} />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">Membership Type</label>
+                          <div className="px-3 py-2 bg-slate-800/80 rounded-lg border border-slate-600 text-orange-300 text-xs">
+                            {currentMembership}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">SPOC</label>
+                          <select
+                            value={row.spoc || ''}
+                            onChange={(e) => {
+                              setFormData(prev => {
+                                const list = [...prev.closureChecklist];
+                                list[idx] = { ...list[idx], spoc: e.target.value };
+                                return { ...prev, closureChecklist: list };
+                              });
+                            }}
+                            className="w-full bg-slate-800/80 border border-slate-600 rounded-lg px-3 py-2 text-white text-xs focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-colors"
+                          >
+                            <option value="">Select SPOC</option>
+                            {spocOptions.map(s => (
+                              <option key={s._id} value={s.value}>{s.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-400 mb-1">ETA</label>
+                          <input
+                            type="date"
+                            value={row.eta || ''}
+                            onChange={(e) => {
+                              setFormData(prev => {
+                                const list = [...prev.closureChecklist];
+                                list[idx] = { ...list[idx], eta: e.target.value };
+                                return { ...prev, closureChecklist: list };
+                              });
+                            }}
+                            className="w-full bg-slate-800/80 border border-slate-600 rounded-lg px-3 py-2 text-white text-xs focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-colors"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-6 text-gray-500 text-sm bg-slate-900/30 rounded-xl border border-dashed border-slate-700">
+                No items added yet. Select a status above and click Add.
+              </div>
+            )}
           </div>
 
           {/* Upload Documents Section */}

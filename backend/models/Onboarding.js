@@ -119,9 +119,16 @@ const onboardingSchema = new mongoose.Schema({
       contentIngestion: { type: Boolean, default: false }
     },
     membershipType: {
-      type: String
+      type: [String],
+      default: []
     },
     notes: String,
+    closureChecklist: [{
+      status: String,
+      membershipType: String,
+      spoc: String,
+      eta: Date
+    }],
     documents: [{
       title: String,
       description: String,

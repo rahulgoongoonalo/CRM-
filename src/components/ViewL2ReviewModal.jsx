@@ -6,6 +6,7 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
   const data = onboarding.l2ReviewData || {};
   const checklist = data.checklist || {};
   const documents = data.documents || [];
+  const closureChecklist = data.closureChecklist || [];
   const taskId = onboarding.taskNumber || 'N/A';
   const memberName = onboarding.artistName || onboarding.member?.artistName || 'N/A';
 
@@ -113,14 +114,63 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
               <label className="block text-sm font-semibold text-text-secondary mb-2">
                 Membership Type
               </label>
-              <input
-                type="text"
-                value={membershipTypeDisplay[data.membershipType] || data.membershipType || 'N/A'}
-                disabled
-                className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
-              />
+              {Array.isArray(data.membershipType) && data.membershipType.length > 0 ? (
+                <div className="space-y-2">
+                  {data.membershipType.map((type, idx) => (
+                    <div key={idx} className="bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border">
+                      {membershipTypeDisplay[type] || type}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  value={membershipTypeDisplay[data.membershipType] || data.membershipType || 'N/A'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              )}
             </div>
           </div>
+
+          {/* Closure Checklist */}
+          {closureChecklist.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-orange-400 border-b border-border pb-2">CLOSURE CHECKLIST</h3>
+              <div className="space-y-3">
+                {closureChecklist.map((row, idx) => (
+                  <div key={idx} className="bg-slate-900/50 rounded-xl border border-slate-700 p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="w-7 h-7 rounded-full bg-orange-500/20 text-orange-400 text-xs font-bold flex items-center justify-center">{idx + 1}</span>
+                      <span className="text-white font-medium text-sm">
+                        {row.status?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Membership Type</label>
+                        <div className="px-3 py-2 bg-slate-800/80 rounded-lg border border-slate-600 text-orange-300 text-xs">
+                          {row.membershipType || 'N/A'}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">SPOC</label>
+                        <div className="px-3 py-2 bg-slate-800/80 rounded-lg border border-slate-600 text-white text-xs">
+                          {row.spoc || 'N/A'}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">ETA</label>
+                        <div className="px-3 py-2 bg-slate-800/80 rounded-lg border border-slate-600 text-white text-xs">
+                          {row.eta ? new Date(row.eta).toISOString().split('T')[0] : 'N/A'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Documents */}
           <div className="space-y-4">

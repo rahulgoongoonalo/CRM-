@@ -160,11 +160,49 @@ connectDB().then(async () => {
             { value: 'closed-lost', label: 'Closed Lost', order: 5 },
             { value: 'cold-storage', label: 'Cold Storage', order: 6 },
           ]
+        },
+        {
+          name: 'closureStatus',
+          label: 'Closure Status',
+          items: [
+            { value: 'ssa-sha-investor-agreement-sent', label: 'SSA/SHA/Investor agreement sent', order: 1 },
+            { value: 'create-whatsapp-group', label: 'Create a Whatsapp Group', order: 2 },
+            { value: 'kyc-received', label: 'KYC received', order: 3 },
+            { value: 'investment-received', label: 'Investment Received', order: 4 },
+            { value: 'share-certificate-sent', label: 'Share Certificate Sent', order: 5 },
+            { value: 'distribution-agreements-sent', label: 'Distribution Agreements Sent', order: 6 },
+            { value: 'content-received-for-upload', label: 'Content received for upload', order: 7 },
+            { value: 'first-call-done', label: 'First Call done', order: 8 },
+            { value: 'intro-email-sent', label: 'Intro Email sent after conversation', order: 9 },
+            { value: 'closure-email-sent', label: 'Closure email Sent', order: 10 },
+          ]
         }
       ];
 
       await Picklist.insertMany(defaultPicklists);
       console.log('Default picklists seeded successfully');
+    }
+
+    // Ensure closureStatus picklist exists (for existing databases)
+    const closureExists = await Picklist.findOne({ name: 'closureStatus' });
+    if (!closureExists) {
+      await Picklist.create({
+        name: 'closureStatus',
+        label: 'Closure Status',
+        items: [
+          { value: 'ssa-sha-investor-agreement-sent', label: 'SSA/SHA/Investor agreement sent', order: 1 },
+          { value: 'create-whatsapp-group', label: 'Create a Whatsapp Group', order: 2 },
+          { value: 'kyc-received', label: 'KYC received', order: 3 },
+          { value: 'investment-received', label: 'Investment Received', order: 4 },
+          { value: 'share-certificate-sent', label: 'Share Certificate Sent', order: 5 },
+          { value: 'distribution-agreements-sent', label: 'Distribution Agreements Sent', order: 6 },
+          { value: 'content-received-for-upload', label: 'Content received for upload', order: 7 },
+          { value: 'first-call-done', label: 'First Call done', order: 8 },
+          { value: 'intro-email-sent', label: 'Intro Email sent after conversation', order: 9 },
+          { value: 'closure-email-sent', label: 'Closure email Sent', order: 10 },
+        ]
+      });
+      console.log('closureStatus picklist seeded');
     }
   } catch (error) {
     console.error('Error during initialization:', error);
