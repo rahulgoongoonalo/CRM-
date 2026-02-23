@@ -449,7 +449,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
                   Streaming Platform Link <span className="text-red-400">*</span>
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   name="streamingLink"
                   value={formData.streamingLink}
                   onChange={handleChange}
@@ -465,7 +465,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
                     YouTube Channel <span className="text-red-400">*</span>
                   </label>
                   <input
-                    type="url"
+                    type="text"
                     name="youtube"
                     value={formData.youtube}
                     onChange={handleChange}

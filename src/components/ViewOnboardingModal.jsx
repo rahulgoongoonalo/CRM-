@@ -16,8 +16,8 @@ const ViewOnboardingModal = ({ isOpen, onClose, onboarding }) => {
   console.log('ViewOnboardingModal - l1QuestionnaireData:', onboarding.l1QuestionnaireData);
 
   const taskId = onboarding.taskNumber || 'N/A';
-  const startDate = new Date(onboarding.createdAt).toISOString().split('T')[0];
-  const etaClosure = onboarding.etaClosure ? new Date(onboarding.etaClosure).toISOString().split('T')[0] : 'N/A';
+  const startDate = onboarding.createdAt && !isNaN(new Date(onboarding.createdAt)) ? new Date(onboarding.createdAt).toISOString().split('T')[0] : 'N/A';
+  const etaClosure = onboarding.etaClosure && !isNaN(new Date(onboarding.etaClosure)) ? new Date(onboarding.etaClosure).toISOString().split('T')[0] : 'N/A';
   const memberName = onboarding.artistName || onboarding.member?.artistName || 'N/A';
   const memberEmail = onboarding.member?.email || 'N/A';
   const statusDisplay = {

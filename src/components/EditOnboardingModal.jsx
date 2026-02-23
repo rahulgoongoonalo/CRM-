@@ -28,7 +28,7 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
         member: onboarding.member?._id || '',
         description: onboarding.description || '',
         spoc: onboarding.spoc || '',
-        etaClosure: onboarding.etaClosure ? new Date(onboarding.etaClosure).toISOString().split('T')[0] : '',
+        etaClosure: onboarding.etaClosure && !isNaN(new Date(onboarding.etaClosure)) ? new Date(onboarding.etaClosure).toISOString().split('T')[0] : '',
         notes: onboarding.notes || '',
         status: onboarding.status || 'contact-established'
       });

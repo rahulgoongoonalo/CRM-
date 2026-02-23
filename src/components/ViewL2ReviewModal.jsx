@@ -12,7 +12,8 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
 
   const formatDate = (dateStr) => {
     if (!dateStr) return 'N/A';
-    return new Date(dateStr).toISOString().split('T')[0];
+    const d = new Date(dateStr);
+    return isNaN(d) ? 'N/A' : d.toISOString().split('T')[0];
   };
 
   const formatFileSize = (bytes) => {

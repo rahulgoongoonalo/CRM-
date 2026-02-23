@@ -378,7 +378,7 @@ const Onboarding = () => {
             ) : (
               currentOnboardings.map((item) => {
                 const taskId = item.taskNumber || 'N/A';
-                const startDate = new Date(item.createdAt).toISOString().split('T')[0];
+                const startDate = item.createdAt && !isNaN(new Date(item.createdAt)) ? new Date(item.createdAt).toISOString().split('T')[0] : 'N/A';
                 const memberName = item.artistName || item.member?.artistName || 'N/A';
                 const source = item.member?.source || 'N/A';
                 const tier = item.member?.tier || 'Tier 1';
@@ -463,7 +463,7 @@ const Onboarding = () => {
         ) : (
           currentOnboardings.map((item) => {
             const taskId = item.taskNumber || 'N/A';
-            const startDate = new Date(item.createdAt).toISOString().split('T')[0];
+            const startDate = item.createdAt && !isNaN(new Date(item.createdAt)) ? new Date(item.createdAt).toISOString().split('T')[0] : 'N/A';
             const memberName = item.artistName || item.member?.artistName || 'N/A';
             const source = item.member?.source || 'N/A';
             const tier = item.member?.tier || 'Tier 1';
