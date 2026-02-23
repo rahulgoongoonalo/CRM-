@@ -40,7 +40,7 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
     <div className="fixed inset-0 flex items-center justify-center z-[60] p-4" onClick={onClose}>
       {/* Backdrop with blur */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-      
+
       <div className="relative bg-surface-card rounded-lg w-full max-w-3xl shadow-2xl shadow-orange-600/20 border border-border max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-gradient-to-r from-orange-600 to-orange-500 px-6 py-4 rounded-t-lg flex justify-between items-center sticky top-0 z-10 shadow-lg">

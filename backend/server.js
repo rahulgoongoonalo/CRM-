@@ -12,6 +12,7 @@ import faqRoutes from './routes/faqRoutes.js';
 import picklistRoutes from './routes/picklistRoutes.js';
 import User from './models/User.js';
 import Picklist from './models/Picklist.js';
+import { startClosureReportCron } from './cron/closureReportCron.js';
 
 // Load environment variables
 const __filename = fileURLToPath(import.meta.url);
@@ -204,6 +205,9 @@ connectDB().then(async () => {
       });
       console.log('closureStatus picklist seeded');
     }
+
+    // Start the daily closure checklist report cron job
+    startClosureReportCron();
   } catch (error) {
     console.error('Error during initialization:', error);
   }
