@@ -3,8 +3,8 @@ import Onboarding from '../models/Onboarding.js';
 import { sendDailyClosureReport } from '../utils/emailService.js';
 
 export const startClosureReportCron = () => {
-  // Runs every day at 6:00 PM IST
-  cron.schedule('0 18 * * *', async () => {
+  // Runs every day at 5:00 PM IST
+  cron.schedule('0 17 * * *', async () => {
     console.log('[CRON] Running daily closure checklist report at', new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }));
 
     try {
@@ -27,5 +27,5 @@ export const startClosureReportCron = () => {
     }
   });
 
-  console.log('Closure checklist report cron scheduled — daily at 6:00 PM IST');
+  console.log('Closure checklist report cron scheduled — daily at 5:00 PM IST');
 };
