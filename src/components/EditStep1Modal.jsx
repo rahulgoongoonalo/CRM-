@@ -64,7 +64,7 @@ const EditStep1Modal = ({ isOpen, onClose, onboarding }) => {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-[60] p-4" onClick={onClose}>
+    <div className="fixed inset-0 flex items-center justify-center z-[60] p-4">
       {/* Backdrop with blur */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
       

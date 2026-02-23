@@ -108,7 +108,7 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
   const allAgreementsChecked = formData.confirmRights && formData.acceptTerms && formData.consentEditorial && formData.understandPayout;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-[60] p-4" onClick={onClose}>
+    <div className="fixed inset-0 flex items-center justify-center z-[60] p-4">
       {/* Backdrop with blur */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"

@@ -8,7 +8,7 @@ const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
   const memberName = onboarding.artistName || onboarding.member?.artistName || 'N/A';
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-[60] p-4" onClick={onClose}>
+    <div className="fixed inset-0 flex items-center justify-center z-[60] p-4">
       {/* Backdrop with blur */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
       

@@ -34,7 +34,6 @@ const ViewOnboardingModal = ({ isOpen, onClose, onboarding }) => {
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
       ></div>
 
       {/* Modal */}

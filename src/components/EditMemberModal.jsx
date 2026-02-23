@@ -74,7 +74,6 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
       ></div>
 
       {/* Modal */}

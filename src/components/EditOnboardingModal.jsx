@@ -73,7 +73,6 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
       ></div>
 
       {/* Modal */}

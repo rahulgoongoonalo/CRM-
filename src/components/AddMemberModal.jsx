@@ -68,7 +68,6 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
       {/* Backdrop with blur */}
       <div 
         className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
       ></div>
 
       {/* Modal */}

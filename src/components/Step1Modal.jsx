@@ -50,7 +50,6 @@ const Step1Modal = ({ isOpen, onClose, onboardingId, memberName, taskId }) => {
       {/* Backdrop with blur */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
       ></div>
       
       <div className="relative bg-[#1e2a3a] rounded-lg w-full max-w-2xl shadow-2xl border border-slate-700">
