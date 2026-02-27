@@ -149,11 +149,17 @@ const onboardingSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Indexes for faster queries
+onboardingSchema.index({ status: 1 });
+onboardingSchema.index({ member: 1 });
+onboardingSchema.index({ taskNumber: -1 });
+onboardingSchema.index({ createdAt: -1 });
+
 // Auto-increment taskNumber before saving
 onboardingSchema.pre('save', async function(next) {
   if (this.isNew) {
     try {
-      const lastOnboarding = await mongoose.model('Onboarding').findOne().sort({ taskNumber: -1 });
+      const lastOnboarding = await mongoose.model('Onboarding').findOne({}, { taskNumber: 1 }).sort({ taskNumber: -1 }).lean();
       this.taskNumber = lastOnboarding ? lastOnboarding.taskNumber + 1 : 1;
     } catch (error) {
       return next(error);

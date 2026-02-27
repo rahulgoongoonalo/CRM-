@@ -14,9 +14,7 @@ const router = express.Router();
 // @access  Private
 router.get('/', async (req, res) => {
   try {
-    console.log('GET /api/members - Request received');
-    const members = await Member.find().sort({ createdAt: -1 });
-    console.log(`Found ${members.length} members`);
+    const members = await Member.find().sort({ createdAt: -1 }).lean();
     res.json({
       success: true,
       count: members.length,

@@ -19,6 +19,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, '.env') });
 
+// Verify critical environment variables
+if (!process.env.JWT_SECRET) {
+  console.error('CRITICAL ERROR: JWT_SECRET is not defined in .env file');
+  process.exit(1);
+}
+console.log('Environment variables loaded successfully');
+
 // Connect to MongoDB and initialize admin
 connectDB().then(async () => {
   try {

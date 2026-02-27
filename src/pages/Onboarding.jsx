@@ -82,10 +82,11 @@ const Onboarding = () => {
       });
       
       if (response.success) {
-        await fetchOnboardings();
+        // Optimistic: add new item to state directly, then refresh in background
+        setOnboardings(prev => [response.data, ...prev]);
         setIsModalOpen(false);
-        // Don't show alert, let the modal flow continue
-        return response.data._id; // Return the created onboarding ID
+        fetchOnboardings(); // Refresh in background (no await)
+        return response.data._id;
       }
     } catch (error) {
       console.error('Error creating onboarding:', error);
@@ -137,10 +138,12 @@ const Onboarding = () => {
     try {
       const response = await onboardingAPI.update(selectedOnboarding._id, updatedData);
       if (response.success) {
-        await fetchOnboardings();
+        // Optimistic: update item in state directly
+        setOnboardings(prev => prev.map(o => o._id === selectedOnboarding._id ? response.data : o));
         setIsEditModalOpen(false);
         setSelectedOnboarding(null);
         toast.success('Onboarding updated successfully');
+        fetchOnboardings(); // Refresh in background
       }
     } catch (error) {
       console.error('Error updating onboarding:', error);
@@ -162,14 +165,19 @@ const Onboarding = () => {
     try {
       const response = await onboardingAPI.updateL2Review(selectedOnboarding._id, l2Data);
       if (response.success) {
-        await fetchOnboardings();
+        // Optimistic: update item in state directly
+        setOnboardings(prev => prev.map(o => o._id === selectedOnboarding._id ? response.data : o));
         setIsL2ReviewModalOpen(false);
         setSelectedOnboarding(null);
         toast.success('L2 Review saved successfully');
+        fetchOnboardings(); // Refresh in background
+      } else {
+        throw new Error(response.message || 'Failed to save L2 review');
       }
     } catch (error) {
       console.error('Error saving L2 review:', error);
-      toast.error('Failed to save L2 review');
+      toast.error(error.response?.data?.message || 'Failed to save L2 review');
+      throw error;
     }
   };
       

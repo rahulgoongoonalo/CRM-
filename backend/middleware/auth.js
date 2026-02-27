@@ -45,7 +45,14 @@ export const authorize = (...roles) => {
 
 // Generate JWT Token
 export const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+  const secret = process.env.JWT_SECRET;
+  
+  if (!secret) {
+    console.error('JWT_SECRET is not defined in environment variables');
+    throw new Error('JWT configuration error');
+  }
+  
+  return jwt.sign({ id }, secret, {
     expiresIn: '30d'
   });
 };

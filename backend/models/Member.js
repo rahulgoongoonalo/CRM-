@@ -157,6 +157,14 @@ memberSchema.pre('save', async function(next) {
   next();
 });
 
+// Indexes for faster queries
+memberSchema.index({ artistName: 1 });
+memberSchema.index({ status: 1 });
+memberSchema.index({ tier: 1 });
+memberSchema.index({ source: 1 });
+memberSchema.index({ memberNumber: -1 });
+memberSchema.index({ createdAt: -1 });
+
 // Create partial unique index on email
 // Partial index only applies to documents where email exists and is a non-empty string
 // This allows unlimited documents with null/empty/missing email

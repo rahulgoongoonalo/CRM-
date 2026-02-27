@@ -63,7 +63,8 @@ router.get('/reports/onboarding-status', async (req, res) => {
   try {
     const onboardings = await Onboarding.find()
       .populate('member', 'artistName primaryGenres source tier')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
     
     // Transform data for the report
     const reportData = onboardings.map((onboarding, index) => {
@@ -132,7 +133,8 @@ router.get('/', async (req, res) => {
   try {
     const onboardings = await Onboarding.find()
       .populate('member', 'artistName email phone primaryGenres source tier')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
     
     res.json({
       success: true,
@@ -152,7 +154,8 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const onboarding = await Onboarding.findById(req.params.id)
-      .populate('member', 'artistName email phone primaryGenres source tier');
+      .populate('member', 'artistName email phone primaryGenres source tier')
+      .lean();
     
     if (!onboarding) {
       return res.status(404).json({

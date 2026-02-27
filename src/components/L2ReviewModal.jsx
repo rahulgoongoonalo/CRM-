@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { RiCloseLine, RiUploadCloud2Line, RiDeleteBin6Line, RiFileTextLine, RiArrowDownSLine, RiAddLine } from 'react-icons/ri';
 import { useToast } from './ToastNotification';
 import { onboardingAPI } from '../services/api';
@@ -31,6 +31,43 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
   const [uploadedDocs, setUploadedDocs] = useState(onboarding?.l2ReviewData?.documents || []);
   const toast = useToast();
 
+  // Load existing data when modal opens
+  useEffect(() => {
+    if (isOpen && onboarding?.l2ReviewData) {
+      const l2Data = onboarding.l2ReviewData;
+      setFormData({
+        meetingScheduledOn: l2Data.meetingScheduledOn ? l2Data.meetingScheduledOn.split('T')[0] : '',
+        meetingType: l2Data.meetingType || 'In-Person',
+        catalogReview: l2Data.checklist?.catalogReview || false,
+        rightsOwnership: l2Data.checklist?.rightsOwnership || false,
+        commercialData: l2Data.checklist?.commercialData || false,
+        contractDiscussion: l2Data.checklist?.contractDiscussion || false,
+        techOnboarding: l2Data.checklist?.techOnboarding || false,
+        contentIngestion: l2Data.checklist?.contentIngestion || false,
+        membershipType: l2Data.membershipType || [],
+        closureChecklist: l2Data.closureChecklist || [],
+        notes: l2Data.notes || ''
+      });
+      setUploadedDocs(l2Data.documents || []);
+    } else if (isOpen) {
+      // Reset form if opening new L2 review
+      setFormData({
+        meetingScheduledOn: '',
+        meetingType: 'In-Person',
+        catalogReview: false,
+        rightsOwnership: false,
+        commercialData: false,
+        contractDiscussion: false,
+        techOnboarding: false,
+        contentIngestion: false,
+        membershipType: [],
+        closureChecklist: [],
+        notes: ''
+      });
+      setUploadedDocs([]);
+    }
+  }, [isOpen, onboarding]);
+
   if (!isOpen) return null;
 
   const handleChange = (e) => {
@@ -41,7 +78,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
     }));
   };
 
-  const handleSubmit = (status) => {
+  const handleSubmit = async (status) => {
     // Validation: Check if all required fields are filled
     if (!formData.meetingScheduledOn) {
       toast.warning('Please select a meeting date');
@@ -68,7 +105,6 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
     }
 
     const dataToSubmit = {
-      ...formData,
       status,
       l2ReviewData: {
         meetingScheduledOn: formData.meetingScheduledOn,
@@ -87,22 +123,13 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
       }
     };
     
-    onSubmit(dataToSubmit);
-    
-    // Reset form
-    setFormData({
-      meetingScheduledOn: '',
-      meetingType: 'In-Person',
-      catalogReview: false,
-      rightsOwnership: false,
-      commercialData: false,
-      contractDiscussion: false,
-      techOnboarding: false,
-      contentIngestion: false,
-      membershipType: [],
-      closureChecklist: [],
-      notes: ''
-    });
+    try {
+      await onSubmit(dataToSubmit);
+      // Modal will close and data will be reloaded on next open via useEffect
+    } catch (error) {
+      console.error('Error submitting L2 review:', error);
+      // Error toast will be shown by the parent component
+    }
   };
 
   const taskId = `ONB-${onboarding?._id?.slice(-4).toUpperCase()}`;
@@ -390,7 +417,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
               <div className="flex items-center gap-3">
                 <select
                   id="closureStatusSelect"
-                  className="flex-1 bg-[#2d3748] border border-slate-600 rounded-lg px-4 py-2.5 text-sm text-white focus:border-orange-400 focus:ring-1 focus:ring-orange-400 transition-colors outline-none"
+                  className="flex-1 min-w-0 bg-[#2d3748] border border-slate-600 rounded-lg px-4 py-2.5 text-sm text-white focus:border-orange-400 focus:ring-1 focus:ring-orange-400 transition-colors outline-none"
                   defaultValue=""
                 >
                   <option value="" disabled>Select status to add...</option>
@@ -417,7 +444,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                     }));
                     sel.value = '';
                   }}
-                  className="px-5 py-2.5 rounded-lg font-medium bg-gradient-to-r from-orange-600 to-orange-500 text-white hover:from-orange-500 hover:to-orange-400 transition-all shadow-lg shadow-orange-600/30 text-sm flex items-center gap-1.5 whitespace-nowrap"
+                  className="flex-shrink-0 px-5 py-2.5 rounded-lg font-medium bg-gradient-to-r from-orange-600 to-orange-500 text-white hover:from-orange-500 hover:to-orange-400 transition-all shadow-lg shadow-orange-600/30 text-sm flex items-center gap-1.5 whitespace-nowrap"
                 >
                   <RiAddLine className="text-base" /> Add
                 </button>
@@ -644,7 +671,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
             </button>
             <button
               type="button"
-              onClick={() => handleSubmit('review-l2')}
+              onClick={() => handleSubmit('cold-storage')}
               className="px-6 py-2.5 rounded-lg font-medium bg-gradient-to-r from-brand-accent to-brand-highlight text-white hover:from-brand-accent/90 hover:to-brand-highlight/90 transition-all shadow-lg shadow-brand-accent/30"
             >
               Cold Storage
