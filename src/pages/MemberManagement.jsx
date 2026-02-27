@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { RiSearchLine, RiEyeLine, RiEditLine, RiAddLine, RiDeleteBinLine, RiArrowUpSLine, RiArrowDownSLine } from 'react-icons/ri';
 import AddMemberModal from '../components/AddMemberModal';
 import ViewMemberModal from '../components/ViewMemberModal';
@@ -39,10 +39,13 @@ const MemberManagement = () => {
   const [error, setError] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalMembers, setTotalMembers] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   const toast = useToast();
   const confirm = useConfirm();
   const { items: sourceOptions } = usePicklist('source');
   const { items: tierOptions } = usePicklist('tier');
+  const debounceRef = useRef(null);
 
   const handleSort = (key) => {
     setSortConfig(prev => {
@@ -55,17 +58,28 @@ const MemberManagement = () => {
     setCurrentPage(1);
   };
 
-  // Fetch members from backend
-  useEffect(() => {
-    fetchMembers();
-  }, []);
-
-  const fetchMembers = async () => {
+  // Fetch members from backend with server-side pagination
+  const fetchMembers = useCallback(async (pageOverride) => {
     try {
       setLoading(true);
-      const response = await membersAPI.getAll();
+      const params = {
+        page: pageOverride || currentPage,
+        limit: itemsPerPage,
+      };
+      if (searchQuery.trim()) params.search = searchQuery.trim();
+      if (statusFilter !== 'All Status') params.status = statusFilter;
+      if (tierFilter !== 'All Tiers') params.tier = tierFilter;
+      if (sourceFilter !== 'All Sources') params.source = sourceFilter;
+      if (sortConfig.key) {
+        params.sortBy = sortConfig.key;
+        params.sortOrder = sortConfig.direction || 'asc';
+      }
+
+      const response = await membersAPI.getAll(params);
       if (response.success) {
         setMembers(response.data);
+        setTotalMembers(response.total);
+        setTotalPages(response.totalPages);
       }
     } catch (error) {
       console.error('Error fetching members:', error);
@@ -73,73 +87,32 @@ const MemberManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, itemsPerPage, searchQuery, statusFilter, tierFilter, sourceFilter, sortConfig]);
 
-  // Filter and sort members
-  const filteredMembers = useMemo(() => {
-    let result = members.filter((member) => {
-      const matchesSearch =
-        member.artistName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.email?.toLowerCase().includes(searchQuery.toLowerCase());
+  // Re-fetch whenever filters, page, sort, or itemsPerPage change
+  useEffect(() => {
+    fetchMembers();
+  }, [fetchMembers]);
 
-      let matchesStatus = true;
-      if (statusFilter !== 'All Status') {
-        const filterStatus = statusFilter.toLowerCase();
-        const memberStatus = member.status?.toLowerCase();
-
-        if (filterStatus === 'updated') {
-          matchesStatus = memberStatus === 'active' || memberStatus === 'updated';
-        } else if (filterStatus === 'on hold') {
-          matchesStatus = memberStatus === 'inactive';
-        } else if (filterStatus === 'pending') {
-          matchesStatus = memberStatus === 'pending';
-        }
-      }
-
-      let matchesTier = true;
-      if (tierFilter !== 'All Tiers') {
-        const memberTier = member.tier?.toLowerCase() || '';
-        const filterTier = tierFilter.toLowerCase();
-        matchesTier = memberTier.includes(filterTier.split(' - ')[0].toLowerCase());
-      }
-
-      let matchesSource = true;
-      if (sourceFilter !== 'All Sources') {
-        matchesSource = (member.source || '') === sourceFilter;
-      }
-
-      return matchesSearch && matchesStatus && matchesTier && matchesSource;
-    });
-
-    // Apply sorting
-    if (sortConfig.key && sortConfig.direction) {
-      result = [...result].sort((a, b) => {
-        const dir = sortConfig.direction === 'asc' ? 1 : -1;
-        const valA = a[sortConfig.key] || '';
-        const valB = b[sortConfig.key] || '';
-        if (typeof valA === 'string') return dir * valA.localeCompare(valB);
-        return dir * ((valA || 0) - (valB || 0));
-      });
-    }
-
-    return result;
-  }, [members, searchQuery, statusFilter, tierFilter, sourceFilter, sortConfig]);
-
-  // Pagination logic
-  const totalPages = Math.ceil(filteredMembers.length / itemsPerPage);
+  // Pagination info
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentMembers = filteredMembers.slice(startIndex, endIndex);
+  const currentMembers = members; // Already paginated from server
 
-  // Reset to page 1 when filters change
+  // Filter change handlers — reset to page 1
   const handleFilterChange = (setter) => (e) => {
     setter(e.target.value);
     setCurrentPage(1);
   };
 
+  // Debounced search — waits 400ms after typing stops
   const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1);
+    const value = e.target.value;
+    setSearchQuery(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setCurrentPage(1);
+    }, 400);
   };
 
   const handleAddMember = async (newMemberData) => {
@@ -179,7 +152,7 @@ const MemberManagement = () => {
       
       if (response.success) {
         toast.success('Member added successfully!');
-        fetchMembers(); // Refresh the list
+        setCurrentPage(1); // Go to page 1 to see new member
         setIsModalOpen(false);
       }
     } catch (error) {
@@ -240,7 +213,7 @@ const MemberManagement = () => {
       
       if (response.success) {
         toast.success('Member updated successfully!');
-        fetchMembers(); // Refresh the list
+        fetchMembers(); // Refresh current page
         setIsEditModalOpen(false);
         setSelectedMember(null);
       }
@@ -669,7 +642,7 @@ const MemberManagement = () => {
       <div className="card shadow-lg shadow-brand-primary/10 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-4">
           <div className="text-sm text-text-muted font-medium">
-            Showing <span className="font-semibold text-text-primary">{startIndex + 1}</span> to <span className="font-semibold text-text-primary">{Math.min(endIndex, filteredMembers.length)}</span> of <span className="font-semibold text-text-primary">{filteredMembers.length}</span> members
+            Showing <span className="font-semibold text-text-primary">{totalMembers === 0 ? 0 : startIndex + 1}</span> to <span className="font-semibold text-text-primary">{Math.min(endIndex, totalMembers)}</span> of <span className="font-semibold text-text-primary">{totalMembers}</span> members
           </div>
           <div className="flex items-center gap-2">
             <label className="text-sm text-text-muted">Per page:</label>

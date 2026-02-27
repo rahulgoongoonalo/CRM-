@@ -17,8 +17,8 @@ const Reporting = () => {
     try {
       setLoading(true);
       const [membersResponse, onboardingResponse] = await Promise.all([
-        membersAPI.getAll(),
-        onboardingAPI.getAll()
+        membersAPI.getAll({ limit: 10000 }),
+        onboardingAPI.getAll({ limit: 10000 })
       ]);
 
       if (membersResponse.success) {

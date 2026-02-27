@@ -1,5 +1,5 @@
 import { RiUserAddLine, RiEyeLine, RiEditLine, RiDeleteBinLine, RiSendPlaneLine, RiSearchLine, RiArrowUpSLine, RiArrowDownSLine } from 'react-icons/ri';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import AddOnboardingModal from '../components/AddOnboardingModal';
 import ViewOnboardingModal from '../components/ViewOnboardingModal';
 import EditOnboardingModal from '../components/EditOnboardingModal';
@@ -37,8 +37,12 @@ const Onboarding = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: null });
+  const [totalOnboardings, setTotalOnboardings] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [statsData, setStatsData] = useState({ total: 0, closedWon: 0, closedLost: 0, coldStorage: 0 });
   const toast = useToast();
   const confirm = useConfirm();
+  const debounceRef = useRef(null);
 
   const handleSort = (key) => {
     setSortConfig(prev => {
@@ -51,23 +55,46 @@ const Onboarding = () => {
     setCurrentPage(1);
   };
 
-  useEffect(() => {
-    fetchOnboardings();
-  }, []);
-
-  const fetchOnboardings = async () => {
+  // Fetch onboardings with server-side pagination
+  const fetchOnboardings = useCallback(async (pageOverride) => {
     try {
       setLoading(true);
-      const response = await onboardingAPI.getAll();
+      const params = {
+        page: pageOverride || currentPage,
+        limit: itemsPerPage,
+      };
+      if (searchQuery.trim()) params.search = searchQuery.trim();
+      if (activeFilter !== 'All') params.status = activeFilter;
+      if (sortConfig.key) {
+        params.sortBy = sortConfig.key;
+        params.sortOrder = sortConfig.direction || 'asc';
+      }
+
+      const response = await onboardingAPI.getAll(params);
       if (response.success) {
         setOnboardings(response.data);
+        setTotalOnboardings(response.total);
+        setTotalPages(response.totalPages);
+        if (response.stats) {
+          setStatsData(response.stats);
+        }
       }
     } catch (error) {
       console.error('Error fetching onboardings:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, itemsPerPage, searchQuery, activeFilter, sortConfig]);
+
+  // Re-fetch when any parameter changes
+  useEffect(() => {
+    fetchOnboardings();
+  }, [fetchOnboardings]);
+
+  // Pagination info
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentOnboardings = onboardings; // Already paginated from server
 
   const handleAddOnboarding = async (formData) => {
     try {
@@ -82,10 +109,9 @@ const Onboarding = () => {
       });
       
       if (response.success) {
-        // Optimistic: add new item to state directly, then refresh in background
-        setOnboardings(prev => [response.data, ...prev]);
         setIsModalOpen(false);
-        fetchOnboardings(); // Refresh in background (no await)
+        setCurrentPage(1); // Go to page 1 to see new entry
+        fetchOnboardings(1);
         return response.data._id;
       }
     } catch (error) {
@@ -138,12 +164,10 @@ const Onboarding = () => {
     try {
       const response = await onboardingAPI.update(selectedOnboarding._id, updatedData);
       if (response.success) {
-        // Optimistic: update item in state directly
-        setOnboardings(prev => prev.map(o => o._id === selectedOnboarding._id ? response.data : o));
         setIsEditModalOpen(false);
         setSelectedOnboarding(null);
         toast.success('Onboarding updated successfully');
-        fetchOnboardings(); // Refresh in background
+        fetchOnboardings(); // Refresh current page
       }
     } catch (error) {
       console.error('Error updating onboarding:', error);
@@ -165,12 +189,10 @@ const Onboarding = () => {
     try {
       const response = await onboardingAPI.updateL2Review(selectedOnboarding._id, l2Data);
       if (response.success) {
-        // Optimistic: update item in state directly
-        setOnboardings(prev => prev.map(o => o._id === selectedOnboarding._id ? response.data : o));
         setIsL2ReviewModalOpen(false);
         setSelectedOnboarding(null);
         toast.success('L2 Review saved successfully');
-        fetchOnboardings(); // Refresh in background
+        fetchOnboardings(); // Refresh current page
       } else {
         throw new Error(response.message || 'Failed to save L2 review');
       }
@@ -215,53 +237,27 @@ const Onboarding = () => {
     return statusMap[statusLower] || status || 'Warm';
   };
 
-  const filteredOnboardings = useMemo(() => {
-    let result = onboardings.filter((o) => {
-      const matchesSearch =
-        o.artistName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        o.spoc?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        o.source?.toLowerCase().includes(searchQuery.toLowerCase());
-
-      const matchesFilter = activeFilter === 'All' || formatStatus(o.status) === activeFilter;
-
-      return matchesSearch && matchesFilter;
-    });
-
-    // Apply sorting (only artistName)
-    if (sortConfig.key && sortConfig.direction) {
-      result = [...result].sort((a, b) => {
-        const dir = sortConfig.direction === 'asc' ? 1 : -1;
-        const valA = a[sortConfig.key] || '';
-        const valB = b[sortConfig.key] || '';
-        return dir * valA.localeCompare(valB);
-      });
-    }
-
-    return result;
-  }, [onboardings, searchQuery, activeFilter, sortConfig]);
-
-  // Pagination logic
-  const totalPages = Math.ceil(filteredOnboardings.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentOnboardings = filteredOnboardings.slice(startIndex, endIndex);
-
-  // Reset to page 1 when filter changes
+  // Filter/search handlers — reset to page 1
   const handleFilterChange = (filter) => {
     setActiveFilter(filter);
     setCurrentPage(1);
   };
 
+  // Debounced search — waits 400ms after typing stops
   const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1);
+    const value = e.target.value;
+    setSearchQuery(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setCurrentPage(1);
+    }, 400);
   };
 
   const stats = [
-    { number: onboardings.length.toString(), label: 'Total Onboarding', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-brand-primary to-brand-secondary' },
-    { number: onboardings.filter(o => o.status === 'closed-won').length.toString(), label: 'Closed Won', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-green-600 to-green-700' },
-    { number: onboardings.filter(o => o.status === 'closed-lost').length.toString(), label: 'Closed Lost', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-red-800 to-red-900' },
-    { number: onboardings.filter(o => o.status === 'cold-storage').length.toString(), label: 'Cold Storage', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-purple-600 to-purple-700' },
+    { number: statsData.total.toString(), label: 'Total Onboarding', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-brand-primary to-brand-secondary' },
+    { number: statsData.closedWon.toString(), label: 'Closed Won', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-green-600 to-green-700' },
+    { number: statsData.closedLost.toString(), label: 'Closed Lost', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-red-800 to-red-900' },
+    { number: statsData.coldStorage.toString(), label: 'Cold Storage', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-purple-600 to-purple-700' },
   ];
 
   const filters = [
@@ -555,11 +551,11 @@ const Onboarding = () => {
       </div>
 
       {/* Pagination */}
-      {filteredOnboardings.length > 0 && (
+      {totalOnboardings > 0 && (
         <div className="card shadow-lg shadow-brand-primary/10 flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
           <div className="flex items-center gap-4">
             <div className="text-sm text-text-muted font-medium">
-              Showing <span className="font-semibold text-text-primary">{startIndex + 1}</span> to <span className="font-semibold text-text-primary">{Math.min(endIndex, filteredOnboardings.length)}</span> of <span className="font-semibold text-text-primary">{filteredOnboardings.length}</span> onboardings
+              Showing <span className="font-semibold text-text-primary">{totalOnboardings === 0 ? 0 : startIndex + 1}</span> to <span className="font-semibold text-text-primary">{Math.min(endIndex, totalOnboardings)}</span> of <span className="font-semibold text-text-primary">{totalOnboardings}</span> onboardings
             </div>
             <div className="flex items-center gap-2">
               <label className="text-sm text-text-muted">Per page:</label>

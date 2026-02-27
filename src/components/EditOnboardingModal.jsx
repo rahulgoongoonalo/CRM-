@@ -39,7 +39,7 @@ const EditOnboardingModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
   const fetchMembers = async () => {
     try {
       setLoading(true);
-      const response = await membersAPI.getAll();
+      const response = await membersAPI.getList();
       if (response.success) {
         setMembers(response.data);
       }

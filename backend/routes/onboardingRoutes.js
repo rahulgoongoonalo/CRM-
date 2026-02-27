@@ -128,17 +128,93 @@ router.get('/reports/onboarding-status', async (req, res) => {
   }
 });
 
-// Get all onboardings with member details
+// Get all onboardings with server-side pagination, search, filter, sort
 router.get('/', async (req, res) => {
   try {
-    const onboardings = await Onboarding.find()
-      .populate('member', 'artistName email phone primaryGenres source tier')
-      .sort({ createdAt: -1 })
-      .lean();
-    
+    const {
+      page = 1,
+      limit = 10,
+      search = '',
+      status = '',
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = req.query;
+
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+
+    // Build filter query
+    const query = {};
+
+    // Status filter — map display label to db value
+    if (status && status !== 'All') {
+      const statusMap = {
+        'hot': 'hot',
+        'warm': 'warm',
+        'cold': 'cold',
+        'closed won': 'closed-won',
+        'closed lost': 'closed-lost',
+        'cold storage': 'cold-storage'
+      };
+      const mapped = statusMap[status.toLowerCase()];
+      if (mapped) {
+        query.status = mapped;
+      }
+    }
+
+    // Search across artistName and spoc (member.source searched via populate match later)
+    if (search.trim()) {
+      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.$or = [
+        { artistName: { $regex: escaped, $options: 'i' } },
+        { spoc: { $regex: escaped, $options: 'i' } }
+      ];
+
+      // Also find members whose source or artistName matches and include their IDs
+      const matchingMembers = await Member.find({
+        $or: [
+          { artistName: { $regex: escaped, $options: 'i' } },
+          { source: { $regex: escaped, $options: 'i' } }
+        ]
+      }, { _id: 1 }).lean();
+
+      if (matchingMembers.length > 0) {
+        query.$or.push({ member: { $in: matchingMembers.map(m => m._id) } });
+      }
+    }
+
+    // Build sort — handle populated field sorting
+    const sortObj = {};
+    sortObj[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+    // Execute paginated query + total count + stats in parallel
+    const [onboardings, total, closedWon, closedLost, coldStorage, grandTotal] = await Promise.all([
+      Onboarding.find(query)
+        .populate('member', 'artistName email phone primaryGenres source tier')
+        .sort(sortObj)
+        .skip((pageNum - 1) * limitNum)
+        .limit(limitNum)
+        .lean(),
+      Onboarding.countDocuments(query),
+      Onboarding.countDocuments({ status: 'closed-won' }),
+      Onboarding.countDocuments({ status: 'closed-lost' }),
+      Onboarding.countDocuments({ status: 'cold-storage' }),
+      Onboarding.countDocuments({})
+    ]);
+
     res.json({
       success: true,
-      data: onboardings
+      data: onboardings,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
+      stats: {
+        total: grandTotal,
+        closedWon,
+        closedLost,
+        coldStorage
+      }
     });
   } catch (error) {
     console.error('Error fetching onboardings:', error);

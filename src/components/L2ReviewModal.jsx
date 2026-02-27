@@ -28,45 +28,90 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
   const [docFile, setDocFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [membershipOpen, setMembershipOpen] = useState(false);
-  const [uploadedDocs, setUploadedDocs] = useState(onboarding?.l2ReviewData?.documents || []);
+  const [uploadedDocs, setUploadedDocs] = useState([]);
+  const [loadingData, setLoadingData] = useState(false);
   const toast = useToast();
 
-  // Load existing data when modal opens
+  // Fetch fresh onboarding data by ID and load l2ReviewData
   useEffect(() => {
-    if (isOpen && onboarding?.l2ReviewData) {
-      const l2Data = onboarding.l2ReviewData;
-      setFormData({
-        meetingScheduledOn: l2Data.meetingScheduledOn ? l2Data.meetingScheduledOn.split('T')[0] : '',
-        meetingType: l2Data.meetingType || 'In-Person',
-        catalogReview: l2Data.checklist?.catalogReview || false,
-        rightsOwnership: l2Data.checklist?.rightsOwnership || false,
-        commercialData: l2Data.checklist?.commercialData || false,
-        contractDiscussion: l2Data.checklist?.contractDiscussion || false,
-        techOnboarding: l2Data.checklist?.techOnboarding || false,
-        contentIngestion: l2Data.checklist?.contentIngestion || false,
-        membershipType: l2Data.membershipType || [],
-        closureChecklist: l2Data.closureChecklist || [],
-        notes: l2Data.notes || ''
-      });
-      setUploadedDocs(l2Data.documents || []);
+    if (isOpen && onboarding?._id) {
+      const loadData = async () => {
+        setLoadingData(true);
+        try {
+          const response = await onboardingAPI.getById(onboarding._id);
+          if (response.success && response.data?.l2ReviewData) {
+            const l2Data = response.data.l2ReviewData;
+            const hasSavedData = l2Data.meetingScheduledOn || l2Data.checklist || l2Data.notes;
+            if (hasSavedData) {
+              setFormData({
+                meetingScheduledOn: l2Data.meetingScheduledOn ? l2Data.meetingScheduledOn.split('T')[0] : '',
+                meetingType: l2Data.meetingType || 'In-Person',
+                catalogReview: l2Data.checklist?.catalogReview || false,
+                rightsOwnership: l2Data.checklist?.rightsOwnership || false,
+                commercialData: l2Data.checklist?.commercialData || false,
+                contractDiscussion: l2Data.checklist?.contractDiscussion || false,
+                techOnboarding: l2Data.checklist?.techOnboarding || false,
+                contentIngestion: l2Data.checklist?.contentIngestion || false,
+                membershipType: l2Data.membershipType || [],
+                closureChecklist: l2Data.closureChecklist || [],
+                notes: l2Data.notes || ''
+              });
+              setUploadedDocs(l2Data.documents || []);
+            } else {
+              // No saved L2 data — reset to defaults
+              resetForm();
+            }
+          } else {
+            resetForm();
+          }
+        } catch (error) {
+          console.error('Error fetching onboarding data for L2 review:', error);
+          // Fallback: try using the prop data
+          if (onboarding?.l2ReviewData?.meetingScheduledOn) {
+            const l2Data = onboarding.l2ReviewData;
+            setFormData({
+              meetingScheduledOn: l2Data.meetingScheduledOn ? l2Data.meetingScheduledOn.split('T')[0] : '',
+              meetingType: l2Data.meetingType || 'In-Person',
+              catalogReview: l2Data.checklist?.catalogReview || false,
+              rightsOwnership: l2Data.checklist?.rightsOwnership || false,
+              commercialData: l2Data.checklist?.commercialData || false,
+              contractDiscussion: l2Data.checklist?.contractDiscussion || false,
+              techOnboarding: l2Data.checklist?.techOnboarding || false,
+              contentIngestion: l2Data.checklist?.contentIngestion || false,
+              membershipType: l2Data.membershipType || [],
+              closureChecklist: l2Data.closureChecklist || [],
+              notes: l2Data.notes || ''
+            });
+            setUploadedDocs(l2Data.documents || []);
+          } else {
+            resetForm();
+          }
+        } finally {
+          setLoadingData(false);
+        }
+      };
+      loadData();
     } else if (isOpen) {
-      // Reset form if opening new L2 review
-      setFormData({
-        meetingScheduledOn: '',
-        meetingType: 'In-Person',
-        catalogReview: false,
-        rightsOwnership: false,
-        commercialData: false,
-        contractDiscussion: false,
-        techOnboarding: false,
-        contentIngestion: false,
-        membershipType: [],
-        closureChecklist: [],
-        notes: ''
-      });
-      setUploadedDocs([]);
+      resetForm();
     }
-  }, [isOpen, onboarding]);
+  }, [isOpen, onboarding?._id]);
+
+  const resetForm = () => {
+    setFormData({
+      meetingScheduledOn: '',
+      meetingType: 'In-Person',
+      catalogReview: false,
+      rightsOwnership: false,
+      commercialData: false,
+      contractDiscussion: false,
+      techOnboarding: false,
+      contentIngestion: false,
+      membershipType: [],
+      closureChecklist: [],
+      notes: ''
+    });
+    setUploadedDocs([]);
+  };
 
   if (!isOpen) return null;
 

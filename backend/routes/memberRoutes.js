@@ -9,16 +9,90 @@ const router = express.Router();
 // TEMPORARY: Comment out for testing - REMOVE IN PRODUCTION
 // router.use(protect);
 
+// @route   GET /api/members/list
+// @desc    Get lightweight member list (id + name only) for dropdowns
+// @access  Private
+router.get('/list', async (req, res) => {
+  try {
+    const members = await Member.find({}, { artistName: 1 }).sort({ artistName: 1 }).lean();
+    res.json({ success: true, data: members });
+  } catch (error) {
+    console.error('Error in GET /api/members/list:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // @route   GET /api/members
-// @desc    Get all members
+// @desc    Get members with server-side pagination, search, filter, sort
 // @access  Private
 router.get('/', async (req, res) => {
   try {
-    const members = await Member.find().sort({ createdAt: -1 }).lean();
+    const {
+      page = 1,
+      limit = 10,
+      search = '',
+      status = '',
+      tier = '',
+      source = '',
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = req.query;
+
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
+
+    // Build filter query
+    const query = {};
+
+    // Search across artistName and email
+    if (search.trim()) {
+      const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.$or = [
+        { artistName: { $regex: escaped, $options: 'i' } },
+        { email: { $regex: escaped, $options: 'i' } }
+      ];
+    }
+
+    // Status filter — map display values to DB values
+    if (status && status !== 'All Status') {
+      const statusLower = status.toLowerCase();
+      if (statusLower === 'updated') {
+        query.status = { $in: ['active', 'updated'] };
+      } else if (statusLower === 'on hold') {
+        query.status = 'inactive';
+      } else if (statusLower === 'pending') {
+        query.status = 'pending';
+      }
+    }
+
+    // Tier filter
+    if (tier && tier !== 'All Tiers') {
+      const escaped = tier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      query.tier = { $regex: escaped, $options: 'i' };
+    }
+
+    // Source filter
+    if (source && source !== 'All Sources') {
+      query.source = source;
+    }
+
+    // Build sort
+    const sortObj = {};
+    sortObj[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+    // Execute query + count in parallel
+    const [members, total] = await Promise.all([
+      Member.find(query).sort(sortObj).skip((pageNum - 1) * limitNum).limit(limitNum).lean(),
+      Member.countDocuments(query)
+    ]);
+
     res.json({
       success: true,
-      count: members.length,
-      data: members
+      data: members,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum)
     });
   } catch (error) {
     console.error('Error in GET /api/members:', error);

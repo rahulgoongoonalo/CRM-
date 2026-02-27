@@ -373,7 +373,7 @@ const DataHygiene = () => {
   const fetchMembers = async () => {
     try {
       setLoading(true);
-      const response = await membersAPI.getAll();
+      const response = await membersAPI.getAll({ limit: 10000 });
       if (response.success) setMembers(response.data);
     } catch (error) {
       console.error('Error fetching members:', error);

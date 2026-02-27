@@ -53,8 +53,22 @@ export const authAPI = {
 
 // Members API
 export const membersAPI = {
-  getAll: async () => {
-    const response = await api.get('/members');
+  getAll: async (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.page) query.set('page', params.page);
+    if (params.limit) query.set('limit', params.limit);
+    if (params.search) query.set('search', params.search);
+    if (params.status) query.set('status', params.status);
+    if (params.tier) query.set('tier', params.tier);
+    if (params.source) query.set('source', params.source);
+    if (params.sortBy) query.set('sortBy', params.sortBy);
+    if (params.sortOrder) query.set('sortOrder', params.sortOrder);
+    const queryStr = query.toString();
+    const response = await api.get(`/members${queryStr ? '?' + queryStr : ''}`);
+    return response.data;
+  },
+  getList: async () => {
+    const response = await api.get('/members/list');
     return response.data;
   },
   getById: async (id) => {
@@ -81,8 +95,16 @@ export const membersAPI = {
 
 // Onboarding API
 export const onboardingAPI = {
-  getAll: async () => {
-    const response = await api.get('/onboarding');
+  getAll: async (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.page) query.set('page', params.page);
+    if (params.limit) query.set('limit', params.limit);
+    if (params.search) query.set('search', params.search);
+    if (params.status) query.set('status', params.status);
+    if (params.sortBy) query.set('sortBy', params.sortBy);
+    if (params.sortOrder) query.set('sortOrder', params.sortOrder);
+    const queryStr = query.toString();
+    const response = await api.get(`/onboarding${queryStr ? '?' + queryStr : ''}`);
     return response.data;
   },
   getById: async (id) => {
