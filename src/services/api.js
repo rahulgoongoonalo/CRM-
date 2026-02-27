@@ -131,6 +131,10 @@ export const onboardingAPI = {
     const response = await api.patch(`/onboarding/${id}/l1-questionnaire`, l1Data);
     return response.data;
   },
+  saveL1Progress: async (id, l1Data) => {
+    const response = await api.patch(`/onboarding/${id}/l1-questionnaire/save-progress`, l1Data);
+    return response.data;
+  },
   updateL2Review: async (id, l2Data) => {
     const response = await api.patch(`/onboarding/${id}/l2-review`, l2Data);
     return response.data;

@@ -455,6 +455,38 @@ router.patch('/:id/l1-questionnaire', async (req, res) => {
   }
 });
 
+// Save L1 Questionnaire progress (no validation, no status change)
+router.patch('/:id/l1-questionnaire/save-progress', async (req, res) => {
+  try {
+    const l1Data = req.body;
+
+    const onboarding = await Onboarding.findById(req.params.id);
+    if (!onboarding) {
+      return res.status(404).json({ success: false, message: 'Onboarding not found' });
+    }
+
+    // Save whatever data has been filled so far — do NOT change status
+    const updatedOnboarding = await Onboarding.findByIdAndUpdate(
+      req.params.id,
+      { l1QuestionnaireData: l1Data },
+      { new: true, runValidators: false }
+    ).populate('member', 'artistName email phone primaryGenres source tier');
+
+    res.json({
+      success: true,
+      data: updatedOnboarding,
+      message: 'L1 Questionnaire progress saved'
+    });
+  } catch (error) {
+    console.error('Error saving L1 questionnaire progress:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to save L1 questionnaire progress',
+      error: error.message
+    });
+  }
+});
+
 // Update L2 Review data
 router.patch('/:id/l2-review', async (req, res) => {
   try {
