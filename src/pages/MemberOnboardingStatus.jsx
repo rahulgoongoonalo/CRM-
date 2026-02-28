@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RiArrowLeftLine, RiFilterLine, RiSearchLine, RiDownloadLine } from 'react-icons/ri';
-import { getOnboardingStatusReport } from '../services/api';
+import { RiArrowLeftLine, RiFilterLine, RiSearchLine, RiDownloadLine, RiFileExcel2Line } from 'react-icons/ri';
+import { getOnboardingStatusReport, getFullExportData } from '../services/api';
 
 const MemberOnboardingStatus = () => {
   const navigate = useNavigate();
@@ -158,6 +158,121 @@ const MemberOnboardingStatus = () => {
     document.body.removeChild(link);
   };
 
+  const [fullExportLoading, setFullExportLoading] = useState(false);
+
+  const exportFullData = async () => {
+    try {
+      setFullExportLoading(true);
+      const response = await getFullExportData();
+      if (!response.success || !response.data.length) {
+        alert('No data available for export');
+        return;
+      }
+
+      const data = response.data;
+
+      // Define all column headers grouped by section
+      const headers = [
+        // Onboarding Info
+        'S.No', 'Task No', 'Artist Name', 'SPOC', 'Onboarding Status', 'ETA Closure', 'Days from ETA',
+        'Onboarding Description', 'Onboarding Notes',
+        // Member Data
+        'Member No', 'Email', 'Phone', 'Alternate Number', 'Location', 'Country',
+        'Contact Name', 'Category', 'Tier', 'Primary Role', 'Talent Type', 'Primary Genres',
+        'Source', 'Biography', 'Member Status', 'Join Date',
+        'Instagram Followers', 'Spotify Monthly Listeners', 'YouTube Subscribers',
+        'Facebook Followers', 'Twitter Followers', 'SoundCloud Followers',
+        'Bank Name', 'Account Number', 'IFSC Code', 'PAN Number', 'Aadhar Number',
+        // Step 1
+        'Step1 - Source', 'Step1 - Contact Status', 'Step1 - Notes',
+        // L1 Questionnaire
+        'L1 - Artist Name', 'L1 - Primary Contact', 'L1 - Email', 'L1 - Phone',
+        'L1 - City/Country', 'L1 - Years Active', 'L1 - Artist Bio', 'L1 - Listener Region',
+        'L1 - Has Manager', 'L1 - Manager Name', 'L1 - Has Label', 'L1 - Label Name',
+        'L1 - Primary Role', 'L1 - Primary Genres', 'L1 - Languages', 'L1 - Sub Genre',
+        'L1 - Streaming Link', 'L1 - YouTube', 'L1 - Instagram', 'L1 - Facebook',
+        'L1 - Twitter', 'L1 - SoundCloud', 'L1 - Other Platforms',
+        'L1 - Has Distributor', 'L1 - Distributor Name', 'L1 - Has Contracts', 'L1 - Contract Valid Until',
+        'L1 - Exclusive Releases', 'L1 - Open To Collabs', 'L1 - Perform Live',
+        'L1 - Upcoming Project', 'L1 - Interested In Gatecrash', 'L1 - Why Goongoonalo',
+        'L1 - How Heard', 'L1 - Other Info',
+        'L1 - Bank Name', 'L1 - Account Number', 'L1 - IFSC Code', 'L1 - PAN Number', 'L1 - Aadhar Number',
+        'L1 - Confirm Rights', 'L1 - Accept Terms', 'L1 - Consent Editorial', 'L1 - Understand Payout',
+        // L2 Review
+        'L2 - Meeting Scheduled On', 'L2 - Meeting Type',
+        'L2 - Catalog Review', 'L2 - Rights Ownership', 'L2 - Commercial Data',
+        'L2 - Contract Discussion', 'L2 - Tech Onboarding', 'L2 - Content Ingestion',
+        'L2 - Membership Type', 'L2 - Notes', 'L2 - Closure Checklist',
+        'L2 - Documents Count', 'L2 - Document Titles'
+      ];
+
+      const rows = data.map(item => [
+        item.serialNo, item.taskNumber, item.artistName, item.spoc,
+        item.onboardingStatus, item.etaClosure, item.daysFromETA,
+        item.onboardingDescription, item.onboardingNotes,
+        // Member
+        item.memberNumber, item.email, item.phone, item.alternateNumber,
+        item.location, item.country, item.contactName, item.category,
+        item.tier, item.primaryRole, item.talentType, item.primaryGenres,
+        item.source, item.biography, item.memberStatus, item.joinDate,
+        item.instagramFollowers, item.spotifyMonthlyListeners, item.youtubeSubscribers,
+        item.facebookFollowers, item.twitterFollowers, item.soundcloudFollowers,
+        item.bankName, item.accountNumber, item.ifscCode, item.panNumber, item.aadharNumber,
+        // Step 1
+        item.step1Source, item.step1ContactStatus, item.step1Notes,
+        // L1
+        item.l1ArtistName, item.l1PrimaryContact, item.l1Email, item.l1Phone,
+        item.l1CityCountry, item.l1YearsActive, item.l1ArtistBio, item.l1ListenerRegion,
+        item.l1HasManager, item.l1ManagerName, item.l1HasLabel, item.l1LabelName,
+        item.l1PrimaryRole, item.l1PrimaryGenres, item.l1Languages, item.l1SubGenre,
+        item.l1StreamingLink, item.l1Youtube, item.l1Instagram, item.l1Facebook,
+        item.l1Twitter, item.l1Soundcloud, item.l1OtherPlatforms,
+        item.l1HasDistributor, item.l1DistributorName, item.l1HasContracts, item.l1ContractValidUntil,
+        item.l1ExclusiveReleases, item.l1OpenToCollabs, item.l1PerformLive,
+        item.l1UpcomingProject, item.l1InterestedInGatecrash, item.l1WhyGoongoonalo,
+        item.l1HowHeard, item.l1OtherInfo,
+        item.l1BankName, item.l1AccountNumber, item.l1IfscCode, item.l1PanNumber, item.l1AadharNumber,
+        item.l1ConfirmRights, item.l1AcceptTerms, item.l1ConsentEditorial, item.l1UnderstandPayout,
+        // L2
+        item.l2MeetingScheduledOn, item.l2MeetingType,
+        item.l2CatalogReview, item.l2RightsOwnership, item.l2CommercialData,
+        item.l2ContractDiscussion, item.l2TechOnboarding, item.l2ContentIngestion,
+        item.l2MembershipType, item.l2Notes, item.l2ClosureChecklist,
+        item.l2DocumentsCount, item.l2DocumentTitles
+      ]);
+
+      // Escape CSV values
+      const escapeCSV = (val) => {
+        const str = val == null ? '' : String(val);
+        if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+          return '"' + str.replace(/"/g, '""') + '"';
+        }
+        return '"' + str + '"';
+      };
+
+      const csvContent = [
+        headers.map(escapeCSV).join(','),
+        ...rows.map(row => row.map(escapeCSV).join(','))
+      ].join('\n');
+
+      const BOM = '\uFEFF';
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `full_member_onboarding_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error exporting full data:', error);
+      alert('Failed to export data. Please try again.');
+    } finally {
+      setFullExportLoading(false);
+    }
+  };
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -174,13 +289,23 @@ const MemberOnboardingStatus = () => {
             <h1 className="text-3xl font-bold text-text-primary mb-2">Member Onboarding Status</h1>
             <p className="text-text-secondary">Comprehensive overview of all member onboarding activities</p>
           </div>
-          <button
-            onClick={exportToCSV}
-            className="flex items-center px-4 py-2 bg-brand-primary hover:bg-brand-secondary text-white rounded-lg transition-colors"
-          >
-            <RiDownloadLine className="mr-2" />
-            Export CSV
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={exportFullData}
+              disabled={fullExportLoading}
+              className="flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-800 disabled:cursor-wait text-white rounded-lg transition-colors"
+            >
+              <RiFileExcel2Line className="mr-2" />
+              {fullExportLoading ? 'Exporting...' : 'Export All Data'}
+            </button>
+            <button
+              onClick={exportToCSV}
+              className="flex items-center px-4 py-2 bg-brand-primary hover:bg-brand-secondary text-white rounded-lg transition-colors"
+            >
+              <RiDownloadLine className="mr-2" />
+              Export CSV
+            </button>
+          </div>
         </div>
       </div>
 

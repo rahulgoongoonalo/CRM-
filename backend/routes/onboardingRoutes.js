@@ -58,6 +58,166 @@ router.put('/renumber', async (req, res) => {
   }
 });
 
+// Get full export data with member + L1 + L2 data (must be before /:id route)
+router.get('/reports/full-export', async (req, res) => {
+  try {
+    const onboardings = await Onboarding.find()
+      .populate('member')
+      .sort({ createdAt: -1 })
+      .lean();
+    
+    const exportData = onboardings.map((onboarding, index) => {
+      const member = onboarding.member || {};
+      const l1 = onboarding.l1QuestionnaireData || {};
+      const l2 = onboarding.l2ReviewData || {};
+      const step1 = onboarding.step1Data || {};
+      
+      // Calculate days from ETA
+      let daysFromETA = null;
+      if (onboarding.etaClosure) {
+        const today = new Date();
+        const eta = new Date(onboarding.etaClosure);
+        daysFromETA = Math.floor((today - eta) / (1000 * 60 * 60 * 24));
+      }
+
+      const statusMapping = {
+        'hot': 'Hot', 'warm': 'Warm', 'cold': 'Cold',
+        'closed-won': 'Closed Won', 'closed-lost': 'Closed Lost',
+        'cold-storage': 'Cold Storage'
+      };
+
+      // Clean tier
+      let cleanTier = 'N/A';
+      if (member.tier) {
+        const tierMatch = member.tier.toString().toLowerCase().match(/tier\s*(\d+)/);
+        cleanTier = tierMatch ? `Tier ${tierMatch[1]}` : member.tier;
+      }
+      
+      return {
+        // Basic Info
+        serialNo: index + 1,
+        taskNumber: onboarding.taskNumber || 'N/A',
+        onboardingStatus: statusMapping[onboarding.status?.toLowerCase()] || onboarding.status || 'N/A',
+        etaClosure: onboarding.etaClosure ? new Date(onboarding.etaClosure).toLocaleDateString() : 'N/A',
+        daysFromETA: daysFromETA !== null ? daysFromETA : 'N/A',
+        spoc: onboarding.spoc || 'N/A',
+        onboardingNotes: onboarding.notes || '',
+        onboardingDescription: onboarding.description || '',
+        
+        // Member Data
+        memberNumber: member.memberNumber || 'N/A',
+        artistName: member.artistName || onboarding.artistName || 'N/A',
+        email: member.email || 'N/A',
+        phone: member.phone || 'N/A',
+        alternateNumber: member.alternateNumber || 'N/A',
+        location: member.location || 'N/A',
+        country: member.country || 'N/A',
+        contactName: member.contactName || 'N/A',
+        category: member.category || 'N/A',
+        tier: cleanTier,
+        primaryRole: member.primaryRole || 'N/A',
+        talentType: member.talentType || 'N/A',
+        primaryGenres: member.primaryGenres || 'N/A',
+        source: member.source || 'N/A',
+        biography: member.biography || 'N/A',
+        memberStatus: member.status || 'N/A',
+        joinDate: member.joinDate ? new Date(member.joinDate).toLocaleDateString() : 'N/A',
+        instagramFollowers: member.instagramFollowers ?? 'N/A',
+        spotifyMonthlyListeners: member.spotifyMonthlyListeners ?? 'N/A',
+        youtubeSubscribers: member.youtubeSubscribers ?? 'N/A',
+        facebookFollowers: member.facebookFollowers ?? 'N/A',
+        twitterFollowers: member.twitterFollowers ?? 'N/A',
+        soundcloudFollowers: member.soundcloudFollowers ?? 'N/A',
+        bankName: member.bankName || 'N/A',
+        accountNumber: member.accountNumber || 'N/A',
+        ifscCode: member.ifscCode || 'N/A',
+        panNumber: member.panNumber || 'N/A',
+        aadharNumber: member.aadharNumber || 'N/A',
+        
+        // Step 1 Data
+        step1Source: step1.source || 'N/A',
+        step1ContactStatus: step1.contactStatus || 'N/A',
+        step1Notes: step1.step1Notes || '',
+        
+        // L1 Questionnaire Data
+        l1ArtistName: l1.artistName || 'N/A',
+        l1PrimaryContact: l1.primaryContact || 'N/A',
+        l1Email: l1.email || 'N/A',
+        l1Phone: l1.phone || 'N/A',
+        l1CityCountry: l1.cityCountry || 'N/A',
+        l1YearsActive: l1.yearsActive || 'N/A',
+        l1ArtistBio: l1.artistBio || '',
+        l1ListenerRegion: l1.listenerRegion || 'N/A',
+        l1HasManager: l1.hasManager || 'N/A',
+        l1ManagerName: l1.managerName || 'N/A',
+        l1HasLabel: l1.hasLabel || 'N/A',
+        l1LabelName: l1.labelName || 'N/A',
+        l1PrimaryRole: l1.primaryRole || 'N/A',
+        l1PrimaryGenres: l1.primaryGenres || 'N/A',
+        l1Languages: l1.languages || 'N/A',
+        l1SubGenre: l1.subGenre || 'N/A',
+        l1StreamingLink: l1.streamingLink || 'N/A',
+        l1Youtube: l1.youtube || 'N/A',
+        l1Instagram: l1.instagram || 'N/A',
+        l1Facebook: l1.facebook || 'N/A',
+        l1Twitter: l1.twitter || 'N/A',
+        l1Soundcloud: l1.soundcloud || 'N/A',
+        l1OtherPlatforms: l1.otherPlatforms || 'N/A',
+        l1HasDistributor: l1.hasDistributor || 'N/A',
+        l1DistributorName: l1.distributorName || 'N/A',
+        l1HasContracts: l1.hasContracts || 'N/A',
+        l1ContractValidUntil: l1.contractValidUntil || 'N/A',
+        l1ExclusiveReleases: l1.exclusiveReleases || 'N/A',
+        l1OpenToCollabs: l1.openToCollabs || 'N/A',
+        l1PerformLive: l1.performLive || 'N/A',
+        l1UpcomingProject: l1.upcomingProject || 'N/A',
+        l1InterestedInGatecrash: l1.interestedInGatecrash || 'N/A',
+        l1WhyGoongoonalo: l1.whyGoongoonalo || '',
+        l1HowHeard: l1.howHeard || 'N/A',
+        l1OtherInfo: l1.otherInfo || '',
+        l1BankName: l1.bankName || 'N/A',
+        l1AccountNumber: l1.accountNumber || 'N/A',
+        l1IfscCode: l1.ifscCode || 'N/A',
+        l1PanNumber: l1.panNumber || 'N/A',
+        l1AadharNumber: l1.aadharNumber || 'N/A',
+        l1ConfirmRights: l1.confirmRights != null ? (l1.confirmRights ? 'Yes' : 'No') : 'N/A',
+        l1AcceptTerms: l1.acceptTerms != null ? (l1.acceptTerms ? 'Yes' : 'No') : 'N/A',
+        l1ConsentEditorial: l1.consentEditorial != null ? (l1.consentEditorial ? 'Yes' : 'No') : 'N/A',
+        l1UnderstandPayout: l1.understandPayout != null ? (l1.understandPayout ? 'Yes' : 'No') : 'N/A',
+        
+        // L2 Review Data
+        l2MeetingScheduledOn: l2.meetingScheduledOn ? new Date(l2.meetingScheduledOn).toLocaleDateString() : 'N/A',
+        l2MeetingType: l2.meetingType || 'N/A',
+        l2CatalogReview: l2.checklist?.catalogReview ? 'Yes' : 'No',
+        l2RightsOwnership: l2.checklist?.rightsOwnership ? 'Yes' : 'No',
+        l2CommercialData: l2.checklist?.commercialData ? 'Yes' : 'No',
+        l2ContractDiscussion: l2.checklist?.contractDiscussion ? 'Yes' : 'No',
+        l2TechOnboarding: l2.checklist?.techOnboarding ? 'Yes' : 'No',
+        l2ContentIngestion: l2.checklist?.contentIngestion ? 'Yes' : 'No',
+        l2MembershipType: Array.isArray(l2.membershipType) ? l2.membershipType.join(', ') : (l2.membershipType || 'N/A'),
+        l2Notes: l2.notes || '',
+        l2ClosureChecklist: Array.isArray(l2.closureChecklist) ? l2.closureChecklist.map((c, i) => 
+          `[${i+1}] Status: ${c.status || 'N/A'}, Type: ${c.membershipType || 'N/A'}, SPOC: ${c.spoc || 'N/A'}, ETA: ${c.eta ? new Date(c.eta).toLocaleDateString() : 'N/A'}`
+        ).join(' | ') : 'N/A',
+        l2DocumentsCount: Array.isArray(l2.documents) ? l2.documents.length : 0,
+        l2DocumentTitles: Array.isArray(l2.documents) ? l2.documents.map(d => d.title || d.fileName).join(', ') : 'N/A',
+      };
+    });
+    
+    res.json({
+      success: true,
+      data: exportData
+    });
+  } catch (error) {
+    console.error('Error fetching full export data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch full export data',
+      error: error.message
+    });
+  }
+});
+
 // Get onboarding status report data (must be before /:id route)
 router.get('/reports/onboarding-status', async (req, res) => {
   try {

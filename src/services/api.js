@@ -228,4 +228,9 @@ export const getOnboardingStatusReport = async () => {
   return response.data;
 };
 
+export const getFullExportData = async () => {
+  const response = await api.get('/onboarding/reports/full-export');
+  return response.data;
+};
+
 export default api;
