@@ -13,6 +13,8 @@ import picklistRoutes from './routes/picklistRoutes.js';
 import User from './models/User.js';
 import Picklist from './models/Picklist.js';
 import { startClosureReportCron } from './cron/closureReportCron.js';
+import { startGristSyncCron } from './cron/gristSyncCron.js';
+import gristSyncRoutes from './routes/gristSyncRoutes.js';
 
 // Load environment variables
 const __filename = fileURLToPath(import.meta.url);
@@ -213,6 +215,9 @@ connectDB().then(async () => {
 
     // Start the daily closure checklist report cron job
     startClosureReportCron();
+
+    // Start the daily Grist data sync cron job (3:30 PM IST)
+    startGristSyncCron();
   } catch (error) {
     console.error('Error during initialization:', error);
   }
@@ -235,6 +240,7 @@ app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/glossary', glossaryRoutes);
 app.use('/api/faq', faqRoutes);
 app.use('/api/picklists', picklistRoutes);
+app.use('/api/grist-sync', gristSyncRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
