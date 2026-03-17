@@ -1,6 +1,6 @@
 import { RiCloseLine, RiSaveLine } from 'react-icons/ri';
 import { useState, useEffect } from 'react';
-import { onboardingAPI } from '../services/api';
+import { onboardingAPI, membersAPI } from '../services/api';
 import { useToast } from './ToastNotification';
 
 const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskId }) => {
@@ -63,67 +63,74 @@ const L1QuestionnaireModal = ({ isOpen, onClose, onboardingId, memberName, taskI
   const [loadingData, setLoadingData] = useState(false);
   const toast = useToast();
 
-  // Load saved progress when modal opens
+  // Load saved progress and pre-fill from member data when modal opens
   useEffect(() => {
     if (isOpen && onboardingId) {
       const loadSavedData = async () => {
         setLoadingData(true);
         try {
           const response = await onboardingAPI.getById(onboardingId);
-          if (response.success && response.data?.l1QuestionnaireData) {
-            const saved = response.data.l1QuestionnaireData;
-            // Only load if there's actually some data saved
-            const hasData = Object.values(saved).some(v => v !== '' && v !== false && v !== 'No' && v !== 'Yes' && v !== undefined);
-            if (hasData) {
-              setFormData(prev => ({
-                ...prev,
-                artistName: saved.artistName || '',
-                primaryContact: saved.primaryContact || '',
-                email: saved.email || '',
-                phone: saved.phone || '',
-                cityCountry: saved.cityCountry || '',
-                yearsActive: saved.yearsActive || '',
-                artistBio: saved.artistBio || '',
-                listenerRegion: saved.listenerRegion || '',
-                hasManager: saved.hasManager || 'No',
-                managerName: saved.managerName || '',
-                hasLabel: saved.hasLabel || 'No',
-                labelName: saved.labelName || '',
-                primaryRole: saved.primaryRole || '',
-                primaryGenres: saved.primaryGenres || '',
-                languages: saved.languages || '',
-                subGenre: saved.subGenre || '',
-                streamingLink: saved.streamingLink || '',
-                youtube: saved.youtube || '',
-                instagram: saved.instagram || '',
-                facebook: saved.facebook || '',
-                twitter: saved.twitter || '',
-                soundcloud: saved.soundcloud || '',
-                otherPlatforms: saved.otherPlatforms || '',
-                hasDistributor: saved.hasDistributor || 'No',
-                distributorName: saved.distributorName || '',
-                hasContracts: saved.hasContracts || 'No',
-                contractValidUntil: saved.contractValidUntil || '',
-                exclusiveReleases: saved.exclusiveReleases || 'Yes',
-                openToCollabs: saved.openToCollabs || 'Yes',
-                performLive: saved.performLive || '',
-                upcomingProject: saved.upcomingProject || '',
-                interestedInGatecrash: saved.interestedInGatecrash || 'No',
-                whyGoongoonalo: saved.whyGoongoonalo || '',
-                howHeard: saved.howHeard || '',
-                otherInfo: saved.otherInfo || '',
-                bankName: saved.bankName || '',
-                accountNumber: saved.accountNumber || '',
-                ifscCode: saved.ifscCode || '',
-                panNumber: saved.panNumber || '',
-                aadharNumber: saved.aadharNumber || '',
-                confirmRights: saved.confirmRights || false,
-                acceptTerms: saved.acceptTerms || false,
-                consentEditorial: saved.consentEditorial || false,
-                understandPayout: saved.understandPayout || false,
-              }));
-            }
+          const saved = response.success ? response.data?.l1QuestionnaireData || {} : {};
+          const hasData = Object.values(saved).some(v => v !== '' && v !== false && v !== 'No' && v !== 'Yes' && v !== undefined);
+
+          // Fetch member data for pre-filling
+          let member = response.data?.member || {};
+          if (member._id && typeof member === 'object' && !member.location) {
+            // member is only partially populated, fetch full member
+            try {
+              const memberRes = await membersAPI.getById(member._id);
+              if (memberRes.success) member = memberRes.data;
+            } catch (e) { /* use partial data */ }
           }
+
+          // Build form: L1 saved data takes priority, then fall back to member data
+          setFormData(prev => ({
+            ...prev,
+            artistName: saved.artistName || member.artistName || '',
+            primaryContact: saved.primaryContact || member.contactName || '',
+            email: saved.email || member.email || '',
+            phone: saved.phone || member.phone || '',
+            cityCountry: saved.cityCountry || member.location || '',
+            yearsActive: saved.yearsActive || '',
+            artistBio: saved.artistBio || member.biography || '',
+            listenerRegion: saved.listenerRegion || '',
+            hasManager: saved.hasManager || 'No',
+            managerName: saved.managerName || '',
+            hasLabel: saved.hasLabel || 'No',
+            labelName: saved.labelName || '',
+            primaryRole: saved.primaryRole || member.primaryRole || '',
+            primaryGenres: saved.primaryGenres || member.primaryGenres || '',
+            languages: saved.languages || '',
+            subGenre: saved.subGenre || '',
+            streamingLink: saved.streamingLink || '',
+            youtube: saved.youtube || '',
+            instagram: saved.instagram || '',
+            facebook: saved.facebook || '',
+            twitter: saved.twitter || '',
+            soundcloud: saved.soundcloud || '',
+            otherPlatforms: saved.otherPlatforms || '',
+            hasDistributor: saved.hasDistributor || 'No',
+            distributorName: saved.distributorName || '',
+            hasContracts: saved.hasContracts || 'No',
+            contractValidUntil: saved.contractValidUntil || '',
+            exclusiveReleases: saved.exclusiveReleases || 'Yes',
+            openToCollabs: saved.openToCollabs || 'Yes',
+            performLive: saved.performLive || '',
+            upcomingProject: saved.upcomingProject || '',
+            interestedInGatecrash: saved.interestedInGatecrash || 'No',
+            whyGoongoonalo: saved.whyGoongoonalo || '',
+            howHeard: saved.howHeard || '',
+            otherInfo: saved.otherInfo || '',
+            bankName: saved.bankName || member.bankName || '',
+            accountNumber: saved.accountNumber || member.accountNumber || '',
+            ifscCode: saved.ifscCode || member.ifscCode || '',
+            panNumber: saved.panNumber || member.panNumber || '',
+            aadharNumber: saved.aadharNumber || member.aadharNumber || '',
+            confirmRights: saved.confirmRights || false,
+            acceptTerms: saved.acceptTerms || false,
+            consentEditorial: saved.consentEditorial || false,
+            understandPayout: saved.understandPayout || false,
+          }));
         } catch (error) {
           console.error('Error loading saved L1 data:', error);
         } finally {

@@ -390,7 +390,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const onboarding = await Onboarding.findById(req.params.id)
-      .populate('member', 'artistName email phone primaryGenres source tier')
+      .populate('member')
       .lean();
     
     if (!onboarding) {
@@ -585,17 +585,28 @@ router.patch('/:id/l1-questionnaire', async (req, res) => {
       { new: true, runValidators: true }
     ).populate('member', 'artistName email phone primaryGenres source tier');
     
-    // Update the member with KYC information from L1 data
+    // Sync overlapping fields + KYC back to the member
     if (onboarding.member && l1Data) {
+      const memberUpdate = {
+        bankName: l1Data.bankName,
+        accountNumber: l1Data.accountNumber,
+        ifscCode: l1Data.ifscCode,
+        panNumber: l1Data.panNumber,
+        aadharNumber: l1Data.aadharNumber,
+      };
+      // Sync overlapping basic fields back to member
+      if (l1Data.artistName) memberUpdate.artistName = l1Data.artistName;
+      if (l1Data.primaryContact) memberUpdate.contactName = l1Data.primaryContact;
+      if (l1Data.email) memberUpdate.email = l1Data.email;
+      if (l1Data.phone) memberUpdate.phone = l1Data.phone;
+      if (l1Data.cityCountry) memberUpdate.location = l1Data.cityCountry;
+      if (l1Data.primaryRole) memberUpdate.primaryRole = l1Data.primaryRole;
+      if (l1Data.primaryGenres) memberUpdate.primaryGenres = l1Data.primaryGenres;
+      if (l1Data.artistBio) memberUpdate.biography = l1Data.artistBio;
+
       await Member.findByIdAndUpdate(
         onboarding.member,
-        {
-          bankName: l1Data.bankName,
-          accountNumber: l1Data.accountNumber,
-          ifscCode: l1Data.ifscCode,
-          panNumber: l1Data.panNumber,
-          aadharNumber: l1Data.aadharNumber
-        },
+        memberUpdate,
         { runValidators: true }
       );
     }
@@ -631,6 +642,23 @@ router.patch('/:id/l1-questionnaire/save-progress', async (req, res) => {
       { l1QuestionnaireData: l1Data },
       { new: true, runValidators: false }
     ).populate('member', 'artistName email phone primaryGenres source tier');
+
+    // Sync overlapping basic fields back to member
+    if (onboarding.member && l1Data) {
+      const memberUpdate = {};
+      if (l1Data.artistName) memberUpdate.artistName = l1Data.artistName;
+      if (l1Data.primaryContact) memberUpdate.contactName = l1Data.primaryContact;
+      if (l1Data.email) memberUpdate.email = l1Data.email;
+      if (l1Data.phone) memberUpdate.phone = l1Data.phone;
+      if (l1Data.cityCountry) memberUpdate.location = l1Data.cityCountry;
+      if (l1Data.primaryRole) memberUpdate.primaryRole = l1Data.primaryRole;
+      if (l1Data.primaryGenres) memberUpdate.primaryGenres = l1Data.primaryGenres;
+      if (l1Data.artistBio) memberUpdate.biography = l1Data.artistBio;
+
+      if (Object.keys(memberUpdate).length > 0) {
+        await Member.findByIdAndUpdate(onboarding.member, memberUpdate, { runValidators: false });
+      }
+    }
 
     res.json({
       success: true,

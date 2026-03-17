@@ -1,7 +1,35 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
 import Member from '../models/Member.js';
+import Onboarding from '../models/Onboarding.js';
 import { protect } from '../middleware/auth.js';
+
+// Helper: sync overlapping member fields to linked onboarding's l1QuestionnaireData
+const syncMemberToOnboardingL1 = async (memberId, memberData) => {
+  try {
+    const onboarding = await Onboarding.findOne({ member: memberId });
+    if (!onboarding) return;
+
+    const l1 = onboarding.l1QuestionnaireData || {};
+    const updates = {};
+
+    // Map: member field → L1 field (always overwrite to keep in sync)
+    if (memberData.artistName) updates['l1QuestionnaireData.artistName'] = memberData.artistName;
+    if (memberData.contactName) updates['l1QuestionnaireData.primaryContact'] = memberData.contactName;
+    if (memberData.email) updates['l1QuestionnaireData.email'] = memberData.email;
+    if (memberData.phone) updates['l1QuestionnaireData.phone'] = memberData.phone;
+    if (memberData.location) updates['l1QuestionnaireData.cityCountry'] = memberData.location;
+    if (memberData.primaryRole) updates['l1QuestionnaireData.primaryRole'] = memberData.primaryRole;
+    if (memberData.primaryGenres) updates['l1QuestionnaireData.primaryGenres'] = memberData.primaryGenres;
+    if (memberData.biography) updates['l1QuestionnaireData.artistBio'] = memberData.biography;
+
+    if (Object.keys(updates).length > 0) {
+      await Onboarding.findByIdAndUpdate(onboarding._id, { $set: updates });
+    }
+  } catch (err) {
+    console.error('Error syncing member to onboarding L1:', err);
+  }
+};
 
 const router = express.Router();
 
@@ -292,6 +320,12 @@ router.post('/', [
       createdBy: req.user?._id || null
     });
 
+    // Sync overlapping fields to linked onboarding L1 questionnaire
+    await syncMemberToOnboardingL1(member._id, {
+      artistName, contactName, email: emailValue, phone, location,
+      primaryRole, primaryGenres, biography
+    });
+
     res.status(201).json({
       success: true,
       data: member
@@ -355,6 +389,12 @@ router.put('/:id', async (req, res) => {
       },
       { new: true, runValidators: true }
     );
+
+    // Sync overlapping fields to linked onboarding L1 questionnaire
+    await syncMemberToOnboardingL1(req.params.id, {
+      artistName, contactName, email, phone, location,
+      primaryRole, primaryGenres, biography
+    });
 
     res.json({
       success: true,

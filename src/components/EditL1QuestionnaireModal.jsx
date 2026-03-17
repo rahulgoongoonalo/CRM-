@@ -1,6 +1,6 @@
 import { RiCloseLine } from 'react-icons/ri';
 import { useState, useEffect } from 'react';
-import { onboardingAPI } from '../services/api';
+import { onboardingAPI, membersAPI } from '../services/api';
 import { useToast } from './ToastNotification';
 
 const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
@@ -61,54 +61,68 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (isOpen && onboarding?.l1QuestionnaireData) {
-      const data = onboarding.l1QuestionnaireData;
-      setFormData({
-        artistName: data.artistName || '',
-        primaryContact: data.primaryContact || '',
-        email: data.email || '',
-        phone: data.phone || '',
-        cityCountry: data.cityCountry || '',
-        yearsActive: data.yearsActive || '',
-        artistBio: data.artistBio || '',
-        listenerRegion: data.listenerRegion || '',
-        hasManager: data.hasManager || 'No',
-        managerName: data.managerName || '',
-        hasLabel: data.hasLabel || 'No',
-        labelName: data.labelName || '',
-        primaryRole: data.primaryRole || '',
-        primaryGenres: data.primaryGenres || '',
-        languages: data.languages || '',
-        subGenre: data.subGenre || '',
-        streamingLink: data.streamingLink || '',
-        youtube: data.youtube || '',
-        instagram: data.instagram || '',
-        facebook: data.facebook || '',
-        twitter: data.twitter || '',
-        soundcloud: data.soundcloud || '',
-        otherPlatforms: data.otherPlatforms || '',
-        hasDistributor: data.hasDistributor || 'No',
-        distributorName: data.distributorName || '',
-        hasContracts: data.hasContracts || 'No',
-        contractValidUntil: data.contractValidUntil || '',
-        exclusiveReleases: data.exclusiveReleases || 'Yes',
-        openToCollabs: data.openToCollabs || 'Yes',
-        performLive: data.performLive || '',
-        upcomingProject: data.upcomingProject || '',
-        interestedInGatecrash: data.interestedInGatecrash || 'No',
-        whyGoongoonalo: data.whyGoongoonalo || '',
-        howHeard: data.howHeard || '',
-        otherInfo: data.otherInfo || '',
-        bankName: data.bankName || '',
-        accountNumber: data.accountNumber || '',
-        ifscCode: data.ifscCode || '',
-        panNumber: data.panNumber || '',
-        aadharNumber: data.aadharNumber || '',
-        confirmRights: data.confirmRights || false,
-        acceptTerms: data.acceptTerms || false,
-        consentEditorial: data.consentEditorial || false,
-        understandPayout: data.understandPayout || false,
-      });
+    if (isOpen && onboarding) {
+      const loadData = async () => {
+        const data = onboarding.l1QuestionnaireData || {};
+
+        // Fetch full member data for fallback
+        let member = onboarding.member || {};
+        if (member._id) {
+          try {
+            const memberRes = await membersAPI.getById(member._id);
+            if (memberRes.success) member = memberRes.data;
+          } catch (e) { /* use partial data */ }
+        }
+
+        // L1 saved data takes priority, then fall back to member data
+        setFormData({
+          artistName: data.artistName || member.artistName || '',
+          primaryContact: data.primaryContact || member.contactName || '',
+          email: data.email || member.email || '',
+          phone: data.phone || member.phone || '',
+          cityCountry: data.cityCountry || member.location || '',
+          yearsActive: data.yearsActive || '',
+          artistBio: data.artistBio || member.biography || '',
+          listenerRegion: data.listenerRegion || '',
+          hasManager: data.hasManager || 'No',
+          managerName: data.managerName || '',
+          hasLabel: data.hasLabel || 'No',
+          labelName: data.labelName || '',
+          primaryRole: data.primaryRole || member.primaryRole || '',
+          primaryGenres: data.primaryGenres || member.primaryGenres || '',
+          languages: data.languages || '',
+          subGenre: data.subGenre || '',
+          streamingLink: data.streamingLink || '',
+          youtube: data.youtube || '',
+          instagram: data.instagram || '',
+          facebook: data.facebook || '',
+          twitter: data.twitter || '',
+          soundcloud: data.soundcloud || '',
+          otherPlatforms: data.otherPlatforms || '',
+          hasDistributor: data.hasDistributor || 'No',
+          distributorName: data.distributorName || '',
+          hasContracts: data.hasContracts || 'No',
+          contractValidUntil: data.contractValidUntil || '',
+          exclusiveReleases: data.exclusiveReleases || 'Yes',
+          openToCollabs: data.openToCollabs || 'Yes',
+          performLive: data.performLive || '',
+          upcomingProject: data.upcomingProject || '',
+          interestedInGatecrash: data.interestedInGatecrash || 'No',
+          whyGoongoonalo: data.whyGoongoonalo || '',
+          howHeard: data.howHeard || '',
+          otherInfo: data.otherInfo || '',
+          bankName: data.bankName || member.bankName || '',
+          accountNumber: data.accountNumber || member.accountNumber || '',
+          ifscCode: data.ifscCode || member.ifscCode || '',
+          panNumber: data.panNumber || member.panNumber || '',
+          aadharNumber: data.aadharNumber || member.aadharNumber || '',
+          confirmRights: data.confirmRights || false,
+          acceptTerms: data.acceptTerms || false,
+          consentEditorial: data.consentEditorial || false,
+          understandPayout: data.understandPayout || false,
+        });
+      };
+      loadData();
     }
   }, [isOpen, onboarding]);
 

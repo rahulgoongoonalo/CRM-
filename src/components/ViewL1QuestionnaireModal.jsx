@@ -3,7 +3,20 @@ import { RiCloseLine } from 'react-icons/ri';
 const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
   if (!isOpen || !onboarding) return null;
 
-  const data = onboarding.l1QuestionnaireData || {};
+  const l1 = onboarding.l1QuestionnaireData || {};
+  const member = onboarding.member || {};
+  // Merge: L1 data takes priority, fall back to member data for overlapping fields
+  const data = {
+    ...l1,
+    artistName: l1.artistName || member.artistName || '',
+    primaryContact: l1.primaryContact || member.contactName || '',
+    email: l1.email || member.email || '',
+    phone: l1.phone || member.phone || '',
+    cityCountry: l1.cityCountry || member.location || '',
+    primaryRole: l1.primaryRole || member.primaryRole || '',
+    primaryGenres: l1.primaryGenres || member.primaryGenres || '',
+    artistBio: l1.artistBio || member.biography || '',
+  };
   const taskId = onboarding.taskNumber || 'N/A';
   const memberName = onboarding.artistName || onboarding.member?.artistName || 'N/A';
 
