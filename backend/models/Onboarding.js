@@ -106,38 +106,65 @@ const onboardingSchema = new mongoose.Schema({
   l2ReviewData: {
     type: {
       meetingScheduledOn: Date,
-    meetingType: {
-      type: String,
-      default: 'In-Person'
-    },
-    checklist: {
-      catalogReview: { type: Boolean, default: false },
-      rightsOwnership: { type: Boolean, default: false },
-      commercialData: { type: Boolean, default: false },
-      contractDiscussion: { type: Boolean, default: false },
-      techOnboarding: { type: Boolean, default: false },
-      contentIngestion: { type: Boolean, default: false }
-    },
-    membershipType: {
-      type: [String],
-      default: []
-    },
-    notes: String,
-    closureChecklist: [{
-      status: String,
-      membershipType: String,
-      spoc: String,
-      eta: Date
-    }],
-    documents: [{
-      title: String,
-      description: String,
-      fileName: String,
-      filePath: String,
-      fileType: String,
-      fileSize: Number,
-      uploadedAt: { type: Date, default: Date.now }
-    }]
+      meetingType: {
+        type: String,
+        default: 'In-Person'
+      },
+      checklist: {
+        catalogReview: { type: Boolean, default: false },
+        rightsOwnership: { type: Boolean, default: false },
+        commercialData: { type: Boolean, default: false },
+        contractDiscussion: { type: Boolean, default: false },
+        techOnboarding: { type: Boolean, default: false },
+        contentIngestion: { type: Boolean, default: false }
+      },
+      // New 5-stage closure tracking
+      stages: {
+        basicOnboarding: {
+          firstCallCompleted: { type: String, default: 'NA' },
+          artistInfoUpdated: { type: String, default: 'NA' },
+          whatsappGroupCreated: { type: String, default: 'NA' },
+          introEmailSent: { type: String, default: 'NA' },
+          notInterested: { type: String, default: 'NA' }
+        },
+        artistInvestment: {
+          ssaShaShared: { type: String, default: 'NA' },
+          kycReceived: { type: String, default: 'NA' },
+          investmentReceived: { type: String, default: 'NA' },
+          shareCertificateSent: { type: String, default: 'NA' }
+        },
+        distributionAgreement: {
+          distributionAgreementSent: { type: String, default: 'NA' },
+          contentReceivedForUpload: { type: String, default: 'NA' },
+          contentSentToDevi: { type: String, default: 'NA' },
+          contentVisibleOnGoongoonalo: { type: String, default: 'NA' }
+        },
+        nonExclusiveLicense: {
+          streamingAgreementSent: { type: String, default: 'NA' },
+          contentReceivedForUpload: { type: String, default: 'NA' },
+          contentSentToDevi: { type: String, default: 'NA' },
+          contentVisibleOnGoongoonalo: { type: String, default: 'NA' },
+          artistReviewMeeting: { type: String, default: 'NA' },
+          subscriptionActivated: { type: String, default: 'NA' }
+        },
+        finalClosure: {
+          notInterested: { type: String, default: 'NA' },
+          investmentClosed: { type: String, default: 'NA' },
+          distributionClosed: { type: String, default: 'NA' },
+          licensingClosed: { type: String, default: 'NA' },
+          ayushDemoCompleted: { type: String, default: 'NA' }
+        }
+      },
+      notes: String,
+      documents: [{
+        title: String,
+        description: String,
+        fileName: String,
+        filePath: String,
+        fileType: String,
+        fileSize: Number,
+        uploadedAt: { type: Date, default: Date.now }
+      }]
     },
     default: {}
   },

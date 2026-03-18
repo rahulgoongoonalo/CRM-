@@ -73,12 +73,17 @@ router.delete('/:name/items/:itemId', authorize('administrator'), async (req, re
       return res.status(404).json({ message: 'Picklist not found' });
     }
 
-    const item = picklist.items.id(req.params.itemId);
+    // Try finding by subdocument _id first, then fall back to string match
+    let item = picklist.items.id(req.params.itemId);
+    if (!item) {
+      item = picklist.items.find(i => i._id.toString() === req.params.itemId);
+    }
     if (!item) {
       return res.status(404).json({ message: 'Item not found' });
     }
 
-    item.isActive = false;
+    // Actually remove the item from the array
+    picklist.items.pull(item._id);
     await picklist.save();
 
     res.json({ success: true, data: picklist });

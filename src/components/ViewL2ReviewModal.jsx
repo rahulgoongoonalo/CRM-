@@ -1,12 +1,87 @@
 import { RiCloseLine, RiFileTextLine, RiCheckboxCircleLine, RiCloseCircleLine } from 'react-icons/ri';
+import { usePicklist } from '../hooks/usePicklist';
+
+// Stage metadata (picklist name → display config) — same as L2ReviewModal
+const STAGE_META = [
+  { picklistName: 'stage1-basicOnboarding', key: 'basicOnboarding', title: '1. Basic Artist Onboarding', color: 'blue' },
+  { picklistName: 'stage2-artistInvestment', key: 'artistInvestment', title: '2. Artist Investment', color: 'purple' },
+  { picklistName: 'stage3-distributionAgreement', key: 'distributionAgreement', title: '3. Distribution Agreement', color: 'emerald' },
+  { picklistName: 'stage4-nonExclusiveLicense', key: 'nonExclusiveLicense', title: '4. Non-Exclusive License for Streaming on Goongoonalo', color: 'amber' },
+  { picklistName: 'stage5-finalClosure', key: 'finalClosure', title: '5. Final Closure', color: 'red' },
+];
+
+const getStageStatus = (stageData, stageItems) => {
+  if (!stageData || !stageItems || stageItems.length === 0) return { status: 'Open', color: 'gray' };
+  const values = stageItems.map(item => stageData[item.key] || 'NA');
+  const nonNA = values.filter(v => v !== 'NA');
+  if (nonNA.length === 0) return { status: 'Open', color: 'gray' };
+  if (nonNA.length === values.length) return { status: 'Closed', color: 'green' };
+  return { status: 'In Progress', color: 'yellow' };
+};
+
+const statusBadgeClass = (color) => {
+  const map = {
+    gray: 'bg-slate-700 text-slate-300 border-slate-600',
+    yellow: 'bg-yellow-900/50 text-yellow-300 border-yellow-700',
+    green: 'bg-green-900/50 text-green-300 border-green-700',
+  };
+  return map[color] || map.gray;
+};
+
+const stageTitleClass = (color) => {
+  const map = {
+    blue: 'text-blue-400',
+    purple: 'text-purple-400',
+    emerald: 'text-emerald-400',
+    amber: 'text-amber-400',
+    red: 'text-red-400',
+  };
+  return map[color] || 'text-white';
+};
+
+const stageAccentClass = (color) => {
+  const map = {
+    blue: 'border-l-blue-500',
+    purple: 'border-l-purple-500',
+    emerald: 'border-l-emerald-500',
+    amber: 'border-l-amber-500',
+    red: 'border-l-red-500',
+  };
+  return map[color] || 'border-l-slate-600';
+};
+
+const valueBadge = (val) => {
+  if (val === 'Yes') return 'bg-green-600 text-white';
+  if (val === 'No') return 'bg-red-600 text-white';
+  return 'bg-slate-600 text-slate-300';
+};
 
 const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
+  const { items: stage1Items } = usePicklist('stage1-basicOnboarding');
+  const { items: stage2Items } = usePicklist('stage2-artistInvestment');
+  const { items: stage3Items } = usePicklist('stage3-distributionAgreement');
+  const { items: stage4Items } = usePicklist('stage4-nonExclusiveLicense');
+  const { items: stage5Items } = usePicklist('stage5-finalClosure');
+
   if (!isOpen || !onboarding) return null;
+
+  const stageItemsMap = {
+    'stage1-basicOnboarding': stage1Items,
+    'stage2-artistInvestment': stage2Items,
+    'stage3-distributionAgreement': stage3Items,
+    'stage4-nonExclusiveLicense': stage4Items,
+    'stage5-finalClosure': stage5Items,
+  };
+
+  const stagesConfig = STAGE_META.map(meta => ({
+    ...meta,
+    items: (stageItemsMap[meta.picklistName] || []).map(i => ({ key: i.value, label: i.label })),
+  }));
 
   const data = onboarding.l2ReviewData || {};
   const checklist = data.checklist || {};
+  const stages = data.stages || {};
   const documents = data.documents || [];
-  const closureChecklist = data.closureChecklist || [];
   const taskId = onboarding.taskNumber || 'N/A';
   const memberName = onboarding.artistName || onboarding.member?.artistName || 'N/A';
 
@@ -23,11 +98,6 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
     return (bytes / 1048576).toFixed(1) + ' MB';
   };
 
-  const membershipTypeDisplay = {
-    'artist-investor': 'Artist Investor (₹2500 per share investment)',
-    'partner-artist': 'Partner Artist (Distribution + Events)'
-  };
-
   const checklistItems = [
     { key: 'catalogReview', label: '3.1 Catalog & Rights Review', desc: 'What is your complete music catalog? How many original songs, covers, unreleased tracks?' },
     { key: 'rightsOwnership', label: '3.2 Rights Ownership', desc: 'Do you own 100% rights to your music? Any co-writers, producers, or labels with claims?' },
@@ -37,12 +107,16 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
     { key: 'contentIngestion', label: '3.6 Content Ingestion', desc: 'Initiate catalog upload process. Verify metadata, artwork, audio quality.' },
   ];
 
+  // Overall progress based on dynamic stages
+  const allStageStatuses = stagesConfig.map(s => getStageStatus(stages[s.key], s.items));
+  const completedStages = allStageStatuses.filter(s => s.status === 'Closed').length;
+  const progressPercent = stagesConfig.length > 0 ? Math.round((completedStages / stagesConfig.length) * 100) : 0;
+
   return (
     <div className="fixed inset-0 flex items-center justify-center z-[60] p-4">
-      {/* Backdrop with blur */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
 
-      <div className="relative bg-surface-card rounded-lg w-full max-w-3xl shadow-2xl shadow-orange-600/20 border border-border max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="relative bg-surface-card rounded-lg w-full max-w-4xl shadow-2xl shadow-orange-600/20 border border-border max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-gradient-to-r from-orange-600 to-orange-500 px-6 py-4 rounded-t-lg flex justify-between items-center sticky top-0 z-10 shadow-lg">
           <div>
@@ -64,26 +138,12 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
             <h3 className="text-lg font-semibold text-orange-400 border-b border-border pb-2">MEETING DETAILS</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Meeting Scheduled On
-                </label>
-                <input
-                  type="text"
-                  value={formatDate(data.meetingScheduledOn)}
-                  disabled
-                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
-                />
+                <label className="block text-sm font-semibold text-text-secondary mb-2">Meeting Scheduled On</label>
+                <input type="text" value={formatDate(data.meetingScheduledOn)} disabled className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Meeting Type
-                </label>
-                <input
-                  type="text"
-                  value={data.meetingType || 'N/A'}
-                  disabled
-                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
-                />
+                <label className="block text-sm font-semibold text-text-secondary mb-2">Meeting Type</label>
+                <input type="text" value={data.meetingType || 'N/A'} disabled className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed" />
               </div>
             </div>
           </div>
@@ -108,70 +168,74 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
             </div>
           </div>
 
-          {/* Membership Type */}
+          {/* Closure Stages */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-orange-400 border-b border-border pb-2">MEMBERSHIP</h3>
-            <div>
-              <label className="block text-sm font-semibold text-text-secondary mb-2">
-                Membership Type
-              </label>
-              {Array.isArray(data.membershipType) && data.membershipType.length > 0 ? (
-                <div className="space-y-2">
-                  {data.membershipType.map((type, idx) => (
-                    <div key={idx} className="bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border">
-                      {membershipTypeDisplay[type] || type}
-                    </div>
-                  ))}
+            <div className="flex items-center justify-between border-b border-border pb-2">
+              <h3 className="text-lg font-semibold text-orange-400">CLOSURE STAGES</h3>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-gray-400">Overall:</span>
+                <div className="w-24 h-2 bg-slate-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-orange-500 to-green-500 rounded-full"
+                    style={{ width: `${progressPercent}%` }}
+                  />
                 </div>
-              ) : (
-                <input
-                  type="text"
-                  value={membershipTypeDisplay[data.membershipType] || data.membershipType || 'N/A'}
-                  disabled
-                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
-                />
-              )}
+                <span className="text-gray-300 font-medium">{completedStages}/{stagesConfig.length}</span>
+              </div>
             </div>
-          </div>
 
-          {/* Closure Checklist */}
-          {closureChecklist.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-orange-400 border-b border-border pb-2">CLOSURE CHECKLIST</h3>
-              <div className="space-y-3">
-                {closureChecklist.map((row, idx) => (
-                  <div key={idx} className="bg-slate-900/50 rounded-xl border border-slate-700 p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className="w-7 h-7 rounded-full bg-orange-500/20 text-orange-400 text-xs font-bold flex items-center justify-center">{idx + 1}</span>
-                      <span className="text-white font-medium text-sm">
-                        {row.status?.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) || 'N/A'}
+            <div className="space-y-3">
+              {stagesConfig.map((stage) => {
+                const stageData = stages[stage.key] || {};
+                const { status, color } = getStageStatus(stageData, stage.items);
+                const completedCount = stage.items.filter(item => (stageData[item.key] || 'NA') !== 'NA').length;
+
+                return (
+                  <div key={stage.key} className={`bg-slate-900/50 rounded-xl border-l-4 ${stageAccentClass(stage.color)} border border-slate-700 overflow-hidden`}>
+                    {/* Stage Header */}
+                    <div className="flex items-center justify-between px-5 py-3">
+                      <span className={`font-semibold text-sm ${stageTitleClass(stage.color)}`}>
+                        {stage.title}
                       </span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-gray-500">{completedCount}/{stage.items.length}</span>
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${statusBadgeClass(color)}`}>
+                          {status}
+                        </span>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div>
-                        <label className="block text-xs text-gray-400 mb-1">Membership Type</label>
-                        <div className="px-3 py-2 bg-slate-800/80 rounded-lg border border-slate-600 text-orange-300 text-xs">
-                          {row.membershipType || 'N/A'}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-400 mb-1">SPOC</label>
-                        <div className="px-3 py-2 bg-slate-800/80 rounded-lg border border-slate-600 text-white text-xs">
-                          {row.spoc || 'N/A'}
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-400 mb-1">ETA</label>
-                        <div className="px-3 py-2 bg-slate-800/80 rounded-lg border border-slate-600 text-white text-xs">
-                          {row.eta ? new Date(row.eta).toISOString().split('T')[0] : 'N/A'}
+
+                    {/* Stage Items */}
+                    <div className="px-5 pb-4 space-y-1.5">
+                      {stage.items.map((item) => {
+                        const val = stageData[item.key] || 'NA';
+                        return (
+                          <div key={item.key} className="flex items-center justify-between py-2 px-3 bg-slate-800/30 rounded-lg">
+                            <span className="text-gray-300 text-sm">{item.label}</span>
+                            <span className={`px-3 py-0.5 rounded-md text-xs font-medium ${valueBadge(val)}`}>
+                              {val}
+                            </span>
+                          </div>
+                        );
+                      })}
+
+                      {/* Stage Progress */}
+                      <div className="pt-1">
+                        <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${
+                              color === 'green' ? 'bg-green-500' : color === 'yellow' ? 'bg-yellow-500' : 'bg-slate-600'
+                            }`}
+                            style={{ width: `${stage.items.length > 0 ? (completedCount / stage.items.length) * 100 : 0}%` }}
+                          />
                         </div>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
-          )}
+          </div>
 
           {/* Documents */}
           <div className="space-y-4">
@@ -222,11 +286,7 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
 
         {/* Footer */}
         <div className="bg-surface-lighter px-6 py-4 flex justify-end border-t border-border sticky bottom-0">
-          <button
-            type="button"
-            onClick={onClose}
-            className="btn-secondary px-6 py-2.5"
-          >
+          <button type="button" onClick={onClose} className="btn-secondary px-6 py-2.5">
             Close
           </button>
         </div>

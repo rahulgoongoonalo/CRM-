@@ -194,11 +194,32 @@ router.get('/reports/full-export', async (req, res) => {
         l2ContractDiscussion: l2.checklist?.contractDiscussion ? 'Yes' : 'No',
         l2TechOnboarding: l2.checklist?.techOnboarding ? 'Yes' : 'No',
         l2ContentIngestion: l2.checklist?.contentIngestion ? 'Yes' : 'No',
-        l2MembershipType: Array.isArray(l2.membershipType) ? l2.membershipType.join(', ') : (l2.membershipType || 'N/A'),
         l2Notes: l2.notes || '',
-        l2ClosureChecklist: Array.isArray(l2.closureChecklist) ? l2.closureChecklist.map((c, i) => 
-          `[${i+1}] Status: ${c.status || 'N/A'}, Type: ${c.membershipType || 'N/A'}, SPOC: ${c.spoc || 'N/A'}, ETA: ${c.eta ? new Date(c.eta).toLocaleDateString() : 'N/A'}`
-        ).join(' | ') : 'N/A',
+        // Closure Stages
+        l2BasicOnboarding_firstCallCompleted: l2.stages?.basicOnboarding?.firstCallCompleted || 'NA',
+        l2BasicOnboarding_artistInfoUpdated: l2.stages?.basicOnboarding?.artistInfoUpdated || 'NA',
+        l2BasicOnboarding_whatsappGroupCreated: l2.stages?.basicOnboarding?.whatsappGroupCreated || 'NA',
+        l2BasicOnboarding_introEmailSent: l2.stages?.basicOnboarding?.introEmailSent || 'NA',
+        l2BasicOnboarding_notInterested: l2.stages?.basicOnboarding?.notInterested || 'NA',
+        l2ArtistInvestment_ssaShaShared: l2.stages?.artistInvestment?.ssaShaShared || 'NA',
+        l2ArtistInvestment_kycReceived: l2.stages?.artistInvestment?.kycReceived || 'NA',
+        l2ArtistInvestment_investmentReceived: l2.stages?.artistInvestment?.investmentReceived || 'NA',
+        l2ArtistInvestment_shareCertificateSent: l2.stages?.artistInvestment?.shareCertificateSent || 'NA',
+        l2Distribution_agreementSent: l2.stages?.distributionAgreement?.distributionAgreementSent || 'NA',
+        l2Distribution_contentReceived: l2.stages?.distributionAgreement?.contentReceivedForUpload || 'NA',
+        l2Distribution_contentSentToDevi: l2.stages?.distributionAgreement?.contentSentToDevi || 'NA',
+        l2Distribution_contentVisible: l2.stages?.distributionAgreement?.contentVisibleOnGoongoonalo || 'NA',
+        l2NonExclusive_streamingAgreementSent: l2.stages?.nonExclusiveLicense?.streamingAgreementSent || 'NA',
+        l2NonExclusive_contentReceived: l2.stages?.nonExclusiveLicense?.contentReceivedForUpload || 'NA',
+        l2NonExclusive_contentSentToDevi: l2.stages?.nonExclusiveLicense?.contentSentToDevi || 'NA',
+        l2NonExclusive_contentVisible: l2.stages?.nonExclusiveLicense?.contentVisibleOnGoongoonalo || 'NA',
+        l2NonExclusive_artistReviewMeeting: l2.stages?.nonExclusiveLicense?.artistReviewMeeting || 'NA',
+        l2NonExclusive_subscriptionActivated: l2.stages?.nonExclusiveLicense?.subscriptionActivated || 'NA',
+        l2FinalClosure_notInterested: l2.stages?.finalClosure?.notInterested || 'NA',
+        l2FinalClosure_investmentClosed: l2.stages?.finalClosure?.investmentClosed || 'NA',
+        l2FinalClosure_distributionClosed: l2.stages?.finalClosure?.distributionClosed || 'NA',
+        l2FinalClosure_licensingClosed: l2.stages?.finalClosure?.licensingClosed || 'NA',
+        l2FinalClosure_ayushDemoCompleted: l2.stages?.finalClosure?.ayushDemoCompleted || 'NA',
         l2DocumentsCount: Array.isArray(l2.documents) ? l2.documents.length : 0,
         l2DocumentTitles: Array.isArray(l2.documents) ? l2.documents.map(d => d.title || d.fileName).join(', ') : 'N/A',
       };
@@ -795,6 +816,29 @@ router.delete('/:id/l2-review/document/:docIndex', async (req, res) => {
   } catch (error) {
     console.error('Error deleting document:', error);
     res.status(500).json({ success: false, message: 'Failed to delete document', error: error.message });
+  }
+});
+
+// Send test closure report email
+router.post('/reports/test-closure-email', async (req, res) => {
+  try {
+    const { sendDailyClosureReport } = await import('../utils/emailService.js');
+
+    const onboardings = await Onboarding.find({
+      'l2ReviewData.stages': { $exists: true }
+    }).populate('member', 'artistName email').sort({ taskNumber: 1 });
+
+    if (onboardings.length === 0) {
+      return res.status(404).json({ success: false, message: 'No onboardings with L2 review data found' });
+    }
+
+    const recipientEmail = req.body.email || 'rahul.goongoonalo@gmail.com';
+    await sendDailyClosureReport(recipientEmail, onboardings);
+
+    res.json({ success: true, message: `Test closure report sent to ${recipientEmail} with ${onboardings.length} onboarding(s)` });
+  } catch (error) {
+    console.error('Error sending test closure email:', error);
+    res.status(500).json({ success: false, message: 'Failed to send test email', error: error.message });
   }
 });
 

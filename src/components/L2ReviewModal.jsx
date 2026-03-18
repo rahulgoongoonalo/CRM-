@@ -1,14 +1,78 @@
 import { useState, useEffect } from 'react';
-import { RiCloseLine, RiUploadCloud2Line, RiDeleteBin6Line, RiFileTextLine, RiArrowDownSLine, RiAddLine } from 'react-icons/ri';
+import { RiCloseLine, RiUploadCloud2Line, RiDeleteBin6Line, RiFileTextLine, RiArrowDownSLine, RiArrowUpSLine } from 'react-icons/ri';
 import { useToast } from './ToastNotification';
 import { onboardingAPI } from '../services/api';
 import { usePicklist } from '../hooks/usePicklist';
 
+// Stage metadata (picklist name → display config)
+const STAGE_META = [
+  { picklistName: 'stage1-basicOnboarding', key: 'basicOnboarding', title: '1. Basic Artist Onboarding', color: 'blue' },
+  { picklistName: 'stage2-artistInvestment', key: 'artistInvestment', title: '2. Artist Investment', color: 'purple' },
+  { picklistName: 'stage3-distributionAgreement', key: 'distributionAgreement', title: '3. Distribution Agreement', color: 'emerald' },
+  { picklistName: 'stage4-nonExclusiveLicense', key: 'nonExclusiveLicense', title: '4. Non-Exclusive License for Streaming on Goongoonalo', color: 'amber' },
+  { picklistName: 'stage5-finalClosure', key: 'finalClosure', title: '5. Final Closure', color: 'red' },
+];
+
+const getStageStatus = (stageData, stageItems) => {
+  if (!stageData || !stageItems || stageItems.length === 0) return { status: 'Open', color: 'gray' };
+  const values = stageItems.map(i => stageData[i.key] || 'NA');
+  const nonNA = values.filter(v => v !== 'NA');
+  if (nonNA.length === 0) return { status: 'Open', color: 'gray' };
+  if (nonNA.length === values.length) return { status: 'Closed', color: 'green' };
+  return { status: 'In Progress', color: 'yellow' };
+};
+
+const statusBadgeClass = (color) => {
+  const map = {
+    gray: 'bg-slate-700 text-slate-300 border-slate-600',
+    yellow: 'bg-yellow-900/50 text-yellow-300 border-yellow-700',
+    green: 'bg-green-900/50 text-green-300 border-green-700',
+  };
+  return map[color] || map.gray;
+};
+
+const stageAccentClass = (color) => ({
+  blue: 'border-blue-500/50', purple: 'border-purple-500/50', emerald: 'border-emerald-500/50',
+  amber: 'border-amber-500/50', red: 'border-red-500/50',
+}[color] || 'border-slate-600');
+
+const stageTitleClass = (color) => ({
+  blue: 'text-blue-400', purple: 'text-purple-400', emerald: 'text-emerald-400',
+  amber: 'text-amber-400', red: 'text-red-400',
+}[color] || 'text-white');
+
 const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
   const { items: meetingTypes } = usePicklist('meetingType');
-  const { items: membershipTypes } = usePicklist('membershipType');
-  const { items: spocOptions } = usePicklist('spoc');
-  const { items: closureStatuses } = usePicklist('closureStatus');
+  const { items: stage1Items } = usePicklist('stage1-basicOnboarding');
+  const { items: stage2Items } = usePicklist('stage2-artistInvestment');
+  const { items: stage3Items } = usePicklist('stage3-distributionAgreement');
+  const { items: stage4Items } = usePicklist('stage4-nonExclusiveLicense');
+  const { items: stage5Items } = usePicklist('stage5-finalClosure');
+
+  // Build dynamic stages config from picklist data
+  const stageItemsMap = {
+    'stage1-basicOnboarding': stage1Items,
+    'stage2-artistInvestment': stage2Items,
+    'stage3-distributionAgreement': stage3Items,
+    'stage4-nonExclusiveLicense': stage4Items,
+    'stage5-finalClosure': stage5Items,
+  };
+
+  const stagesConfig = STAGE_META.map(meta => ({
+    ...meta,
+    items: (stageItemsMap[meta.picklistName] || []).map(i => ({ key: i.value, label: i.label })),
+  }));
+
+  const getDefaultStages = () => {
+    const stages = {};
+    stagesConfig.forEach(stage => {
+      stages[stage.key] = {};
+      stage.items.forEach(item => {
+        stages[stage.key][item.key] = 'NA';
+      });
+    });
+    return stages;
+  };
 
   const [formData, setFormData] = useState({
     meetingScheduledOn: '',
@@ -19,20 +83,18 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
     contractDiscussion: false,
     techOnboarding: false,
     contentIngestion: false,
-    membershipType: [],
-    closureChecklist: [],
+    stages: {},
     notes: ''
   });
   const [docTitle, setDocTitle] = useState('');
   const [docDescription, setDocDescription] = useState('');
   const [docFile, setDocFile] = useState(null);
   const [uploading, setUploading] = useState(false);
-  const [membershipOpen, setMembershipOpen] = useState(false);
   const [uploadedDocs, setUploadedDocs] = useState([]);
   const [loadingData, setLoadingData] = useState(false);
+  const [expandedStages, setExpandedStages] = useState({ basicOnboarding: true });
   const toast = useToast();
 
-  // Fetch fresh onboarding data by ID and load l2ReviewData
   useEffect(() => {
     if (isOpen && onboarding?._id) {
       const loadData = async () => {
@@ -41,7 +103,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
           const response = await onboardingAPI.getById(onboarding._id);
           if (response.success && response.data?.l2ReviewData) {
             const l2Data = response.data.l2ReviewData;
-            const hasSavedData = l2Data.meetingScheduledOn || l2Data.checklist || l2Data.notes;
+            const hasSavedData = l2Data.meetingScheduledOn || l2Data.checklist || l2Data.notes || l2Data.stages;
             if (hasSavedData) {
               setFormData({
                 meetingScheduledOn: l2Data.meetingScheduledOn ? l2Data.meetingScheduledOn.split('T')[0] : '',
@@ -52,13 +114,11 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                 contractDiscussion: l2Data.checklist?.contractDiscussion || false,
                 techOnboarding: l2Data.checklist?.techOnboarding || false,
                 contentIngestion: l2Data.checklist?.contentIngestion || false,
-                membershipType: l2Data.membershipType || [],
-                closureChecklist: l2Data.closureChecklist || [],
+                stages: l2Data.stages || getDefaultStages(),
                 notes: l2Data.notes || ''
               });
               setUploadedDocs(l2Data.documents || []);
             } else {
-              // No saved L2 data — reset to defaults
               resetForm();
             }
           } else {
@@ -66,26 +126,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
           }
         } catch (error) {
           console.error('Error fetching onboarding data for L2 review:', error);
-          // Fallback: try using the prop data
-          if (onboarding?.l2ReviewData?.meetingScheduledOn) {
-            const l2Data = onboarding.l2ReviewData;
-            setFormData({
-              meetingScheduledOn: l2Data.meetingScheduledOn ? l2Data.meetingScheduledOn.split('T')[0] : '',
-              meetingType: l2Data.meetingType || 'In-Person',
-              catalogReview: l2Data.checklist?.catalogReview || false,
-              rightsOwnership: l2Data.checklist?.rightsOwnership || false,
-              commercialData: l2Data.checklist?.commercialData || false,
-              contractDiscussion: l2Data.checklist?.contractDiscussion || false,
-              techOnboarding: l2Data.checklist?.techOnboarding || false,
-              contentIngestion: l2Data.checklist?.contentIngestion || false,
-              membershipType: l2Data.membershipType || [],
-              closureChecklist: l2Data.closureChecklist || [],
-              notes: l2Data.notes || ''
-            });
-            setUploadedDocs(l2Data.documents || []);
-          } else {
-            resetForm();
-          }
+          resetForm();
         } finally {
           setLoadingData(false);
         }
@@ -95,6 +136,24 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
       resetForm();
     }
   }, [isOpen, onboarding?._id]);
+
+  // When picklist items load, ensure stages have all keys (new items added via picklist)
+  useEffect(() => {
+    if (stagesConfig.some(s => s.items.length > 0)) {
+      setFormData(prev => {
+        const updatedStages = { ...prev.stages };
+        stagesConfig.forEach(stage => {
+          if (!updatedStages[stage.key]) updatedStages[stage.key] = {};
+          stage.items.forEach(item => {
+            if (updatedStages[stage.key][item.key] === undefined) {
+              updatedStages[stage.key][item.key] = 'NA';
+            }
+          });
+        });
+        return { ...prev, stages: updatedStages };
+      });
+    }
+  }, [stage1Items, stage2Items, stage3Items, stage4Items, stage5Items]);
 
   const resetForm = () => {
     setFormData({
@@ -106,8 +165,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
       contractDiscussion: false,
       techOnboarding: false,
       contentIngestion: false,
-      membershipType: [],
-      closureChecklist: [],
+      stages: getDefaultStages(),
       notes: ''
     });
     setUploadedDocs([]);
@@ -123,30 +181,61 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
     }));
   };
 
-  const handleSubmit = async (status) => {
-    // Validation: Check if all required fields are filled
-    if (!formData.meetingScheduledOn) {
-      toast.warning('Please select a meeting date');
-      return;
+  const handleStageItemChange = async (stageKey, itemKey, value) => {
+    const updatedStages = {
+      ...formData.stages,
+      [stageKey]: {
+        ...formData.stages[stageKey],
+        [itemKey]: value
+      }
+    };
+    setFormData(prev => ({ ...prev, stages: updatedStages }));
+
+    // Auto-save stages to backend
+    try {
+      await onboardingAPI.updateL2Review(onboarding._id, {
+        status: onboarding.status || 'review-l2',
+        l2ReviewData: {
+          meetingScheduledOn: formData.meetingScheduledOn,
+          meetingType: formData.meetingType,
+          checklist: {
+            catalogReview: formData.catalogReview,
+            rightsOwnership: formData.rightsOwnership,
+            commercialData: formData.commercialData,
+            contractDiscussion: formData.contractDiscussion,
+            techOnboarding: formData.techOnboarding,
+            contentIngestion: formData.contentIngestion
+          },
+          stages: updatedStages,
+          notes: formData.notes
+        }
+      });
+      toast.success('Saved');
+    } catch (error) {
+      console.error('Error auto-saving stage item:', error);
+      toast.error('Failed to save');
     }
+  };
 
-    if (!formData.membershipType || formData.membershipType.length === 0) {
-      toast.warning('Please select at least one membership type');
-      return;
-    }
+  const toggleStage = (stageKey) => {
+    setExpandedStages(prev => ({ ...prev, [stageKey]: !prev[stageKey] }));
+  };
 
-    // Validation: Check if all checklist items are checked
-    const allChecklistChecked = 
-      formData.catalogReview &&
-      formData.rightsOwnership &&
-      formData.commercialData &&
-      formData.contractDiscussion &&
-      formData.techOnboarding &&
-      formData.contentIngestion;
+  const handleSubmit = async (status, skipValidation = false) => {
+    if (!skipValidation) {
+      if (!formData.meetingScheduledOn) {
+        toast.warning('Please select a meeting date');
+        return;
+      }
 
-    if (!allChecklistChecked) {
-      toast.warning('Please complete all 6 checklist items before submitting');
-      return;
+      const allChecklistChecked =
+        formData.catalogReview && formData.rightsOwnership && formData.commercialData &&
+        formData.contractDiscussion && formData.techOnboarding && formData.contentIngestion;
+
+      if (!allChecklistChecked) {
+        toast.warning('Please complete all 6 checklist items before submitting');
+        return;
+      }
     }
 
     const dataToSubmit = {
@@ -162,18 +251,15 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
           techOnboarding: formData.techOnboarding,
           contentIngestion: formData.contentIngestion
         },
-        membershipType: formData.membershipType,
-        closureChecklist: formData.closureChecklist,
+        stages: formData.stages,
         notes: formData.notes
       }
     };
-    
+
     try {
       await onSubmit(dataToSubmit);
-      // Modal will close and data will be reloaded on next open via useEffect
     } catch (error) {
       console.error('Error submitting L2 review:', error);
-      // Error toast will be shown by the parent component
     }
   };
 
@@ -181,14 +267,8 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
   const artistName = onboarding?.member?.name || 'N/A';
 
   const handleUploadDocument = async () => {
-    if (!docTitle.trim()) {
-      toast.warning('Please enter a document title');
-      return;
-    }
-    if (!docFile) {
-      toast.warning('Please select a file to upload');
-      return;
-    }
+    if (!docTitle.trim()) { toast.warning('Please enter a document title'); return; }
+    if (!docFile) { toast.warning('Please select a file to upload'); return; }
 
     try {
       setUploading(true);
@@ -200,17 +280,13 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
       const response = await onboardingAPI.uploadDocument(onboarding._id, formDataUpload);
       if (response.success) {
         setUploadedDocs(response.data.l2ReviewData?.documents || []);
-        setDocTitle('');
-        setDocDescription('');
-        setDocFile(null);
+        setDocTitle(''); setDocDescription(''); setDocFile(null);
         toast.success('Document uploaded successfully');
       }
     } catch (error) {
       console.error('Error uploading document:', error);
       toast.error('Failed to upload document');
-    } finally {
-      setUploading(false);
-    }
+    } finally { setUploading(false); }
   };
 
   const handleDeleteDocument = async (docIndex) => {
@@ -232,28 +308,27 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
     return (bytes / 1048576).toFixed(1) + ' MB';
   };
 
+  // Calculate overall progress
+  const allStageStatuses = stagesConfig.map(s => getStageStatus(formData.stages[s.key], s.items));
+  const completedStages = allStageStatuses.filter(s => s.status === 'Closed').length;
+  const totalStages = stagesConfig.length || 1;
+  const progressPercent = Math.round((completedStages / totalStages) * 100);
+  const overallStatus = completedStages === 0 ? { label: 'Open', color: 'gray' }
+    : completedStages === totalStages ? { label: 'Closed', color: 'green' }
+    : { label: 'In Progress', color: 'yellow' };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-      ></div>
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
 
-      {/* Modal */}
-      <div 
-        className="relative bg-surface-card rounded-lg shadow-2xl shadow-orange-600/20 w-full max-w-5xl max-h-[95vh] overflow-hidden border border-border"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="relative bg-surface-card rounded-lg shadow-2xl shadow-orange-600/20 w-full max-w-5xl max-h-[95vh] overflow-hidden border border-border" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="bg-gradient-to-r from-orange-600 to-orange-500 px-6 py-4 flex items-center justify-between shadow-lg">
           <div>
             <h2 className="text-xl font-bold text-white">L2 Review - Core Group Approval</h2>
             <p className="text-orange-100 text-sm">{artistName} • {taskId}</p>
           </div>
-          <button
-            onClick={onClose}
-            className="text-white/80 hover:text-white hover:bg-white/10 rounded-lg p-1 transition-all"
-          >
+          <button onClick={onClose} className="text-white/80 hover:text-white hover:bg-white/10 rounded-lg p-1 transition-all">
             <RiCloseLine className="text-2xl" />
           </button>
         </div>
@@ -266,25 +341,13 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
               <label className="block text-sm font-semibold text-text-secondary mb-2">
                 Meeting Scheduled On <span className="text-red-400">*</span>
               </label>
-              <input
-                type="date"
-                name="meetingScheduledOn"
-                value={formData.meetingScheduledOn}
-                onChange={handleChange}
-                className="input w-full"
-                required
-              />
+              <input type="date" name="meetingScheduledOn" value={formData.meetingScheduledOn} onChange={handleChange} className="input w-full" required />
             </div>
             <div>
               <label className="block text-sm font-semibold text-text-secondary mb-2">
                 Meeting Type <span className="text-red-400">*</span>
               </label>
-              <select
-                name="meetingType"
-                value={formData.meetingType}
-                onChange={handleChange}
-                className="select w-full"
-              >
+              <select name="meetingType" value={formData.meetingType} onChange={handleChange} className="select w-full">
                 {meetingTypes.map(item => (
                   <option key={item._id} value={item.value}>{item.label}</option>
                 ))}
@@ -296,342 +359,133 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
           <div>
             <h3 className="text-yellow-500 font-bold text-sm mb-4">STEP 3 CHECKLIST</h3>
             <div className="space-y-4">
-              {/* Checkbox 3.1 */}
-              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
-                <label className="flex items-start space-x-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="catalogReview"
-                    checked={formData.catalogReview}
-                    onChange={handleChange}
-                    className="mt-1 w-4 h-4 text-orange-600 bg-slate-800 border-slate-600 rounded focus:ring-orange-500"
-                  />
-                  <div className="flex-1">
-                    <div className="text-white font-medium text-sm">3.1 Catalog & Rights Review</div>
-                    <div className="text-gray-400 text-xs mt-1">
-                      What is your complete music catalog? How many original songs, covers, unreleased tracks?
+              {[
+                { name: 'catalogReview', label: '3.1 Catalog & Rights Review', desc: 'What is your complete music catalog? How many original songs, covers, unreleased tracks?' },
+                { name: 'rightsOwnership', label: '3.2 Rights Ownership', desc: 'Do you own 100% rights to your music? Any co-writers, producers, or labels with claims?' },
+                { name: 'commercialData', label: '3.3 Commercial Data', desc: 'Current streaming numbers & revenue? Existing royalty agreements or advances?' },
+                { name: 'contractDiscussion', label: '3.4 Contract Discussion', desc: 'Review terms & partnership agreement. Clarify revenue splits, exclusivity, term duration.' },
+                { name: 'techOnboarding', label: '3.5 Tech Onboarding', desc: 'App installation & walkthrough. Profile creation & setup training.' },
+                { name: 'contentIngestion', label: '3.6 Content Ingestion', desc: 'Initiate catalog upload process. Verify metadata, artwork, audio quality.' },
+              ].map(item => (
+                <div key={item.name} className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                  <label className="flex items-start space-x-3 cursor-pointer">
+                    <input type="checkbox" name={item.name} checked={formData[item.name]} onChange={handleChange}
+                      className="mt-1 w-4 h-4 text-orange-600 bg-slate-800 border-slate-600 rounded focus:ring-orange-500" />
+                    <div className="flex-1">
+                      <div className="text-white font-medium text-sm">{item.label}</div>
+                      <div className="text-gray-400 text-xs mt-1">{item.desc}</div>
                     </div>
-                  </div>
-                </label>
-              </div>
-
-              {/* Checkbox 3.2 */}
-              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
-                <label className="flex items-start space-x-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="rightsOwnership"
-                    checked={formData.rightsOwnership}
-                    onChange={handleChange}
-                    className="mt-1 w-4 h-4 text-orange-600 bg-slate-800 border-slate-600 rounded focus:ring-orange-500"
-                  />
-                  <div className="flex-1">
-                    <div className="text-white font-medium text-sm">3.2 Rights Ownership</div>
-                    <div className="text-gray-400 text-xs mt-1">
-                      Do you own 100% rights to your music? Any co-writers, producers, or labels with claims?
-                    </div>
-                  </div>
-                </label>
-              </div>
-
-              {/* Checkbox 3.3 */}
-              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
-                <label className="flex items-start space-x-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="commercialData"
-                    checked={formData.commercialData}
-                    onChange={handleChange}
-                    className="mt-1 w-4 h-4 text-orange-600 bg-slate-800 border-slate-600 rounded focus:ring-orange-500"
-                  />
-                  <div className="flex-1">
-                    <div className="text-white font-medium text-sm">3.3 Commercial Data</div>
-                    <div className="text-gray-400 text-xs mt-1">
-                      Current streaming numbers & revenue? Existing royalty agreements or advances?
-                    </div>
-                  </div>
-                </label>
-              </div>
-
-              {/* Checkbox 3.4 */}
-              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
-                <label className="flex items-start space-x-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="contractDiscussion"
-                    checked={formData.contractDiscussion}
-                    onChange={handleChange}
-                    className="mt-1 w-4 h-4 text-orange-600 bg-slate-800 border-slate-600 rounded focus:ring-orange-500"
-                  />
-                  <div className="flex-1">
-                    <div className="text-white font-medium text-sm">3.4 Contract Discussion</div>
-                    <div className="text-gray-400 text-xs mt-1">
-                      Review terms & partnership agreement. Clarify revenue splits, exclusivity, term duration.
-                    </div>
-                  </div>
-                </label>
-              </div>
-
-              {/* Checkbox 3.5 */}
-              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
-                <label className="flex items-start space-x-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="techOnboarding"
-                    checked={formData.techOnboarding}
-                    onChange={handleChange}
-                    className="mt-1 w-4 h-4 text-orange-600 bg-slate-800 border-slate-600 rounded focus:ring-orange-500"
-                  />
-                  <div className="flex-1">
-                    <div className="text-white font-medium text-sm">3.5 Tech Onboarding</div>
-                    <div className="text-gray-400 text-xs mt-1">
-                      App installation & walkthrough. Profile creation & setup training.
-                    </div>
-                  </div>
-                </label>
-              </div>
-
-              {/* Checkbox 3.6 */}
-              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
-                <label className="flex items-start space-x-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="contentIngestion"
-                    checked={formData.contentIngestion}
-                    onChange={handleChange}
-                    className="mt-1 w-4 h-4 text-orange-600 bg-slate-800 border-slate-600 rounded focus:ring-orange-500"
-                  />
-                  <div className="flex-1">
-                    <div className="text-white font-medium text-sm">3.6 Content Ingestion</div>
-                    <div className="text-gray-400 text-xs mt-1">
-                      Initiate catalog upload process. Verify metadata, artwork, audio quality.
-                    </div>
-                  </div>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Membership Type */}
-          <div className="relative">
-            <label className="block text-sm font-semibold text-text-secondary mb-2">
-              Membership Type <span className="text-red-400">*</span>
-            </label>
-            <button
-              type="button"
-              onClick={() => setMembershipOpen(prev => !prev)}
-              className="w-full flex items-center justify-between px-4 py-2.5 bg-[#2d3748] border border-slate-600 rounded-lg text-sm text-left hover:border-orange-400 transition-colors"
-            >
-              <span className={formData.membershipType.length > 0 ? 'text-white' : 'text-gray-400'}>
-                {formData.membershipType.length > 0
-                  ? `${formData.membershipType.length} selected`
-                  : 'Select membership type'}
-              </span>
-              <RiArrowDownSLine className={`text-lg text-gray-400 transition-transform ${membershipOpen ? 'rotate-180' : ''}`} />
-            </button>
-            {membershipOpen && (
-              <div className="mt-2 space-y-2">
-                {membershipTypes.map(item => (
-                  <label key={item._id} className="flex items-center gap-3 bg-slate-900/50 rounded-lg px-4 py-3 border border-slate-700 cursor-pointer hover:border-orange-400 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={formData.membershipType.includes(item.value)}
-                      onChange={(e) => {
-                        setFormData(prev => ({
-                          ...prev,
-                          membershipType: e.target.checked
-                            ? [...prev.membershipType, item.value]
-                            : prev.membershipType.filter(v => v !== item.value)
-                        }));
-                      }}
-                      className="w-4 h-4 text-orange-600 bg-slate-800 border-slate-600 rounded focus:ring-orange-500"
-                    />
-                    <span className="text-white text-sm">{item.label}</span>
                   </label>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Closure Checklist */}
+          {/* CLOSURE STAGES */}
           <div>
-            <h3 className="text-yellow-500 font-bold text-sm mb-4">CLOSURE CHECKLIST</h3>
-            
-            {/* Add row */}
-            <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-700 mb-4">
-              <div className="flex items-center gap-3">
-                <select
-                  id="closureStatusSelect"
-                  className="flex-1 min-w-0 bg-[#2d3748] border border-slate-600 rounded-lg px-4 py-2.5 text-sm text-white focus:border-orange-400 focus:ring-1 focus:ring-orange-400 transition-colors outline-none"
-                  defaultValue=""
-                >
-                  <option value="" disabled>Select status to add...</option>
-                  {closureStatuses
-                    .filter(cs => !formData.closureChecklist.some(r => r.status === cs.value))
-                    .map(cs => (
-                      <option key={cs.value || cs._id} value={cs.value}>{cs.label}</option>
-                    ))}
-                </select>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const sel = document.getElementById('closureStatusSelect');
-                    const statusVal = sel.value;
-                    if (!statusVal) return;
-                    const membershipDisplay = formData.membershipType.length >= 2
-                      ? 'Both'
-                      : formData.membershipType.length === 1
-                        ? (membershipTypes.find(m => m.value === formData.membershipType[0])?.label || formData.membershipType[0])
-                        : 'N/A';
-                    setFormData(prev => ({
-                      ...prev,
-                      closureChecklist: [...prev.closureChecklist, { status: statusVal, membershipType: membershipDisplay, spoc: '', eta: '' }]
-                    }));
-                    sel.value = '';
-                  }}
-                  className="flex-shrink-0 px-5 py-2.5 rounded-lg font-medium bg-gradient-to-r from-orange-600 to-orange-500 text-white hover:from-orange-500 hover:to-orange-400 transition-all shadow-lg shadow-orange-600/30 text-sm flex items-center gap-1.5 whitespace-nowrap"
-                >
-                  <RiAddLine className="text-base" /> Add
-                </button>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-yellow-500 font-bold text-sm">CLOSURE STAGES</h3>
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-gray-400">Overall:</span>
+                <div className="w-24 h-2 bg-slate-700 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-orange-500 to-green-500 rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }} />
+                </div>
+                <span className="text-gray-300 font-medium">{completedStages}/{totalStages}</span>
+                <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${statusBadgeClass(overallStatus.color)}`}>{overallStatus.label}</span>
               </div>
             </div>
 
-            {/* Added items */}
-            {formData.closureChecklist.length > 0 ? (
-              <div className="space-y-3">
-                {formData.closureChecklist.map((row, idx) => {
-                  const statusLabel = closureStatuses.find(c => c.value === row.status)?.label || row.status;
-                  // Recompute membership type based on current selection
-                  const currentMembership = formData.membershipType.length >= 2
-                    ? 'Both'
-                    : formData.membershipType.length === 1
-                      ? (membershipTypes.find(m => m.value === formData.membershipType[0])?.label || formData.membershipType[0])
-                      : 'N/A';
-                  return (
-                    <div key={row.status + idx} className="bg-slate-900/50 rounded-xl border border-slate-700 p-4 hover:border-slate-600 transition-colors">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <span className="w-7 h-7 rounded-full bg-orange-500/20 text-orange-400 text-xs font-bold flex items-center justify-center">{idx + 1}</span>
-                          <span className="text-white font-medium text-sm">{statusLabel}</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setFormData(prev => ({ ...prev, closureChecklist: prev.closureChecklist.filter((_, i) => i !== idx) }))}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg p-1.5 transition-colors"
-                        >
-                          <RiDeleteBin6Line size={16} />
-                        </button>
+            <div className="space-y-3">
+              {stagesConfig.map((stage) => {
+                const stageData = formData.stages[stage.key] || {};
+                const stageItems = stage.items;
+                const { status, color } = getStageStatus(stageData, stageItems);
+                const isExpanded = expandedStages[stage.key];
+                const completedCount = stageItems.filter(i => (stageData[i.key] || 'NA') !== 'NA').length;
+
+                return (
+                  <div key={stage.key} className={`bg-slate-900/50 rounded-xl border-l-4 ${stageAccentClass(stage.color)} border border-slate-700 overflow-hidden`}>
+                    {/* Stage Header */}
+                    <button type="button" onClick={() => toggleStage(stage.key)}
+                      className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-800/30 transition-colors">
+                      <span className={`font-semibold text-sm ${stageTitleClass(stage.color)}`}>{stage.title}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-gray-500">{completedCount}/{stageItems.length}</span>
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${statusBadgeClass(color)}`}>{status}</span>
+                        {isExpanded ? <RiArrowUpSLine className="text-gray-400 text-lg" /> : <RiArrowDownSLine className="text-gray-400 text-lg" />}
                       </div>
-                      <div className="grid grid-cols-3 gap-3">
-                        <div>
-                          <label className="block text-xs text-gray-400 mb-1">Membership Type</label>
-                          <div className="px-3 py-2 bg-slate-800/80 rounded-lg border border-slate-600 text-orange-300 text-xs">
-                            {currentMembership}
+                    </button>
+
+                    {/* Stage Items */}
+                    {isExpanded && (
+                      <div className="px-5 pb-4 space-y-2">
+                        {stageItems.map((item) => {
+                          const currentValue = stageData[item.key] || 'NA';
+                          return (
+                            <div key={item.key} className="flex items-center justify-between py-2.5 px-4 bg-slate-800/40 rounded-lg border border-slate-700/50">
+                              <span className="text-white text-sm">{item.label}</span>
+                              <div className="flex items-center gap-1">
+                                {['Yes', 'No', 'NA'].map(val => (
+                                  <button key={val} type="button"
+                                    onClick={() => handleStageItemChange(stage.key, item.key, val)}
+                                    className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                                      currentValue === val
+                                        ? val === 'Yes' ? 'bg-green-600 text-white shadow-lg shadow-green-600/30'
+                                          : val === 'No' ? 'bg-red-600 text-white shadow-lg shadow-red-600/30'
+                                            : 'bg-slate-500 text-white shadow-lg shadow-slate-500/30'
+                                        : 'bg-slate-700/50 text-gray-400 hover:bg-slate-600/50 border border-slate-600'
+                                    }`}>
+                                    {val}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {/* Stage Progress Bar */}
+                        <div className="pt-2 flex items-center gap-2">
+                          <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full transition-all duration-300 ${
+                              color === 'green' ? 'bg-green-500' : color === 'yellow' ? 'bg-yellow-500' : 'bg-slate-600'
+                            }`} style={{ width: `${stageItems.length > 0 ? (completedCount / stageItems.length) * 100 : 0}%` }} />
                           </div>
                         </div>
-                        <div>
-                          <label className="block text-xs text-gray-400 mb-1">SPOC</label>
-                          <select
-                            value={row.spoc || ''}
-                            onChange={(e) => {
-                              setFormData(prev => {
-                                const list = [...prev.closureChecklist];
-                                list[idx] = { ...list[idx], spoc: e.target.value };
-                                return { ...prev, closureChecklist: list };
-                              });
-                            }}
-                            className="w-full bg-slate-800/80 border border-slate-600 rounded-lg px-3 py-2 text-white text-xs focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-colors"
-                          >
-                            <option value="">Select SPOC</option>
-                            {spocOptions.map(s => (
-                              <option key={s._id} value={s.value}>{s.label}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-xs text-gray-400 mb-1">ETA</label>
-                          <input
-                            type="date"
-                            value={row.eta || ''}
-                            onChange={(e) => {
-                              setFormData(prev => {
-                                const list = [...prev.closureChecklist];
-                                list[idx] = { ...list[idx], eta: e.target.value };
-                                return { ...prev, closureChecklist: list };
-                              });
-                            }}
-                            className="w-full bg-slate-800/80 border border-slate-600 rounded-lg px-3 py-2 text-white text-xs focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none transition-colors"
-                          />
-                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-6 text-gray-500 text-sm bg-slate-900/30 rounded-xl border border-dashed border-slate-700">
-                No items added yet. Select a status above and click Add.
-              </div>
-            )}
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           {/* Upload Documents Section */}
           <div>
             <h3 className="text-yellow-500 font-bold text-sm mb-4">UPLOAD DOCUMENTS</h3>
-            
-            {/* Upload Form */}
             <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700 space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-sm font-semibold text-text-secondary mb-1">
-                    Title <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={docTitle}
-                    onChange={(e) => setDocTitle(e.target.value)}
-                    placeholder="e.g. Contract Agreement"
-                    className="input w-full text-sm"
-                  />
+                  <label className="block text-sm font-semibold text-text-secondary mb-1">Title <span className="text-red-400">*</span></label>
+                  <input type="text" value={docTitle} onChange={(e) => setDocTitle(e.target.value)} placeholder="e.g. Contract Agreement" className="input w-full text-sm" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-text-secondary mb-1">
-                    Description
-                  </label>
-                  <input
-                    type="text"
-                    value={docDescription}
-                    onChange={(e) => setDocDescription(e.target.value)}
-                    placeholder="Brief description..."
-                    className="input w-full text-sm"
-                  />
+                  <label className="block text-sm font-semibold text-text-secondary mb-1">Description</label>
+                  <input type="text" value={docDescription} onChange={(e) => setDocDescription(e.target.value)} placeholder="Brief description..." className="input w-full text-sm" />
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <label className="flex-1 flex items-center gap-2 px-4 py-2.5 bg-[#2d3748] border border-dashed border-slate-500 rounded-lg cursor-pointer hover:border-orange-400 transition-colors">
                   <RiUploadCloud2Line className="text-orange-400 text-lg" />
-                  <span className="text-sm text-text-secondary truncate">
-                    {docFile ? docFile.name : 'Choose file (max 10MB)'}
-                  </span>
-                  <input
-                    type="file"
-                    onChange={(e) => setDocFile(e.target.files[0])}
-                    className="hidden"
-                    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt"
-                  />
+                  <span className="text-sm text-text-secondary truncate">{docFile ? docFile.name : 'Choose file (max 10MB)'}</span>
+                  <input type="file" onChange={(e) => setDocFile(e.target.files[0])} className="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.txt" />
                 </label>
-                <button
-                  type="button"
-                  onClick={handleUploadDocument}
-                  disabled={uploading}
-                  className="px-5 py-2.5 rounded-lg font-medium bg-gradient-to-r from-orange-600 to-orange-500 text-white hover:from-orange-500 hover:to-orange-400 transition-all shadow-lg shadow-orange-600/30 disabled:opacity-50 whitespace-nowrap text-sm"
-                >
+                <button type="button" onClick={handleUploadDocument} disabled={uploading}
+                  className="px-5 py-2.5 rounded-lg font-medium bg-gradient-to-r from-orange-600 to-orange-500 text-white hover:from-orange-500 hover:to-orange-400 transition-all shadow-lg shadow-orange-600/30 disabled:opacity-50 whitespace-nowrap text-sm">
                   {uploading ? 'Uploading...' : 'Upload'}
                 </button>
               </div>
             </div>
 
-            {/* Uploaded Documents List */}
             {uploadedDocs.length > 0 && (
               <div className="mt-3 space-y-2">
                 {uploadedDocs.map((doc, index) => (
@@ -640,26 +494,12 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                       <RiFileTextLine className="text-orange-400 text-lg flex-shrink-0" />
                       <div className="min-w-0">
                         <div className="text-white text-sm font-medium truncate">{doc.title}</div>
-                        <div className="text-gray-400 text-xs truncate">
-                          {doc.fileName} • {formatFileSize(doc.fileSize)}
-                          {doc.description && ` • ${doc.description}`}
-                        </div>
+                        <div className="text-gray-400 text-xs truncate">{doc.fileName} • {formatFileSize(doc.fileSize)}{doc.description && ` • ${doc.description}`}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0 ml-3">
-                      <a
-                        href={`http://localhost:5000${doc.filePath}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-400 hover:text-blue-300 text-xs underline"
-                      >
-                        View
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteDocument(index)}
-                        className="text-red-400 hover:text-red-300 p-1"
-                      >
+                      <a href={`http://localhost:5000${doc.filePath}`} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-xs underline">View</a>
+                      <button type="button" onClick={() => handleDeleteDocument(index)} className="text-red-400 hover:text-red-300 p-1">
                         <RiDeleteBin6Line size={16} />
                       </button>
                     </div>
@@ -671,56 +511,17 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-semibold text-text-secondary mb-2">
-              Notes
-            </label>
-            <textarea
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
-              placeholder="Meeting notes, observations, next steps..."
-              rows="4"
-              className="input w-full resize-none"
-            />
+            <label className="block text-sm font-semibold text-text-secondary mb-2">Notes</label>
+            <textarea name="notes" value={formData.notes} onChange={handleChange} placeholder="Meeting notes, observations, next steps..." rows="4" className="input w-full resize-none" />
           </div>
 
           {/* Footer Actions */}
           <div className="pt-4 border-t border-border flex items-center justify-end space-x-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn-secondary px-6 py-2.5"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSubmit('review-l2')}
-              className="btn-primary px-6 py-2.5 shadow-lg shadow-brand-primary/30"
-            >
-              Save Progress
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSubmit('closed-won')}
-              className="px-6 py-2.5 rounded-lg font-medium bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-500 hover:to-emerald-500 transition-all shadow-lg shadow-green-600/30"
-            >
-              Closed Won
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSubmit('closed-lost')}
-              className="px-6 py-2.5 rounded-lg font-medium bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-500 hover:to-rose-500 transition-all shadow-lg shadow-red-600/30"
-            >
-              Closed Lost
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSubmit('cold-storage')}
-              className="px-6 py-2.5 rounded-lg font-medium bg-gradient-to-r from-brand-accent to-brand-highlight text-white hover:from-brand-accent/90 hover:to-brand-highlight/90 transition-all shadow-lg shadow-brand-accent/30"
-            >
-              Cold Storage
-            </button>
+            <button type="button" onClick={onClose} className="btn-secondary px-6 py-2.5">Cancel</button>
+            <button type="button" onClick={() => handleSubmit('review-l2', true)} className="btn-primary px-6 py-2.5 shadow-lg shadow-brand-primary/30">Save Progress</button>
+            <button type="button" onClick={() => handleSubmit('closed-won')} className="px-6 py-2.5 rounded-lg font-medium bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-500 hover:to-emerald-500 transition-all shadow-lg shadow-green-600/30">Closed Won</button>
+            <button type="button" onClick={() => handleSubmit('closed-lost')} className="px-6 py-2.5 rounded-lg font-medium bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-500 hover:to-rose-500 transition-all shadow-lg shadow-red-600/30">Closed Lost</button>
+            <button type="button" onClick={() => handleSubmit('cold-storage')} className="px-6 py-2.5 rounded-lg font-medium bg-gradient-to-r from-brand-accent to-brand-highlight text-white hover:from-brand-accent/90 hover:to-brand-highlight/90 transition-all shadow-lg shadow-brand-accent/30">Cold Storage</button>
           </div>
         </div>
       </div>

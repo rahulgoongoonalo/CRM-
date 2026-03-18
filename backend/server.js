@@ -138,14 +138,6 @@ connectDB().then(async () => {
           ]
         },
         {
-          name: 'membershipType',
-          label: 'Membership Type',
-          items: [
-            { value: 'artist-investor', label: 'Artist Investor - rs 2500 per share investment', order: 1 },
-            { value: 'partner-artist', label: 'Partner Artist - Distribution + Events', order: 2 },
-          ]
-        },
-        {
           name: 'spoc',
           label: 'SPOC',
           items: [
@@ -170,19 +162,57 @@ connectDB().then(async () => {
           ]
         },
         {
-          name: 'closureStatus',
-          label: 'Closure Status',
+          name: 'stage1-basicOnboarding',
+          label: 'Stage 1 - Basic Artist Onboarding',
           items: [
-            { value: 'ssa-sha-investor-agreement-sent', label: 'SSA/SHA/Investor agreement sent', order: 1 },
-            { value: 'create-whatsapp-group', label: 'Create a Whatsapp Group', order: 2 },
-            { value: 'kyc-received', label: 'KYC received', order: 3 },
-            { value: 'investment-received', label: 'Investment Received', order: 4 },
-            { value: 'share-certificate-sent', label: 'Share Certificate Sent', order: 5 },
-            { value: 'distribution-agreements-sent', label: 'Distribution Agreements Sent', order: 6 },
-            { value: 'content-received-for-upload', label: 'Content received for upload', order: 7 },
-            { value: 'first-call-done', label: 'First Call done', order: 8 },
-            { value: 'intro-email-sent', label: 'Intro Email sent after conversation', order: 9 },
-            { value: 'closure-email-sent', label: 'Closure email Sent', order: 10 },
+            { value: 'firstCallCompleted', label: 'First call completed', order: 1 },
+            { value: 'artistInfoUpdated', label: 'Artist information updated', order: 2 },
+            { value: 'whatsappGroupCreated', label: 'WhatsApp group created, if required', order: 3 },
+            { value: 'introEmailSent', label: 'First introduction email sent', order: 4 },
+            { value: 'notInterested', label: 'Not Interested', order: 5 },
+          ]
+        },
+        {
+          name: 'stage2-artistInvestment',
+          label: 'Stage 2 - Artist Investment',
+          items: [
+            { value: 'ssaShaShared', label: 'SSA / SHA shared', order: 1 },
+            { value: 'kycReceived', label: 'KYC received', order: 2 },
+            { value: 'investmentReceived', label: 'Investment received', order: 3 },
+            { value: 'shareCertificateSent', label: 'Share certificate sent', order: 4 },
+          ]
+        },
+        {
+          name: 'stage3-distributionAgreement',
+          label: 'Stage 3 - Distribution Agreement',
+          items: [
+            { value: 'distributionAgreementSent', label: 'Distribution agreement sent', order: 1 },
+            { value: 'contentReceivedForUpload', label: 'Content received for upload', order: 2 },
+            { value: 'contentSentToDevi', label: 'Content sent to Devi for upload', order: 3 },
+            { value: 'contentVisibleOnGoongoonalo', label: 'Content visible on Goongoonalo', order: 4 },
+          ]
+        },
+        {
+          name: 'stage4-nonExclusiveLicense',
+          label: 'Stage 4 - Non-Exclusive License for Streaming',
+          items: [
+            { value: 'streamingAgreementSent', label: 'Non-exclusive streaming agreement sent', order: 1 },
+            { value: 'contentReceivedForUpload', label: 'Content received for Goongoonalo upload', order: 2 },
+            { value: 'contentSentToDevi', label: 'Content sent to Devi for upload', order: 3 },
+            { value: 'contentVisibleOnGoongoonalo', label: 'Content visible on Goongoonalo', order: 4 },
+            { value: 'artistReviewMeeting', label: 'Artist review meeting completed', order: 5 },
+            { value: 'subscriptionActivated', label: 'Subscription activated for review, if needed', order: 6 },
+          ]
+        },
+        {
+          name: 'stage5-finalClosure',
+          label: 'Stage 5 - Final Closure',
+          items: [
+            { value: 'notInterested', label: 'Not Interested', order: 1 },
+            { value: 'investmentClosed', label: 'Investment Closed', order: 2 },
+            { value: 'distributionClosed', label: 'Distribution Closed', order: 3 },
+            { value: 'licensingClosed', label: 'Licensing Closed', order: 4 },
+            { value: 'ayushDemoCompleted', label: 'Ayush demo completed for Goongoonalo for Artists', order: 5 },
           ]
         }
       ];
@@ -191,27 +221,8 @@ connectDB().then(async () => {
       console.log('Default picklists seeded successfully');
     }
 
-    // Ensure closureStatus picklist exists (for existing databases)
-    const closureExists = await Picklist.findOne({ name: 'closureStatus' });
-    if (!closureExists) {
-      await Picklist.create({
-        name: 'closureStatus',
-        label: 'Closure Status',
-        items: [
-          { value: 'ssa-sha-investor-agreement-sent', label: 'SSA/SHA/Investor agreement sent', order: 1 },
-          { value: 'create-whatsapp-group', label: 'Create a Whatsapp Group', order: 2 },
-          { value: 'kyc-received', label: 'KYC received', order: 3 },
-          { value: 'investment-received', label: 'Investment Received', order: 4 },
-          { value: 'share-certificate-sent', label: 'Share Certificate Sent', order: 5 },
-          { value: 'distribution-agreements-sent', label: 'Distribution Agreements Sent', order: 6 },
-          { value: 'content-received-for-upload', label: 'Content received for upload', order: 7 },
-          { value: 'first-call-done', label: 'First Call done', order: 8 },
-          { value: 'intro-email-sent', label: 'Intro Email sent after conversation', order: 9 },
-          { value: 'closure-email-sent', label: 'Closure email Sent', order: 10 },
-        ]
-      });
-      console.log('closureStatus picklist seeded');
-    }
+    // L2 Review uses 5 stage picklists (stage1-basicOnboarding through stage5-finalClosure)
+    // that are manageable from the Picklist admin page.
 
     // Start the daily closure checklist report cron job
     startClosureReportCron();
