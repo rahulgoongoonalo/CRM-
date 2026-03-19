@@ -6,6 +6,7 @@ import EditOnboardingModal from '../components/EditOnboardingModal';
 import L2ReviewModal from '../components/L2ReviewModal';
 import { onboardingAPI } from '../services/api';
 import { useToast, useConfirm } from '../components/ToastNotification';
+import { usePicklist } from '../hooks/usePicklist';
 
 const SortIcon = ({ active, direction }) => {
   if (!active) {
@@ -30,7 +31,9 @@ const Onboarding = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isL2ReviewModalOpen, setIsL2ReviewModalOpen] = useState(false);
   const [selectedOnboarding, setSelectedOnboarding] = useState(null);
-  const [activeFilter, setActiveFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All Status');
+  const [sourceFilter, setSourceFilter] = useState('All Sources');
+  const [spocFilter, setSpocFilter] = useState('All SPOC');
   const [searchQuery, setSearchQuery] = useState('');
   const [onboardings, setOnboardings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,6 +45,9 @@ const Onboarding = () => {
   const [statsData, setStatsData] = useState({ total: 0, closedWon: 0, closedLost: 0, coldStorage: 0 });
   const toast = useToast();
   const confirm = useConfirm();
+  const { items: sourceOptions } = usePicklist('source');
+  const { items: spocOptions } = usePicklist('spoc');
+  const { items: statusOptions } = usePicklist('onboardingStatus');
   const debounceRef = useRef(null);
 
   const handleSort = (key) => {
@@ -64,7 +70,9 @@ const Onboarding = () => {
         limit: itemsPerPage,
       };
       if (searchQuery.trim()) params.search = searchQuery.trim();
-      if (activeFilter !== 'All') params.status = activeFilter;
+      if (statusFilter !== 'All Status') params.status = statusFilter;
+      if (sourceFilter !== 'All Sources') params.source = sourceFilter;
+      if (spocFilter !== 'All SPOC') params.spoc = spocFilter;
       if (sortConfig.key) {
         params.sortBy = sortConfig.key;
         params.sortOrder = sortConfig.direction || 'asc';
@@ -84,7 +92,7 @@ const Onboarding = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, itemsPerPage, searchQuery, activeFilter, sortConfig]);
+  }, [currentPage, itemsPerPage, searchQuery, statusFilter, sourceFilter, spocFilter, sortConfig]);
 
   // Re-fetch when any parameter changes
   useEffect(() => {
@@ -211,7 +219,11 @@ const Onboarding = () => {
       'cold': 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
       'closed-won': 'bg-green-500/20 text-green-400 border border-green-500/30',
       'closed-lost': 'bg-red-700/20 text-red-500 border border-red-700/30',
-      'cold-storage': 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+      'cold-storage': 'bg-purple-500/20 text-purple-400 border border-purple-500/30',
+      'review-l2': 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
+      'spoc-assigned': 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30',
+      'initial-contact': 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30',
+      'l1-questionnaire': 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
     };
     return statusMap[statusLower] || 'bg-amber-500/20 text-amber-400 border border-amber-500/30';
   };
@@ -232,14 +244,18 @@ const Onboarding = () => {
       'cold': 'Cold',
       'closed-won': 'Closed Won',
       'closed-lost': 'Closed Lost',
-      'cold-storage': 'Cold Storage'
+      'cold-storage': 'Cold Storage',
+      'review-l2': 'Review L2',
+      'spoc-assigned': 'SPOC Assigned',
+      'initial-contact': 'Initial Contact',
+      'l1-questionnaire': 'L1 Questionnaire'
     };
     return statusMap[statusLower] || status || 'Warm';
   };
 
-  // Filter/search handlers — reset to page 1
-  const handleFilterChange = (filter) => {
-    setActiveFilter(filter);
+  // Filter change handlers — reset to page 1
+  const handleFilterChange = (setter) => (e) => {
+    setter(e.target.value);
     setCurrentPage(1);
   };
 
@@ -258,16 +274,6 @@ const Onboarding = () => {
     { number: statsData.closedWon.toString(), label: 'Closed Won', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-green-600 to-green-700' },
     { number: statsData.closedLost.toString(), label: 'Closed Lost', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-red-800 to-red-900' },
     { number: statsData.coldStorage.toString(), label: 'Cold Storage', icon: RiUserAddLine, bgColor: 'bg-surface-card', iconBg: 'bg-gradient-to-br from-purple-600 to-purple-700' },
-  ];
-
-  const filters = [
-    'All',
-    'Hot',
-    'Warm',
-    'Cold',
-    'Closed Won',
-    'Closed Lost',
-    'Cold Storage'
   ];
 
   return (
@@ -303,8 +309,8 @@ const Onboarding = () => {
 
       {/* Search and Filter Section */}
       <div className="card shadow-lg shadow-brand-primary/10 mb-6">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
-          {/* Search Input */}
+        {/* Search Input */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-3">
           <div className="relative flex-1 max-w-full sm:max-w-md">
             <RiSearchLine className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted text-sm" />
             <input
@@ -317,21 +323,41 @@ const Onboarding = () => {
           </div>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex items-center space-x-2 overflow-x-auto">
-        {filters.map((filter) => (
-          <button
-            key={filter}
-            onClick={() => handleFilterChange(filter)}
-            className={`px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all ${
-              activeFilter === filter
-                ? 'bg-gradient-to-r from-brand-primary to-brand-secondary text-white shadow-lg shadow-brand-primary/30'
-                : 'bg-surface-lighter text-text-muted hover:bg-surface-card border border-border'
-            }`}
+        {/* Filter Dropdowns Row */}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <select
+            value={statusFilter}
+            onChange={handleFilterChange(setStatusFilter)}
+            className="select flex-1"
           >
-            {filter}
-          </button>
-        ))}
+            <option>All Status</option>
+            {statusOptions.map(item => (
+              <option key={item._id} value={item.value}>{item.label}</option>
+            ))}
+          </select>
+
+          <select
+            value={sourceFilter}
+            onChange={handleFilterChange(setSourceFilter)}
+            className="select flex-1"
+          >
+            <option>All Sources</option>
+            {sourceOptions.map(item => (
+              <option key={item._id} value={item.value}>{item.label}</option>
+            ))}
+          </select>
+
+          <select
+            value={spocFilter}
+            onChange={handleFilterChange(setSpocFilter)}
+            className="select flex-1"
+          >
+            <option>All SPOC</option>
+            {spocOptions.map(item => (
+              <option key={item._id} value={item.value}>{item.label}</option>
+            ))}
+          </select>
+
         </div>
       </div>
 

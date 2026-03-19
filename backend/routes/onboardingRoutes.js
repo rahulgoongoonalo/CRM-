@@ -317,6 +317,8 @@ router.get('/', async (req, res) => {
       limit = 10,
       search = '',
       status = '',
+      source = '',
+      spoc = '',
       sortBy = 'createdAt',
       sortOrder = 'desc'
     } = req.query;
@@ -327,20 +329,21 @@ router.get('/', async (req, res) => {
     // Build filter query
     const query = {};
 
-    // Status filter — map display label to db value
-    if (status && status !== 'All') {
-      const statusMap = {
-        'hot': 'hot',
-        'warm': 'warm',
-        'cold': 'cold',
-        'closed won': 'closed-won',
-        'closed lost': 'closed-lost',
-        'cold storage': 'cold-storage'
-      };
-      const mapped = statusMap[status.toLowerCase()];
-      if (mapped) {
-        query.status = mapped;
-      }
+    // Status filter — normalize picklist label to db value (e.g. "Review L2" → "review-l2")
+    if (status && status !== 'All Status') {
+      const normalized = status.toLowerCase().replace(/\s+/g, '-');
+      query.status = normalized;
+    }
+
+    // Source filter — find members with matching source, then filter onboardings by those member IDs
+    if (source && source !== 'All Sources') {
+      const membersWithSource = await Member.find({ source: source }, { _id: 1 }).lean();
+      query.member = { $in: membersWithSource.map(m => m._id) };
+    }
+
+    // SPOC filter
+    if (spoc && spoc !== 'All SPOC') {
+      query.spoc = spoc;
     }
 
     // Search across artistName and spoc (member.source searched via populate match later)

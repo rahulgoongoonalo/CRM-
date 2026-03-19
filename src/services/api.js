@@ -101,6 +101,8 @@ export const onboardingAPI = {
     if (params.limit) query.set('limit', params.limit);
     if (params.search) query.set('search', params.search);
     if (params.status) query.set('status', params.status);
+    if (params.source) query.set('source', params.source);
+    if (params.spoc) query.set('spoc', params.spoc);
     if (params.sortBy) query.set('sortBy', params.sortBy);
     if (params.sortOrder) query.set('sortOrder', params.sortOrder);
     const queryStr = query.toString();
