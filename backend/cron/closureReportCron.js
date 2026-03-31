@@ -8,7 +8,7 @@ export const startClosureReportCron = () => {
     console.log('[CRON] Running daily closure stages report at', new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }));
 
     try {
-      const recipientEmail = 'rahul.goongoonalo@gmail.com, sherley@goongoonalo.com, vaishali.goongoonalo@gmail.com';
+      const recipientEmail = 'rahul.goongoonalo@gmail.com, sherley@goongoonalo.com, vaishali.goongoonalo@gmail.com, support@goongoonalo.com';
 
       // Fetch all onboardings that have stages data
       const onboardings = await Onboarding.find({
