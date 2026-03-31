@@ -321,7 +321,7 @@ async function sendGristSyncEmail(results) {
 
     const mailOptions = {
       from: process.env.EMAIL_FROM,
-      to: 'rahul.goongoonalo@gmail.com',
+      to: 'rahul.goongoonalo@gmail.com, support@goongoonalo.com',
       subject: `${statusIcon} Grist Sync Report — ${results.created} New, ${results.updated} Updated, ${results.errors.length} Errors — ${new Date().toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}`,
       html,
     };
