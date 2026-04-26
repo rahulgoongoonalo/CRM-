@@ -16,6 +16,7 @@ import DataHygiene from './pages/DataHygiene';
 import Glossary from './pages/Glossary';
 import FAQ from './pages/FAQ';
 import Picklist from './pages/Picklist';
+import L2ReviewReport from './pages/L2ReviewReport';
 
 function App() {
   return (
@@ -38,6 +39,7 @@ function App() {
             <Route path="onboarding" element={<Onboarding />} />
             <Route path="reporting" element={<Reporting />} />
             <Route path="member-onboarding-status" element={<MemberOnboardingStatus />} />
+            <Route path="l2-review-report" element={<L2ReviewReport />} />
             <Route path="data-hygiene" element={<DataHygiene />} />
             <Route path="glossary" element={<Glossary />} />
             <Route path="faq" element={<FAQ />} />

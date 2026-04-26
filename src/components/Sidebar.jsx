@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { RiDashboardLine, RiUserLine, RiUserAddLine, RiBarChartLine, RiMegaphoneLine, RiSettings4Line, RiLogoutBoxLine, RiMusicLine, RiCloseLine, RiShieldCheckLine, RiBookOpenLine, RiQuestionAnswerLine, RiListSettingsLine } from 'react-icons/ri';
+import { RiDashboardLine, RiUserLine, RiUserAddLine, RiBarChartLine, RiBarChart2Line, RiMegaphoneLine, RiSettings4Line, RiLogoutBoxLine, RiMusicLine, RiCloseLine, RiShieldCheckLine, RiBookOpenLine, RiQuestionAnswerLine, RiListSettingsLine } from 'react-icons/ri';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ isOpen, isMobile, onClose }) => {
@@ -23,6 +23,7 @@ const Sidebar = ({ isOpen, isMobile, onClose }) => {
     { path: '/members', icon: RiUserLine, label: 'Member Management' },
     { path: '/onboarding', icon: RiUserAddLine, label: 'Onboarding' },
     { path: '/member-onboarding-status', icon: RiBarChartLine, label: 'Member Onboarding Status Report' },
+    { path: '/l2-review-report', icon: RiBarChart2Line, label: 'L2 Review Report' },
     { path: '/data-hygiene', icon: RiShieldCheckLine, label: 'Data Hygiene' },
     { path: '/glossary', icon: RiBookOpenLine, label: 'Glossary' },
     { path: '/faq', icon: RiQuestionAnswerLine, label: 'FAQ' },

@@ -235,4 +235,14 @@ export const getFullExportData = async () => {
   return response.data;
 };
 
+export const getL2ReviewReport = async () => {
+  const response = await api.get('/onboarding/reports/l2-review');
+  return response.data;
+};
+
+export const getL2WeeklyAnalytics = async () => {
+  const response = await api.get('/onboarding/reports/l2-weekly-analytics');
+  return response.data;
+};
+
 export default api;

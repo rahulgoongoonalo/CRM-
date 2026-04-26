@@ -7,14 +7,28 @@ import { usePicklist } from '../hooks/usePicklist';
 // Stage metadata (picklist name → display config)
 const STAGE_META = [
   { picklistName: 'stage1-basicOnboarding', key: 'basicOnboarding', title: '1. Basic Artist Onboarding', color: 'blue' },
-  { picklistName: 'stage2-artistInvestment', key: 'artistInvestment', title: '2. Artist Investment', color: 'purple' },
-  { picklistName: 'stage3-distributionAgreement', key: 'distributionAgreement', title: '3. Distribution Agreement', color: 'emerald' },
-  { picklistName: 'stage4-nonExclusiveLicense', key: 'nonExclusiveLicense', title: '4. Non-Exclusive License for Streaming on Goongoonalo', color: 'amber' },
-  { picklistName: 'stage5-finalClosure', key: 'finalClosure', title: '5. Final Closure', color: 'red' },
+  { picklistName: null, key: 'interestedInvestment', title: '2. Interested in Investment', color: 'cyan', customType: 'investmentInterest' },
+  { picklistName: 'stage2-artistInvestment', key: 'artistInvestment', title: '3. Artist Investment Document', color: 'purple' },
+  { picklistName: 'stage3-distributionAgreement', key: 'distributionAgreement', title: '4. Distribution Agreement signed', color: 'emerald' },
+  { picklistName: 'stage4-nonExclusiveLicense', key: 'nonExclusiveLicense', title: '5. Non-Exclusive License for Streaming on Goongoonalo', color: 'amber' },
+  { picklistName: 'stage5-finalClosure', key: 'finalClosure', title: '6. Final Closure', color: 'red' },
 ];
 
-const getStageStatus = (stageData, stageItems) => {
+const INVESTMENT_INTEREST_ITEMS = [
+  { key: 'amount', label: 'Investment Amount', type: 'number' },
+  { key: 'received', label: 'Amount Received', type: 'yesno' },
+];
+
+const getStageStatus = (stageData, stageItems, customType) => {
   if (!stageData || !stageItems || stageItems.length === 0) return { status: 'Open', color: 'gray' };
+  if (customType === 'investmentInterest') {
+    const amt = Number(stageData.amount) || 0;
+    const rec = stageData.received || 'NA';
+    const filled = (amt > 0 ? 1 : 0) + (rec !== 'NA' ? 1 : 0);
+    if (filled === 0) return { status: 'Open', color: 'gray' };
+    if (filled === 2) return { status: 'Closed', color: 'green' };
+    return { status: 'In Progress', color: 'yellow' };
+  }
   const values = stageItems.map(i => stageData[i.key] || 'NA');
   const nonNA = values.filter(v => v !== 'NA');
   if (nonNA.length === 0) return { status: 'Open', color: 'gray' };
@@ -32,12 +46,12 @@ const statusBadgeClass = (color) => {
 };
 
 const stageAccentClass = (color) => ({
-  blue: 'border-blue-500/50', purple: 'border-purple-500/50', emerald: 'border-emerald-500/50',
+  blue: 'border-blue-500/50', cyan: 'border-cyan-500/50', purple: 'border-purple-500/50', emerald: 'border-emerald-500/50',
   amber: 'border-amber-500/50', red: 'border-red-500/50',
 }[color] || 'border-slate-600');
 
 const stageTitleClass = (color) => ({
-  blue: 'text-blue-400', purple: 'text-purple-400', emerald: 'text-emerald-400',
+  blue: 'text-blue-400', cyan: 'text-cyan-400', purple: 'text-purple-400', emerald: 'text-emerald-400',
   amber: 'text-amber-400', red: 'text-red-400',
 }[color] || 'text-white');
 
@@ -60,16 +74,23 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
 
   const stagesConfig = STAGE_META.map(meta => ({
     ...meta,
-    items: (stageItemsMap[meta.picklistName] || []).map(i => ({ key: i.value, label: i.label })),
+    items: meta.customType === 'investmentInterest'
+      ? INVESTMENT_INTEREST_ITEMS
+      : (stageItemsMap[meta.picklistName] || []).map(i => ({ key: i.value, label: i.label })),
   }));
 
   const getDefaultStages = () => {
     const stages = {};
     stagesConfig.forEach(stage => {
       stages[stage.key] = {};
-      stage.items.forEach(item => {
-        stages[stage.key][item.key] = 'NA';
-      });
+      if (stage.customType === 'investmentInterest') {
+        stages[stage.key].amount = '';
+        stages[stage.key].received = 'NA';
+      } else {
+        stage.items.forEach(item => {
+          stages[stage.key][item.key] = 'NA';
+        });
+      }
     });
     return stages;
   };
@@ -144,11 +165,16 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
         const updatedStages = { ...prev.stages };
         stagesConfig.forEach(stage => {
           if (!updatedStages[stage.key]) updatedStages[stage.key] = {};
-          stage.items.forEach(item => {
-            if (updatedStages[stage.key][item.key] === undefined) {
-              updatedStages[stage.key][item.key] = 'NA';
-            }
-          });
+          if (stage.customType === 'investmentInterest') {
+            if (updatedStages[stage.key].amount === undefined) updatedStages[stage.key].amount = '';
+            if (updatedStages[stage.key].received === undefined) updatedStages[stage.key].received = 'NA';
+          } else {
+            stage.items.forEach(item => {
+              if (updatedStages[stage.key][item.key] === undefined) {
+                updatedStages[stage.key][item.key] = 'NA';
+              }
+            });
+          }
         });
         return { ...prev, stages: updatedStages };
       });
@@ -309,7 +335,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
   };
 
   // Calculate overall progress
-  const allStageStatuses = stagesConfig.map(s => getStageStatus(formData.stages[s.key], s.items));
+  const allStageStatuses = stagesConfig.map(s => getStageStatus(formData.stages[s.key], s.items, s.customType));
   const completedStages = allStageStatuses.filter(s => s.status === 'Closed').length;
   const totalStages = stagesConfig.length || 1;
   const progressPercent = Math.round((completedStages / totalStages) * 100);
@@ -399,9 +425,11 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
               {stagesConfig.map((stage) => {
                 const stageData = formData.stages[stage.key] || {};
                 const stageItems = stage.items;
-                const { status, color } = getStageStatus(stageData, stageItems);
+                const { status, color } = getStageStatus(stageData, stageItems, stage.customType);
                 const isExpanded = expandedStages[stage.key];
-                const completedCount = stageItems.filter(i => (stageData[i.key] || 'NA') !== 'NA').length;
+                const completedCount = stage.customType === 'investmentInterest'
+                  ? ((Number(stageData.amount) > 0 ? 1 : 0) + ((stageData.received || 'NA') !== 'NA' ? 1 : 0))
+                  : stageItems.filter(i => (stageData[i.key] || 'NA') !== 'NA').length;
 
                 return (
                   <div key={stage.key} className={`bg-slate-900/50 rounded-xl border-l-4 ${stageAccentClass(stage.color)} border border-slate-700 overflow-hidden`}>
@@ -419,29 +447,66 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                     {/* Stage Items */}
                     {isExpanded && (
                       <div className="px-5 pb-4 space-y-2">
-                        {stageItems.map((item) => {
-                          const currentValue = stageData[item.key] || 'NA';
-                          return (
-                            <div key={item.key} className="flex items-center justify-between py-2.5 px-4 bg-slate-800/40 rounded-lg border border-slate-700/50">
-                              <span className="text-white text-sm">{item.label}</span>
+                        {stage.customType === 'investmentInterest' ? (
+                          <>
+                            <div className="flex items-center justify-between py-2.5 px-4 bg-slate-800/40 rounded-lg border border-slate-700/50">
+                              <span className="text-white text-sm">Investment Amount</span>
+                              <input
+                                type="number"
+                                min="0"
+                                value={stageData.amount ?? ''}
+                                onChange={(e) => handleStageItemChange(stage.key, 'amount', e.target.value)}
+                                placeholder="0"
+                                className="input w-40 text-sm"
+                              />
+                            </div>
+                            <div className="flex items-center justify-between py-2.5 px-4 bg-slate-800/40 rounded-lg border border-slate-700/50">
+                              <span className="text-white text-sm">Amount Received</span>
                               <div className="flex items-center gap-1">
-                                {['Yes', 'No', 'NA'].map(val => (
-                                  <button key={val} type="button"
-                                    onClick={() => handleStageItemChange(stage.key, item.key, val)}
-                                    className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
-                                      currentValue === val
-                                        ? val === 'Yes' ? 'bg-green-600 text-white shadow-lg shadow-green-600/30'
-                                          : val === 'No' ? 'bg-red-600 text-white shadow-lg shadow-red-600/30'
-                                            : 'bg-slate-500 text-white shadow-lg shadow-slate-500/30'
-                                        : 'bg-slate-700/50 text-gray-400 hover:bg-slate-600/50 border border-slate-600'
-                                    }`}>
-                                    {val}
-                                  </button>
-                                ))}
+                                {['Yes', 'No', 'NA'].map(val => {
+                                  const currentValue = stageData.received || 'NA';
+                                  return (
+                                    <button key={val} type="button"
+                                      onClick={() => handleStageItemChange(stage.key, 'received', val)}
+                                      className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                                        currentValue === val
+                                          ? val === 'Yes' ? 'bg-green-600 text-white shadow-lg shadow-green-600/30'
+                                            : val === 'No' ? 'bg-red-600 text-white shadow-lg shadow-red-600/30'
+                                              : 'bg-slate-500 text-white shadow-lg shadow-slate-500/30'
+                                          : 'bg-slate-700/50 text-gray-400 hover:bg-slate-600/50 border border-slate-600'
+                                      }`}>
+                                      {val}
+                                    </button>
+                                  );
+                                })}
                               </div>
                             </div>
-                          );
-                        })}
+                          </>
+                        ) : (
+                          stageItems.map((item) => {
+                            const currentValue = stageData[item.key] || 'NA';
+                            return (
+                              <div key={item.key} className="flex items-center justify-between py-2.5 px-4 bg-slate-800/40 rounded-lg border border-slate-700/50">
+                                <span className="text-white text-sm">{item.label}</span>
+                                <div className="flex items-center gap-1">
+                                  {['Yes', 'No', 'NA'].map(val => (
+                                    <button key={val} type="button"
+                                      onClick={() => handleStageItemChange(stage.key, item.key, val)}
+                                      className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                                        currentValue === val
+                                          ? val === 'Yes' ? 'bg-green-600 text-white shadow-lg shadow-green-600/30'
+                                            : val === 'No' ? 'bg-red-600 text-white shadow-lg shadow-red-600/30'
+                                              : 'bg-slate-500 text-white shadow-lg shadow-slate-500/30'
+                                          : 'bg-slate-700/50 text-gray-400 hover:bg-slate-600/50 border border-slate-600'
+                                      }`}>
+                                      {val}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
 
                         {/* Stage Progress Bar */}
                         <div className="pt-2 flex items-center gap-2">

@@ -10,7 +10,7 @@ router.use(protect);
 // GET /api/picklists - Get all picklists
 router.get('/', async (req, res) => {
   try {
-    const picklists = await Picklist.find().sort('name');
+    const picklists = await Picklist.find().sort('label');
     res.json({ success: true, data: picklists });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

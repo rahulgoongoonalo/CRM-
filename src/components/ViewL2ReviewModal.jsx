@@ -4,14 +4,28 @@ import { usePicklist } from '../hooks/usePicklist';
 // Stage metadata (picklist name → display config) — same as L2ReviewModal
 const STAGE_META = [
   { picklistName: 'stage1-basicOnboarding', key: 'basicOnboarding', title: '1. Basic Artist Onboarding', color: 'blue' },
-  { picklistName: 'stage2-artistInvestment', key: 'artistInvestment', title: '2. Artist Investment', color: 'purple' },
-  { picklistName: 'stage3-distributionAgreement', key: 'distributionAgreement', title: '3. Distribution Agreement', color: 'emerald' },
-  { picklistName: 'stage4-nonExclusiveLicense', key: 'nonExclusiveLicense', title: '4. Non-Exclusive License for Streaming on Goongoonalo', color: 'amber' },
-  { picklistName: 'stage5-finalClosure', key: 'finalClosure', title: '5. Final Closure', color: 'red' },
+  { picklistName: null, key: 'interestedInvestment', title: '2. Interested in Investment', color: 'cyan', customType: 'investmentInterest' },
+  { picklistName: 'stage2-artistInvestment', key: 'artistInvestment', title: '3. Artist Investment Document', color: 'purple' },
+  { picklistName: 'stage3-distributionAgreement', key: 'distributionAgreement', title: '4. Distribution Agreement signed', color: 'emerald' },
+  { picklistName: 'stage4-nonExclusiveLicense', key: 'nonExclusiveLicense', title: '5. Non-Exclusive License for Streaming on Goongoonalo', color: 'amber' },
+  { picklistName: 'stage5-finalClosure', key: 'finalClosure', title: '6. Final Closure', color: 'red' },
 ];
 
-const getStageStatus = (stageData, stageItems) => {
+const INVESTMENT_INTEREST_ITEMS = [
+  { key: 'amount', label: 'Investment Amount', type: 'number' },
+  { key: 'received', label: 'Amount Received', type: 'yesno' },
+];
+
+const getStageStatus = (stageData, stageItems, customType) => {
   if (!stageData || !stageItems || stageItems.length === 0) return { status: 'Open', color: 'gray' };
+  if (customType === 'investmentInterest') {
+    const amt = Number(stageData.amount) || 0;
+    const rec = stageData.received || 'NA';
+    const filled = (amt > 0 ? 1 : 0) + (rec !== 'NA' ? 1 : 0);
+    if (filled === 0) return { status: 'Open', color: 'gray' };
+    if (filled === 2) return { status: 'Closed', color: 'green' };
+    return { status: 'In Progress', color: 'yellow' };
+  }
   const values = stageItems.map(item => stageData[item.key] || 'NA');
   const nonNA = values.filter(v => v !== 'NA');
   if (nonNA.length === 0) return { status: 'Open', color: 'gray' };
@@ -31,6 +45,7 @@ const statusBadgeClass = (color) => {
 const stageTitleClass = (color) => {
   const map = {
     blue: 'text-blue-400',
+    cyan: 'text-cyan-400',
     purple: 'text-purple-400',
     emerald: 'text-emerald-400',
     amber: 'text-amber-400',
@@ -42,6 +57,7 @@ const stageTitleClass = (color) => {
 const stageAccentClass = (color) => {
   const map = {
     blue: 'border-l-blue-500',
+    cyan: 'border-l-cyan-500',
     purple: 'border-l-purple-500',
     emerald: 'border-l-emerald-500',
     amber: 'border-l-amber-500',
@@ -75,7 +91,9 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
 
   const stagesConfig = STAGE_META.map(meta => ({
     ...meta,
-    items: (stageItemsMap[meta.picklistName] || []).map(i => ({ key: i.value, label: i.label })),
+    items: meta.customType === 'investmentInterest'
+      ? INVESTMENT_INTEREST_ITEMS
+      : (stageItemsMap[meta.picklistName] || []).map(i => ({ key: i.value, label: i.label })),
   }));
 
   const data = onboarding.l2ReviewData || {};
@@ -108,7 +126,7 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
   ];
 
   // Overall progress based on dynamic stages
-  const allStageStatuses = stagesConfig.map(s => getStageStatus(stages[s.key], s.items));
+  const allStageStatuses = stagesConfig.map(s => getStageStatus(stages[s.key], s.items, s.customType));
   const completedStages = allStageStatuses.filter(s => s.status === 'Closed').length;
   const progressPercent = stagesConfig.length > 0 ? Math.round((completedStages / stagesConfig.length) * 100) : 0;
 
@@ -187,8 +205,10 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
             <div className="space-y-3">
               {stagesConfig.map((stage) => {
                 const stageData = stages[stage.key] || {};
-                const { status, color } = getStageStatus(stageData, stage.items);
-                const completedCount = stage.items.filter(item => (stageData[item.key] || 'NA') !== 'NA').length;
+                const { status, color } = getStageStatus(stageData, stage.items, stage.customType);
+                const completedCount = stage.customType === 'investmentInterest'
+                  ? ((Number(stageData.amount) > 0 ? 1 : 0) + ((stageData.received || 'NA') !== 'NA' ? 1 : 0))
+                  : stage.items.filter(item => (stageData[item.key] || 'NA') !== 'NA').length;
 
                 return (
                   <div key={stage.key} className={`bg-slate-900/50 rounded-xl border-l-4 ${stageAccentClass(stage.color)} border border-slate-700 overflow-hidden`}>
@@ -207,7 +227,22 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
 
                     {/* Stage Items */}
                     <div className="px-5 pb-4 space-y-1.5">
-                      {stage.items.map((item) => {
+                      {stage.customType === 'investmentInterest' ? (
+                        <>
+                          <div className="flex items-center justify-between py-2 px-3 bg-slate-800/30 rounded-lg">
+                            <span className="text-gray-300 text-sm">Investment Amount</span>
+                            <span className="px-3 py-0.5 rounded-md text-xs font-medium bg-slate-600 text-white">
+                              {stageData.amount ? stageData.amount : 'N/A'}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between py-2 px-3 bg-slate-800/30 rounded-lg">
+                            <span className="text-gray-300 text-sm">Amount Received</span>
+                            <span className={`px-3 py-0.5 rounded-md text-xs font-medium ${valueBadge(stageData.received || 'NA')}`}>
+                              {stageData.received || 'NA'}
+                            </span>
+                          </div>
+                        </>
+                      ) : stage.items.map((item) => {
                         const val = stageData[item.key] || 'NA';
                         return (
                           <div key={item.key} className="flex items-center justify-between py-2 px-3 bg-slate-800/30 rounded-lg">

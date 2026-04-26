@@ -173,8 +173,16 @@ connectDB().then(async () => {
           ]
         },
         {
+          name: 'stage2-interestedInvestment',
+          label: 'Stage 2 - Interested in Investment',
+          items: [
+            { value: 'amount', label: 'Investment Amount (number)', order: 1 },
+            { value: 'received', label: 'Amount Received (Yes/No)', order: 2 },
+          ]
+        },
+        {
           name: 'stage2-artistInvestment',
-          label: 'Stage 2 - Artist Investment',
+          label: 'Stage 3 - Artist Investment Document',
           items: [
             { value: 'ssaShaShared', label: 'SSA / SHA shared', order: 1 },
             { value: 'kycReceived', label: 'KYC received', order: 2 },
@@ -184,7 +192,7 @@ connectDB().then(async () => {
         },
         {
           name: 'stage3-distributionAgreement',
-          label: 'Stage 3 - Distribution Agreement',
+          label: 'Stage 4 - Distribution Agreement signed',
           items: [
             { value: 'distributionAgreementSent', label: 'Distribution agreement sent', order: 1 },
             { value: 'contentReceivedForUpload', label: 'Content received for upload', order: 2 },
@@ -194,7 +202,7 @@ connectDB().then(async () => {
         },
         {
           name: 'stage4-nonExclusiveLicense',
-          label: 'Stage 4 - Non-Exclusive License for Streaming',
+          label: 'Stage 5 - Non-Exclusive License for Streaming',
           items: [
             { value: 'streamingAgreementSent', label: 'Non-exclusive streaming agreement sent', order: 1 },
             { value: 'contentReceivedForUpload', label: 'Content received for Goongoonalo upload', order: 2 },
@@ -206,7 +214,7 @@ connectDB().then(async () => {
         },
         {
           name: 'stage5-finalClosure',
-          label: 'Stage 5 - Final Closure',
+          label: 'Stage 6 - Final Closure',
           items: [
             { value: 'notInterested', label: 'Not Interested', order: 1 },
             { value: 'investmentClosed', label: 'Investment Closed', order: 2 },
@@ -219,6 +227,36 @@ connectDB().then(async () => {
 
       await Picklist.insertMany(defaultPicklists);
       console.log('Default picklists seeded successfully');
+    }
+
+    // Idempotent label rename for renumbered stages (preserves items + values)
+    const labelUpdates = [
+      { name: 'stage2-artistInvestment', label: 'Stage 3 - Artist Investment Document' },
+      { name: 'stage3-distributionAgreement', label: 'Stage 4 - Distribution Agreement signed' },
+      { name: 'stage4-nonExclusiveLicense', label: 'Stage 5 - Non-Exclusive License for Streaming' },
+      { name: 'stage5-finalClosure', label: 'Stage 6 - Final Closure' },
+    ];
+    for (const u of labelUpdates) {
+      const res = await Picklist.updateOne(
+        { name: u.name, label: { $ne: u.label } },
+        { $set: { label: u.label } }
+      );
+      if (res.modifiedCount > 0) console.log(`Picklist label updated: ${u.name} -> ${u.label}`);
+    }
+
+    // Idempotent insert of new "Interested in Investment" picklist (admin visibility only)
+    const newStagePicklist = {
+      name: 'stage2-interestedInvestment',
+      label: 'Stage 2 - Interested in Investment',
+      items: [
+        { value: 'amount', label: 'Investment Amount (number)', order: 1, isActive: true },
+        { value: 'received', label: 'Amount Received (Yes/No)', order: 2, isActive: true },
+      ],
+    };
+    const existing = await Picklist.findOne({ name: newStagePicklist.name });
+    if (!existing) {
+      await Picklist.create(newStagePicklist);
+      console.log(`Picklist created: ${newStagePicklist.name}`);
     }
 
     // L2 Review uses 5 stage picklists (stage1-basicOnboarding through stage5-finalClosure)

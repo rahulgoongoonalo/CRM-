@@ -239,6 +239,160 @@ router.get('/reports/full-export', async (req, res) => {
   }
 });
 
+// Get L2 review aggregated report — per-stage status counts + per-onboarding details
+router.get('/reports/l2-review', async (req, res) => {
+  try {
+    // Load stage configs from picklists (same source as L2 modal/email report)
+    const Picklist = (await import('../models/Picklist.js')).default;
+    const STAGE_META = [
+      { picklistName: 'stage1-basicOnboarding', key: 'basicOnboarding', title: 'Basic Artist Onboarding', color: '#3b82f6' },
+      { picklistName: null, key: 'interestedInvestment', title: 'Interested in Investment', color: '#06b6d4', customType: 'investmentInterest' },
+      { picklistName: 'stage2-artistInvestment', key: 'artistInvestment', title: 'Artist Investment Document', color: '#a855f7' },
+      { picklistName: 'stage3-distributionAgreement', key: 'distributionAgreement', title: 'Distribution Agreement signed', color: '#10b981' },
+      { picklistName: 'stage4-nonExclusiveLicense', key: 'nonExclusiveLicense', title: 'Non-Exclusive License for Streaming', color: '#f59e0b' },
+      { picklistName: 'stage5-finalClosure', key: 'finalClosure', title: 'Final Closure', color: '#ef4444' },
+    ];
+    const picklists = await Picklist.find({
+      name: { $in: STAGE_META.filter(m => m.picklistName).map(m => m.picklistName) }
+    });
+    const plMap = {};
+    picklists.forEach(pl => {
+      plMap[pl.name] = pl.items.filter(i => i.isActive).sort((a, b) => a.order - b.order);
+    });
+    const STAGES = STAGE_META.map(m => ({
+      ...m,
+      items: m.customType === 'investmentInterest'
+        ? [{ key: 'amount', label: 'Investment Amount' }, { key: 'received', label: 'Amount Received' }]
+        : (plMap[m.picklistName] || []).map(i => ({ key: i.value, label: i.label })),
+    }));
+
+    const computeStageStatus = (sd, items, customType) => {
+      if (!sd || !items || items.length === 0) return 'New';
+      if (customType === 'investmentInterest') {
+        const amt = Number(sd.amount) || 0;
+        const rec = sd.received || 'NA';
+        const filled = (amt > 0 ? 1 : 0) + (rec !== 'NA' ? 1 : 0);
+        if (filled === 0) return 'New';
+        if (filled === 2) return 'Closed';
+        return 'In Progress';
+      }
+      const values = items.map(i => sd[i.key] || 'NA');
+      const nonNA = values.filter(v => v !== 'NA');
+      if (nonNA.length === 0) return 'New';
+      if (nonNA.length === values.length) return 'Closed';
+      return 'In Progress';
+    };
+
+    // Only L2 review onboardings — same query as the daily email cron for consistency
+    const onboardings = await Onboarding.find({
+      'l2ReviewData.stages': { $exists: true }
+    })
+      .populate('member', 'artistName email phone source primaryGenres tier')
+      .sort({ taskNumber: 1 })
+      .lean();
+
+    // Per-stage counters + per-onboarding stage status
+    const stageSummary = STAGES.map(s => ({
+      key: s.key, title: s.title, color: s.color, New: 0, 'In Progress': 0, Closed: 0
+    }));
+
+    const clients = onboardings.map(ob => {
+      const stagesData = ob.l2ReviewData?.stages || {};
+      const stageStatuses = {};
+      STAGES.forEach((s, idx) => {
+        const status = computeStageStatus(stagesData[s.key], s.items, s.customType);
+        stageStatuses[s.key] = status;
+        stageSummary[idx][status] += 1;
+      });
+
+      return {
+        _id: ob._id,
+        taskNumber: ob.taskNumber,
+        artistName: ob.member?.artistName || ob.artistName || 'N/A',
+        email: ob.member?.email || ob.email || 'N/A',
+        phone: ob.member?.phone || ob.phone || 'N/A',
+        source: ob.member?.source || ob.step1Data?.source || 'N/A',
+        genre: ob.member?.primaryGenres || 'N/A',
+        tier: ob.member?.tier || 'N/A',
+        spoc: ob.spoc || 'N/A',
+        onboardingStatus: ob.status || 'N/A',
+        stageStatuses,
+      };
+    });
+
+    res.json({
+      success: true,
+      data: {
+        stages: STAGES.map(s => ({ key: s.key, title: s.title, color: s.color })),
+        summary: stageSummary,
+        clients,
+      }
+    });
+  } catch (error) {
+    console.error('Error building L2 review report:', error);
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+});
+
+// Get weekly analytics from closure-report snapshots (Sun → Sat buckets)
+router.get('/reports/l2-weekly-analytics', async (req, res) => {
+  try {
+    const ClosureReportSnapshot = (await import('../models/ClosureReportSnapshot.js')).default;
+
+    // Pull last ~12 weeks of snapshots
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 84);
+    const cutoffKey = cutoff.toISOString().split('T')[0];
+
+    const snapshots = await ClosureReportSnapshot.find({
+      dateKey: { $gte: cutoffKey }
+    }).sort({ dateKey: 1 }).lean();
+
+    // Helper: get Sunday of the week containing this date (UTC-safe)
+    const sundayOf = (dateKey) => {
+      const d = new Date(dateKey + 'T00:00:00Z');
+      const day = d.getUTCDay(); // 0=Sun
+      d.setUTCDate(d.getUTCDate() - day);
+      return d.toISOString().split('T')[0];
+    };
+
+    // Bucket snapshots by week-start. For each week keep the LATEST snapshot
+    // in that week (best representation of week-end state).
+    const weekMap = {};
+    snapshots.forEach(s => {
+      const wk = sundayOf(s.dateKey);
+      if (!weekMap[wk] || weekMap[wk].dateKey < s.dateKey) {
+        weekMap[wk] = s;
+      }
+    });
+
+    const weekKeys = Object.keys(weekMap).sort();
+    const weeks = weekKeys.map(wk => {
+      const snap = weekMap[wk];
+      const stageMap = {};
+      (snap.counts || []).forEach(c => {
+        stageMap[c.stageKey] = { New: c.New, 'In Progress': c.inProgress, Closed: c.Closed };
+      });
+      const sundayDate = new Date(wk + 'T00:00:00Z');
+      const saturdayDate = new Date(sundayDate);
+      saturdayDate.setUTCDate(saturdayDate.getUTCDate() + 6);
+      const fmt = (d) => `${String(d.getUTCDate()).padStart(2, '0')}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+      return {
+        weekStart: wk,
+        weekLabel: `${fmt(sundayDate)} – ${fmt(saturdayDate)}`,
+        snapshotDate: snap.dateKey,
+        totalArtists: snap.totalArtists,
+        stages: stageMap,
+      };
+    });
+
+    res.json({ success: true, data: { weeks } });
+  } catch (error) {
+    console.error('Error building weekly analytics:', error);
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
+  }
+});
+
 // Get onboarding status report data (must be before /:id route)
 router.get('/reports/onboarding-status', async (req, res) => {
   try {
