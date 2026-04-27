@@ -38,7 +38,7 @@ const STAGE_META = [
 
 const INVESTMENT_INTEREST_ITEMS = [
   { key: 'amount', label: 'Investment Amount' },
-  { key: 'received', label: 'Amount Received' },
+  { key: 'received', label: 'Interested in Investment' },
 ];
 
 /**
@@ -64,9 +64,9 @@ const getStageStatus = (stageData, stageItems, customType) => {
   if (customType === 'investmentInterest') {
     const amt = Number(stageData.amount) || 0;
     const rec = stageData.received || 'NA';
-    const filled = (amt > 0 ? 1 : 0) + (rec !== 'NA' ? 1 : 0);
-    if (filled === 0) return 'Open';
-    if (filled === 2) return 'Closed';
+    if (rec === 'No') return 'Closed';
+    if (rec === 'Yes' && amt > 0) return 'Closed';
+    if (rec === 'NA' && amt === 0) return 'Open';
     return 'In Progress';
   }
   const values = stageItems.map(i => stageData[i.key] || 'NA');
@@ -112,17 +112,39 @@ export const sendDailyClosureReport = async (to, onboardings, options = {}) => {
   const today = formatShortDate(new Date());
   const todayKey = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
-  // Per-stage counts: New / In Progress / Closed
+  // Classify a stage for one onboarding into Yes / No / Not Updated buckets
+  const classifyYesNo = (sd, items, customType) => {
+    if (!sd || !items || items.length === 0) return 'NotUpdated';
+    if (customType === 'investmentInterest') {
+      const rec = sd.received || 'NA';
+      if (rec === 'Yes') return 'Yes';
+      if (rec === 'No') return 'No';
+      return 'NotUpdated';
+    }
+    const values = items.map(i => sd[i.key] || 'NA');
+    if (values.some(v => v === 'NA')) return 'NotUpdated';
+    if (values.every(v => v === 'Yes')) return 'Yes';
+    if (values.every(v => v === 'No')) return 'No';
+    return 'NotUpdated'; // mixed Yes/No falls here
+  };
+
+  // Per-stage counts: New / In Progress / Closed   AND   Yes / No / Not Updated
   const stageCounts = STAGES_CONFIG.map(sc => {
     let newCount = 0, inProgressCount = 0, closedCount = 0;
+    let yesCount = 0, noCount = 0, notUpdatedCount = 0;
     onboardings.forEach(ob => {
       const sd = ob.l2ReviewData?.stages?.[sc.key] || {};
       const status = getStageStatus(sd, sc.items, sc.customType);
       if (status === 'Closed') closedCount++;
       else if (status === 'In Progress') inProgressCount++;
       else newCount++;
+
+      const yn = classifyYesNo(sd, sc.items, sc.customType);
+      if (yn === 'Yes') yesCount++;
+      else if (yn === 'No') noCount++;
+      else notUpdatedCount++;
     });
-    return { ...sc, newCount, inProgressCount, closedCount };
+    return { ...sc, newCount, inProgressCount, closedCount, yesCount, noCount, notUpdatedCount };
   });
 
   const totalArtists = onboardings.length;
@@ -135,7 +157,11 @@ export const sendDailyClosureReport = async (to, onboardings, options = {}) => {
   const prevMap = {};
   if (previousSnapshot?.counts) {
     previousSnapshot.counts.forEach(c => {
-      prevMap[c.stageKey] = { New: c.New, 'In Progress': c.inProgress, Closed: c.Closed };
+      prevMap[c.stageKey] = {
+        Yes: c.Yes ?? 0,
+        No: c.No ?? 0,
+        'Not Updated': c.notUpdated ?? 0,
+      };
     });
   }
   const prevTotal = previousSnapshot?.totalArtists ?? null;
@@ -150,7 +176,15 @@ export const sendDailyClosureReport = async (to, onboardings, options = {}) => {
     `;
   };
 
-  const rows = stageCounts.map((sc, idx) => {
+  const totalDelta = prevTotal === null ? 0 : totalArtists - prevTotal;
+  const totalSign = totalDelta >= 0 ? '+' : '';
+  const totalDeltaColor = totalDelta > 0 ? '#10b981' : totalDelta < 0 ? '#ef4444' : '#94a3b8';
+  const prevDateLabel = previousSnapshot?.dateKey
+    ? formatShortDate(previousSnapshot.dateKey)
+    : null;
+
+  // Yes / No / Not Updated table rows (with day-over-day deltas)
+  const ynRows = stageCounts.map((sc, idx) => {
     const prev = prevMap[sc.key] || {};
     return `
     <tr style="background: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
@@ -158,24 +192,17 @@ export const sendDailyClosureReport = async (to, onboardings, options = {}) => {
         <div style="font-weight: 600; color: #1e293b; font-size: 14px;">${idx + 1}. ${sc.title}</div>
       </td>
       <td style="padding: 14px 18px; text-align: center; border-bottom: 1px solid #e5e7eb;">
-        ${renderCell(sc.newCount, prev.New, '#e2e8f0', '#475569')}
+        ${renderCell(sc.yesCount, prev.Yes, '#10b981', '#ffffff')}
       </td>
       <td style="padding: 14px 18px; text-align: center; border-bottom: 1px solid #e5e7eb;">
-        ${renderCell(sc.inProgressCount, prev['In Progress'], '#f59e0b', '#ffffff')}
+        ${renderCell(sc.noCount, prev.No, '#ef4444', '#ffffff')}
       </td>
       <td style="padding: 14px 18px; text-align: center; border-bottom: 1px solid #e5e7eb;">
-        ${renderCell(sc.closedCount, prev.Closed, '#10b981', '#ffffff')}
+        ${renderCell(sc.notUpdatedCount, prev['Not Updated'], '#e2e8f0', '#475569')}
       </td>
     </tr>
   `;
   }).join('');
-
-  const totalDelta = prevTotal === null ? 0 : totalArtists - prevTotal;
-  const totalSign = totalDelta >= 0 ? '+' : '';
-  const totalDeltaColor = totalDelta > 0 ? '#10b981' : totalDelta < 0 ? '#ef4444' : '#94a3b8';
-  const prevDateLabel = previousSnapshot?.dateKey
-    ? formatShortDate(previousSnapshot.dateKey)
-    : null;
 
   const html = `
   <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 760px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.08);">
@@ -184,19 +211,19 @@ export const sendDailyClosureReport = async (to, onboardings, options = {}) => {
       <p style="margin: 8px 0 0; color: #fed7aa; font-size: 14px;">${formatDate(new Date())} &bull; ${totalArtists} artist onboarding(s)</p>
     </div>
     <div style="padding: 28px 32px;">
-      <p style="color: #6b7280; font-size: 14px; margin: 0 0 20px;">Stage-wise summary across all onboardings — counts of <strong>New</strong>, <strong>In Progress</strong>, and <strong>Closed</strong> as of today.${prevDateLabel ? ` Each cell shows <strong>today + delta</strong> vs ${prevDateLabel}.` : ' (No prior snapshot — deltas will appear from next run.)'}</p>
+      <p style="color: #6b7280; font-size: 14px; margin: 0 0 20px;">Per-stage decision breakdown — onboardings where the stage is fully <strong style="color:#10b981;">Yes</strong>, fully <strong style="color:#ef4444;">No</strong>, or has any item left as <strong>NA</strong> / mixed (<strong>Not Updated</strong>).${prevDateLabel ? ` Each cell shows <strong>today + delta</strong> vs ${prevDateLabel}.` : ' (No prior snapshot — deltas will appear from next run.)'}</p>
 
       <table style="width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
         <thead>
           <tr style="background: #1e293b;">
             <th style="padding: 14px 18px; text-align: left; color: #f97316; font-size: 13px; font-weight: 700; letter-spacing: 0.3px;">Stages</th>
-            <th style="padding: 14px 18px; text-align: center; color: #cbd5e1; font-size: 12px; font-weight: 600; width: 130px;">${today}<br/><span style="color: #94a3b8; font-size: 11px; font-weight: 500;">New</span></th>
-            <th style="padding: 14px 18px; text-align: center; color: #fbbf24; font-size: 12px; font-weight: 600; width: 130px;">${today}<br/><span style="color: #fde68a; font-size: 11px; font-weight: 500;">In Progress</span></th>
-            <th style="padding: 14px 18px; text-align: center; color: #34d399; font-size: 12px; font-weight: 600; width: 130px;">${today}<br/><span style="color: #6ee7b7; font-size: 11px; font-weight: 500;">Closed</span></th>
+            <th style="padding: 14px 18px; text-align: center; color: #34d399; font-size: 12px; font-weight: 600; width: 130px;">${today}<br/><span style="color: #6ee7b7; font-size: 11px; font-weight: 500;">Yes</span></th>
+            <th style="padding: 14px 18px; text-align: center; color: #f87171; font-size: 12px; font-weight: 600; width: 130px;">${today}<br/><span style="color: #fca5a5; font-size: 11px; font-weight: 500;">No</span></th>
+            <th style="padding: 14px 18px; text-align: center; color: #cbd5e1; font-size: 12px; font-weight: 600; width: 130px;">${today}<br/><span style="color: #94a3b8; font-size: 11px; font-weight: 500;">Not Updated</span></th>
           </tr>
         </thead>
         <tbody>
-          ${rows}
+          ${ynRows}
         </tbody>
         <tfoot>
           <tr style="background: #f1f5f9;">
@@ -234,9 +261,9 @@ export const sendDailyClosureReport = async (to, onboardings, options = {}) => {
     try {
       const snapshotCounts = stageCounts.map(sc => ({
         stageKey: sc.key,
-        New: sc.newCount,
-        inProgress: sc.inProgressCount,
-        Closed: sc.closedCount,
+        Yes: sc.yesCount,
+        No: sc.noCount,
+        notUpdated: sc.notUpdatedCount,
       }));
       await ClosureReportSnapshot.findOneAndUpdate(
         { dateKey: todayKey },

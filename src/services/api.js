@@ -221,6 +221,10 @@ export const picklistAPI = {
   deleteItem: async (name, itemId) => {
     const response = await api.delete(`/picklists/${name}/items/${itemId}`);
     return response.data;
+  },
+  moveItem: async (name, itemId, direction) => {
+    const response = await api.patch(`/picklists/${name}/items/${itemId}/move`, { direction });
+    return response.data;
   }
 };
 

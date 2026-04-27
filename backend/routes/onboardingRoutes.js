@@ -262,25 +262,24 @@ router.get('/reports/l2-review', async (req, res) => {
     const STAGES = STAGE_META.map(m => ({
       ...m,
       items: m.customType === 'investmentInterest'
-        ? [{ key: 'amount', label: 'Investment Amount' }, { key: 'received', label: 'Amount Received' }]
+        ? [{ key: 'amount', label: 'Investment Amount' }, { key: 'received', label: 'Interested in Investment' }]
         : (plMap[m.picklistName] || []).map(i => ({ key: i.value, label: i.label })),
     }));
 
-    const computeStageStatus = (sd, items, customType) => {
-      if (!sd || !items || items.length === 0) return 'New';
+    // Classify a stage for one onboarding into Yes / No / Not Updated buckets
+    const classifyYesNo = (sd, items, customType) => {
+      if (!sd || !items || items.length === 0) return 'Not Updated';
       if (customType === 'investmentInterest') {
-        const amt = Number(sd.amount) || 0;
         const rec = sd.received || 'NA';
-        const filled = (amt > 0 ? 1 : 0) + (rec !== 'NA' ? 1 : 0);
-        if (filled === 0) return 'New';
-        if (filled === 2) return 'Closed';
-        return 'In Progress';
+        if (rec === 'Yes') return 'Yes';
+        if (rec === 'No') return 'No';
+        return 'Not Updated';
       }
       const values = items.map(i => sd[i.key] || 'NA');
-      const nonNA = values.filter(v => v !== 'NA');
-      if (nonNA.length === 0) return 'New';
-      if (nonNA.length === values.length) return 'Closed';
-      return 'In Progress';
+      if (values.some(v => v === 'NA')) return 'Not Updated';
+      if (values.every(v => v === 'Yes')) return 'Yes';
+      if (values.every(v => v === 'No')) return 'No';
+      return 'Not Updated'; // mixed Yes/No falls here
     };
 
     // Only L2 review onboardings — same query as the daily email cron for consistency
@@ -291,18 +290,18 @@ router.get('/reports/l2-review', async (req, res) => {
       .sort({ taskNumber: 1 })
       .lean();
 
-    // Per-stage counters + per-onboarding stage status
+    // Per-stage counters + per-onboarding decision
     const stageSummary = STAGES.map(s => ({
-      key: s.key, title: s.title, color: s.color, New: 0, 'In Progress': 0, Closed: 0
+      key: s.key, title: s.title, color: s.color, Yes: 0, No: 0, 'Not Updated': 0
     }));
 
     const clients = onboardings.map(ob => {
       const stagesData = ob.l2ReviewData?.stages || {};
       const stageStatuses = {};
       STAGES.forEach((s, idx) => {
-        const status = computeStageStatus(stagesData[s.key], s.items, s.customType);
-        stageStatuses[s.key] = status;
-        stageSummary[idx][status] += 1;
+        const decision = classifyYesNo(stagesData[s.key], s.items, s.customType);
+        stageStatuses[s.key] = decision;
+        stageSummary[idx][decision] += 1;
       });
 
       return {

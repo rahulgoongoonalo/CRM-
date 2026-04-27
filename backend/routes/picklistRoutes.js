@@ -65,6 +65,43 @@ router.post('/:name/items', async (req, res) => {
   }
 });
 
+// PATCH /api/picklists/:name/items/:itemId/move - Move item up/down (any authenticated user)
+router.patch('/:name/items/:itemId/move', async (req, res) => {
+  try {
+    const { direction } = req.body; // 'up' or 'down'
+    if (!['up', 'down'].includes(direction)) {
+      return res.status(400).json({ message: 'direction must be "up" or "down"' });
+    }
+
+    const picklist = await Picklist.findOne({ name: req.params.name });
+    if (!picklist) return res.status(404).json({ message: 'Picklist not found' });
+
+    const sorted = [...picklist.items]
+      .filter(i => i.isActive)
+      .sort((a, b) => a.order - b.order);
+
+    const idx = sorted.findIndex(i => i._id.toString() === req.params.itemId);
+    if (idx === -1) return res.status(404).json({ message: 'Item not found' });
+
+    const swapWith = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapWith < 0 || swapWith >= sorted.length) {
+      return res.status(400).json({ message: `Cannot move ${direction} — already at the edge` });
+    }
+
+    // Swap order values
+    const a = picklist.items.id(sorted[idx]._id);
+    const b = picklist.items.id(sorted[swapWith]._id);
+    const tmp = a.order;
+    a.order = b.order;
+    b.order = tmp;
+
+    await picklist.save();
+    res.json({ success: true, data: picklist });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // DELETE /api/picklists/:name/items/:itemId - Remove item (admin only)
 router.delete('/:name/items/:itemId', authorize('administrator'), async (req, res) => {
   try {

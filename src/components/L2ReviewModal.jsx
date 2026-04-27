@@ -16,7 +16,7 @@ const STAGE_META = [
 
 const INVESTMENT_INTEREST_ITEMS = [
   { key: 'amount', label: 'Investment Amount', type: 'number' },
-  { key: 'received', label: 'Amount Received', type: 'yesno' },
+  { key: 'received', label: 'Interested in Investment', type: 'yesno' },
 ];
 
 const getStageStatus = (stageData, stageItems, customType) => {
@@ -24,9 +24,9 @@ const getStageStatus = (stageData, stageItems, customType) => {
   if (customType === 'investmentInterest') {
     const amt = Number(stageData.amount) || 0;
     const rec = stageData.received || 'NA';
-    const filled = (amt > 0 ? 1 : 0) + (rec !== 'NA' ? 1 : 0);
-    if (filled === 0) return { status: 'Open', color: 'gray' };
-    if (filled === 2) return { status: 'Closed', color: 'green' };
+    if (rec === 'No') return { status: 'Closed', color: 'green' };
+    if (rec === 'Yes' && amt > 0) return { status: 'Closed', color: 'green' };
+    if (rec === 'NA' && amt === 0) return { status: 'Open', color: 'gray' };
     return { status: 'In Progress', color: 'yellow' };
   }
   const values = stageItems.map(i => stageData[i.key] || 'NA');
@@ -428,7 +428,13 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                 const { status, color } = getStageStatus(stageData, stageItems, stage.customType);
                 const isExpanded = expandedStages[stage.key];
                 const completedCount = stage.customType === 'investmentInterest'
-                  ? ((Number(stageData.amount) > 0 ? 1 : 0) + ((stageData.received || 'NA') !== 'NA' ? 1 : 0))
+                  ? (() => {
+                      const rec = stageData.received || 'NA';
+                      if (rec === 'No') return 2; // No → stage is fully decided
+                      const amtFilled = Number(stageData.amount) > 0 ? 1 : 0;
+                      const recFilled = rec !== 'NA' ? 1 : 0;
+                      return amtFilled + recFilled;
+                    })()
                   : stageItems.filter(i => (stageData[i.key] || 'NA') !== 'NA').length;
 
                 return (
@@ -454,20 +460,27 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                               <input
                                 type="number"
                                 min="0"
-                                value={stageData.amount ?? ''}
+                                value={(stageData.received === 'No') ? '' : (stageData.amount ?? '')}
                                 onChange={(e) => handleStageItemChange(stage.key, 'amount', e.target.value)}
-                                placeholder="0"
-                                className="input w-40 text-sm"
+                                placeholder={stageData.received === 'No' ? 'N/A' : '0'}
+                                disabled={stageData.received === 'No'}
+                                className="input w-40 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                               />
                             </div>
                             <div className="flex items-center justify-between py-2.5 px-4 bg-slate-800/40 rounded-lg border border-slate-700/50">
-                              <span className="text-white text-sm">Amount Received</span>
+                              <span className="text-white text-sm">Interested in Investment</span>
                               <div className="flex items-center gap-1">
                                 {['Yes', 'No', 'NA'].map(val => {
                                   const currentValue = stageData.received || 'NA';
                                   return (
                                     <button key={val} type="button"
-                                      onClick={() => handleStageItemChange(stage.key, 'received', val)}
+                                      onClick={async () => {
+                                        // When choosing "No", clear amount so it's clean
+                                        if (val === 'No' && (Number(stageData.amount) || 0) > 0) {
+                                          await handleStageItemChange(stage.key, 'amount', '');
+                                        }
+                                        await handleStageItemChange(stage.key, 'received', val);
+                                      }}
                                       className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
                                         currentValue === val
                                           ? val === 'Yes' ? 'bg-green-600 text-white shadow-lg shadow-green-600/30'

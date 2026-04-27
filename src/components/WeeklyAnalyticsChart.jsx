@@ -11,13 +11,13 @@ const STAGE_COLORS = {
 };
 
 const STATUS_OPTIONS = [
-  { key: 'Closed', label: 'Closed', hint: 'Successful completions' },
-  { key: 'In Progress', label: 'In Progress', hint: 'Active workflow' },
-  { key: 'New', label: 'New', hint: 'Yet to start' },
+  { key: 'Yes', label: 'Yes', hint: 'Stage fully Yes' },
+  { key: 'No', label: 'No', hint: 'Stage fully No' },
+  { key: 'Not Updated', label: 'Not Updated', hint: 'Has NA or mixed' },
 ];
 
 const WeeklyAnalyticsChart = ({ weeks, stages }) => {
-  const [statusKey, setStatusKey] = useState('Closed');
+  const [statusKey, setStatusKey] = useState('Yes');
   const [hoveredWeek, setHoveredWeek] = useState(null);
   const [hiddenStages, setHiddenStages] = useState(new Set());
 

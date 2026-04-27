@@ -2,9 +2,14 @@ import mongoose from 'mongoose';
 
 const stageCountSchema = new mongoose.Schema({
   stageKey: { type: String, required: true },
+  // Legacy fields (kept for old snapshot rows)
   New: { type: Number, default: 0 },
   inProgress: { type: Number, default: 0 },
   Closed: { type: Number, default: 0 },
+  // Current decision counts
+  Yes: { type: Number, default: 0 },
+  No: { type: Number, default: 0 },
+  notUpdated: { type: Number, default: 0 },
 }, { _id: false });
 
 const closureReportSnapshotSchema = new mongoose.Schema({

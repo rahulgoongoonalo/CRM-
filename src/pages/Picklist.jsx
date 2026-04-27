@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { RiListSettingsLine, RiAddLine, RiDeleteBinLine, RiArrowDownSLine, RiCloseLine } from 'react-icons/ri';
+import { RiListSettingsLine, RiAddLine, RiDeleteBinLine, RiArrowDownSLine, RiCloseLine, RiArrowUpLine, RiArrowDownLine } from 'react-icons/ri';
 import { picklistAPI } from '../services/api';
 import { usePicklists } from '../hooks/usePicklist';
 import { useAuth } from '../context/AuthContext';
@@ -64,6 +64,19 @@ const Picklist = () => {
       toast.error(error.response?.data?.message || 'Failed to add item');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleMoveItem = async (picklistName, itemId, direction) => {
+    try {
+      const response = await picklistAPI.moveItem(picklistName, itemId, direction);
+      if (response.success) {
+        await fetchPicklists();
+        await refetch();
+      }
+    } catch (error) {
+      console.error('Error moving item:', error);
+      toast.error(error.response?.data?.message || 'Failed to move item');
     }
   };
 
@@ -156,26 +169,47 @@ const Picklist = () => {
                 >
                   <div className="px-5 pb-4 space-y-2">
                     {/* Items List */}
-                    {activeItems.map((item) => (
+                    {activeItems.map((item, idx) => (
                       <div
                         key={item._id}
                         className="flex items-center justify-between px-4 py-2.5 bg-surface-lighter rounded-lg group/item"
                       >
-                        <div className="min-w-0 flex-1">
-                          <span className="text-sm text-text-primary">{item.label}</span>
-                          {item.value !== item.label && (
-                            <span className="text-xs text-text-muted ml-2">({item.value})</span>
+                        <div className="min-w-0 flex-1 flex items-center gap-3">
+                          <span className="text-xs text-text-muted font-mono w-6 text-right">{idx + 1}.</span>
+                          <div className="min-w-0">
+                            <span className="text-sm text-text-primary">{item.label}</span>
+                            {item.value !== item.label && (
+                              <span className="text-xs text-text-muted ml-2">({item.value})</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleMoveItem(picklist.name, item._id, 'up')}
+                            disabled={idx === 0}
+                            className="p-1.5 text-text-muted hover:text-brand-accent hover:bg-brand-primary/10 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-text-muted"
+                            title="Move up"
+                          >
+                            <RiArrowUpLine className="text-sm" />
+                          </button>
+                          <button
+                            onClick={() => handleMoveItem(picklist.name, item._id, 'down')}
+                            disabled={idx === activeItems.length - 1}
+                            className="p-1.5 text-text-muted hover:text-brand-accent hover:bg-brand-primary/10 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-text-muted"
+                            title="Move down"
+                          >
+                            <RiArrowDownLine className="text-sm" />
+                          </button>
+                          {isAdmin && (
+                            <button
+                              onClick={() => handleDeleteItem(picklist.name, item._id, item.label)}
+                              className="p-1.5 text-text-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover/item:opacity-100"
+                              title="Delete item"
+                            >
+                              <RiDeleteBinLine className="text-sm" />
+                            </button>
                           )}
                         </div>
-                        {isAdmin && (
-                          <button
-                            onClick={() => handleDeleteItem(picklist.name, item._id, item.label)}
-                            className="p-1.5 text-text-muted hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all opacity-0 group-hover/item:opacity-100"
-                            title="Delete item"
-                          >
-                            <RiDeleteBinLine className="text-sm" />
-                          </button>
-                        )}
                       </div>
                     ))}
 

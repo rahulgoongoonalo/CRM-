@@ -177,7 +177,7 @@ connectDB().then(async () => {
           label: 'Stage 2 - Interested in Investment',
           items: [
             { value: 'amount', label: 'Investment Amount (number)', order: 1 },
-            { value: 'received', label: 'Amount Received (Yes/No)', order: 2 },
+            { value: 'received', label: 'Interested in Investment (Yes/No)', order: 2 },
           ]
         },
         {
@@ -257,6 +257,14 @@ connectDB().then(async () => {
     if (!existing) {
       await Picklist.create(newStagePicklist);
       console.log(`Picklist created: ${newStagePicklist.name}`);
+    } else {
+      // Rename "Amount Received" → "Interested in Investment" for existing records
+      const receivedItem = existing.items.find(i => i.value === 'received');
+      if (receivedItem && receivedItem.label !== 'Interested in Investment (Yes/No)') {
+        receivedItem.label = 'Interested in Investment (Yes/No)';
+        await existing.save();
+        console.log(`Picklist item renamed: ${newStagePicklist.name}/received`);
+      }
     }
 
     // L2 Review uses 5 stage picklists (stage1-basicOnboarding through stage5-finalClosure)

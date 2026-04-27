@@ -4,10 +4,12 @@ import { getL2ReviewReport, getL2WeeklyAnalytics } from '../services/api';
 import WeeklyAnalyticsChart from '../components/WeeklyAnalyticsChart';
 
 const STATUS_STYLES = {
-  'New': { bg: 'bg-slate-700', text: 'text-slate-200', dot: 'bg-slate-400' },
-  'In Progress': { bg: 'bg-amber-500/20', text: 'text-amber-300', dot: 'bg-amber-400' },
-  'Closed': { bg: 'bg-emerald-500/20', text: 'text-emerald-300', dot: 'bg-emerald-400' },
+  'Yes': { bg: 'bg-emerald-500/20', text: 'text-emerald-300', dot: 'bg-emerald-400' },
+  'No': { bg: 'bg-red-500/20', text: 'text-red-300', dot: 'bg-red-400' },
+  'Not Updated': { bg: 'bg-slate-700', text: 'text-slate-200', dot: 'bg-slate-400' },
 };
+
+const STATUS_KEYS = ['Yes', 'No', 'Not Updated'];
 
 const L2ReviewReport = () => {
   const [stages, setStages] = useState([]);
@@ -126,7 +128,7 @@ const L2ReviewReport = () => {
           <div className="space-y-3 mb-8">
             <h2 className="text-yellow-500 font-bold text-sm uppercase tracking-wider">Stage Summary</h2>
             {summary.map((s, idx) => {
-              const filteredCounts = { New: 0, 'In Progress': 0, Closed: 0 };
+              const filteredCounts = { Yes: 0, No: 0, 'Not Updated': 0 };
               filteredClients.forEach(c => {
                 const st = c.stageStatuses?.[s.key];
                 if (st && filteredCounts[st] !== undefined) filteredCounts[st]++;
@@ -141,7 +143,7 @@ const L2ReviewReport = () => {
                         {s.title}
                       </h3>
                       <div className="flex items-center gap-2 flex-wrap">
-                        {['New', 'In Progress', 'Closed'].map(status => {
+                        {STATUS_KEYS.map(status => {
                           const count = filteredCounts[status];
                           const style = STATUS_STYLES[status];
                           const isExpanded = expandedStage === `${s.key}-${status}`;
@@ -169,7 +171,7 @@ const L2ReviewReport = () => {
                   </div>
 
                   {/* Drilldown */}
-                  {['New', 'In Progress', 'Closed'].map(status => {
+                  {STATUS_KEYS.map(status => {
                     const id = `${s.key}-${status}`;
                     if (expandedStage !== id) return null;
                     const list = getDrilldownClients(s.key, status);
