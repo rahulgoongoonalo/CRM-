@@ -127,6 +127,10 @@ const onboardingSchema = new mongoose.Schema({
           introEmailSent: { type: String, default: 'NA' },
           notInterested: { type: String, default: 'NA' }
         },
+        interestedInvestment: {
+          amount: { type: Number, default: null },
+          received: { type: String, default: 'NA' }
+        },
         artistInvestment: {
           ssaShaShared: { type: String, default: 'NA' },
           kycReceived: { type: String, default: 'NA' },

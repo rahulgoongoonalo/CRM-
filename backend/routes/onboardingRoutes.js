@@ -859,6 +859,37 @@ router.patch('/:id/l1-questionnaire/save-progress', async (req, res) => {
 router.patch('/:id/l2-review', async (req, res) => {
   try {
     const { l2ReviewData, status } = req.body;
+
+    if (!l2ReviewData) {
+      return res.status(400).json({
+        success: false,
+        message: 'L2 review data is required'
+      });
+    }
+
+    const normalizeNumber = (value) => {
+      if (value === '' || value === undefined || value === null) return null;
+      const numeric = Number(value);
+      return Number.isNaN(numeric) ? null : numeric;
+    };
+
+    if (l2ReviewData.stages?.interestedInvestment) {
+      l2ReviewData.stages.interestedInvestment.amount = normalizeNumber(
+        l2ReviewData.stages.interestedInvestment.amount
+      );
+    }
+
+    if (l2ReviewData.stages?.distributionAgreement) {
+      l2ReviewData.stages.distributionAgreement.totalSongsReceivedByArtist = normalizeNumber(
+        l2ReviewData.stages.distributionAgreement.totalSongsReceivedByArtist
+      );
+    }
+
+    if (l2ReviewData.stages?.nonExclusiveLicense) {
+      l2ReviewData.stages.nonExclusiveLicense.totalSongsReceivedByArtist = normalizeNumber(
+        l2ReviewData.stages.nonExclusiveLicense.totalSongsReceivedByArtist
+      );
+    }
     
     // Preserve existing documents when updating L2 review
     const existing = await Onboarding.findById(req.params.id);
