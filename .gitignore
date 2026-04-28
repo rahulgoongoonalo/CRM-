@@ -32,3 +32,13 @@ backend/uploads/
 *.xls
 crm_db.members FINAL.csv
 crm_db.onboardings FINAL.csv
+
+# Local utility/export scripts
+backend/scripts/checkContentSentPicklist.js
+backend/scripts/checkMemberStatusCounts.js
+backend/scripts/diagL2Counts.js
+backend/scripts/exportGGApprovedArtistListStatus.js
+backend/scripts/exportGetgristMemberStatus.js
+backend/scripts/exportGetgristOnboardingStatus.js
+backend/scripts/upsertStageDescriptions.js
+backend/scripts/upsertTotalSongsPicklistField.js

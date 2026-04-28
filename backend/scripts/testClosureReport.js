@@ -20,7 +20,7 @@ const TEST_RECIPIENT = 'rahul.goongoonalo@gmail.com';
     console.log('Connected to DB');
 
     const onboardings = await Onboarding.find({
-      'l2ReviewData.stages': { $exists: true }
+      status: { $regex: /^review[\s-]?l2$/i }
     }).populate('member', 'artistName email').sort({ taskNumber: 1 });
 
     console.log(`Found ${onboardings.length} onboarding(s) with stages data`);

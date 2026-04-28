@@ -85,11 +85,11 @@ router.get('/', async (req, res) => {
     if (status && status !== 'All Status') {
       const statusLower = status.toLowerCase();
       if (statusLower === 'updated') {
-        query.status = { $in: ['active', 'updated'] };
+        query.status = { $regex: /^(active|updated)$/i };
       } else if (statusLower === 'on hold') {
-        query.status = 'inactive';
+        query.status = { $regex: /^(inactive|on hold)$/i };
       } else if (statusLower === 'pending') {
-        query.status = 'pending';
+        query.status = { $regex: /^pending$/i };
       }
     }
 

@@ -6,11 +6,11 @@ import { usePicklist } from '../hooks/usePicklist';
 
 // Stage metadata (picklist name → display config)
 const STAGE_META = [
-  { picklistName: 'stage1-basicOnboarding', key: 'basicOnboarding', title: '1. Basic Artist Onboarding', color: 'blue' },
-  { picklistName: null, key: 'interestedInvestment', title: '2. Interested in Investment', color: 'cyan', customType: 'investmentInterest' },
+  { picklistName: 'stage1-basicOnboarding', key: 'basicOnboarding', title: '1. Basic Artist Onboarding', color: 'blue', description: 'Sending them the Goongoonalo Agreement for review' },
+  { picklistName: null, key: 'interestedInvestment', title: '2. Interested in Investment', color: 'cyan', customType: 'investmentInterest', description: 'All Process Completed' },
   { picklistName: 'stage2-artistInvestment', key: 'artistInvestment', title: '3. Artist Investment Document', color: 'purple' },
-  { picklistName: 'stage3-distributionAgreement', key: 'distributionAgreement', title: '4. Distribution Agreement signed', color: 'emerald' },
-  { picklistName: 'stage4-nonExclusiveLicense', key: 'nonExclusiveLicense', title: '5. Non-Exclusive License for Streaming on Goongoonalo', color: 'amber' },
+  { picklistName: 'stage3-distributionAgreement', key: 'distributionAgreement', title: '4. Distribution Agreement signed', color: 'emerald', description: 'Become the exclusive distributor for the artist content across streaming platform' },
+  { picklistName: 'stage4-nonExclusiveLicense', key: 'nonExclusiveLicense', title: '5. Non-Exclusive License for Streaming on Goongoonalo', color: 'amber', description: 'For Streaming content on Goongoonalo' },
   { picklistName: 'stage5-finalClosure', key: 'finalClosure', title: '6. Final Closure', color: 'red' },
 ];
 
@@ -18,6 +18,12 @@ const INVESTMENT_INTEREST_ITEMS = [
   { key: 'amount', label: 'Investment Amount', type: 'number' },
   { key: 'received', label: 'Interested in Investment', type: 'yesno' },
 ];
+
+const CONTENT_SENT_TO_DEVI_KEY = 'contentSentToDevi';
+const TOTAL_SONGS_RECEIVED_KEY = 'totalSongsReceivedByArtist';
+
+const isNumberItem = (item) => item.type === 'number';
+const isDecisionItem = (item) => !isNumberItem(item);
 
 const getStageStatus = (stageData, stageItems, customType) => {
   if (!stageData || !stageItems || stageItems.length === 0) return { status: 'Open', color: 'gray' };
@@ -29,7 +35,7 @@ const getStageStatus = (stageData, stageItems, customType) => {
     if (rec === 'NA' && amt === 0) return { status: 'Open', color: 'gray' };
     return { status: 'In Progress', color: 'yellow' };
   }
-  const values = stageItems.map(i => stageData[i.key] || 'NA');
+  const values = stageItems.filter(isDecisionItem).map(i => stageData[i.key] || 'NA');
   const nonNA = values.filter(v => v !== 'NA');
   if (nonNA.length === 0) return { status: 'Open', color: 'gray' };
   if (nonNA.length === values.length) return { status: 'Closed', color: 'green' };
@@ -55,13 +61,24 @@ const stageTitleClass = (color) => ({
   amber: 'text-amber-400', red: 'text-red-400',
 }[color] || 'text-white');
 
+const StageHeading = ({ title, description, color }) => (
+  <span className="min-w-0 flex flex-1 flex-wrap items-baseline gap-x-2 gap-y-1 pr-4 text-left">
+    <span className={`font-semibold text-sm ${stageTitleClass(color)}`}>{title}</span>
+    {description && (
+      <span className="text-xs font-medium text-slate-400 leading-snug">
+        ({description})
+      </span>
+    )}
+  </span>
+);
+
 const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
   const { items: meetingTypes } = usePicklist('meetingType');
-  const { items: stage1Items } = usePicklist('stage1-basicOnboarding');
-  const { items: stage2Items } = usePicklist('stage2-artistInvestment');
-  const { items: stage3Items } = usePicklist('stage3-distributionAgreement');
-  const { items: stage4Items } = usePicklist('stage4-nonExclusiveLicense');
-  const { items: stage5Items } = usePicklist('stage5-finalClosure');
+  const { items: stage1Items, picklist: stage1Picklist } = usePicklist('stage1-basicOnboarding');
+  const { items: stage2Items, picklist: stage2Picklist } = usePicklist('stage2-artistInvestment');
+  const { items: stage3Items, picklist: stage3Picklist } = usePicklist('stage3-distributionAgreement');
+  const { items: stage4Items, picklist: stage4Picklist } = usePicklist('stage4-nonExclusiveLicense');
+  const { items: stage5Items, picklist: stage5Picklist } = usePicklist('stage5-finalClosure');
 
   // Build dynamic stages config from picklist data
   const stageItemsMap = {
@@ -72,11 +89,26 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
     'stage5-finalClosure': stage5Items,
   };
 
+  const stagePicklistMap = {
+    'stage1-basicOnboarding': stage1Picklist,
+    'stage2-artistInvestment': stage2Picklist,
+    'stage3-distributionAgreement': stage3Picklist,
+    'stage4-nonExclusiveLicense': stage4Picklist,
+    'stage5-finalClosure': stage5Picklist,
+  };
+
   const stagesConfig = STAGE_META.map(meta => ({
     ...meta,
+    description: stagePicklistMap[meta.picklistName]?.description || meta.description || '',
     items: meta.customType === 'investmentInterest'
       ? INVESTMENT_INTEREST_ITEMS
-      : (stageItemsMap[meta.picklistName] || []).map(i => ({ key: i.value, label: i.label })),
+      : (stageItemsMap[meta.picklistName] || []).map(i => ({
+        key: i.value,
+        label: i.label,
+        type: i.type || 'yesno',
+        dependsOn: i.dependsOn || '',
+        showWhen: i.showWhen || ''
+      })),
   }));
 
   const getDefaultStages = () => {
@@ -171,7 +203,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
           } else {
             stage.items.forEach(item => {
               if (updatedStages[stage.key][item.key] === undefined) {
-                updatedStages[stage.key][item.key] = 'NA';
+                updatedStages[stage.key][item.key] = isNumberItem(item) ? '' : 'NA';
               }
             });
           }
@@ -208,12 +240,25 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
   };
 
   const handleStageItemChange = async (stageKey, itemKey, value) => {
+    const nextStageData = {
+      ...formData.stages[stageKey],
+      [itemKey]: value
+    };
+
+    const currentStage = stagesConfig.find(stage => stage.key === stageKey);
+    currentStage?.items
+      .filter(item => isNumberItem(item) && item.dependsOn === itemKey && item.showWhen !== value)
+      .forEach(item => {
+        nextStageData[item.key] = '';
+      });
+
+    if (itemKey === CONTENT_SENT_TO_DEVI_KEY && value !== 'Yes') {
+      nextStageData[TOTAL_SONGS_RECEIVED_KEY] = '';
+    }
+
     const updatedStages = {
       ...formData.stages,
-      [stageKey]: {
-        ...formData.stages[stageKey],
-        [itemKey]: value
-      }
+      [stageKey]: nextStageData
     };
     setFormData(prev => ({ ...prev, stages: updatedStages }));
 
@@ -435,16 +480,17 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                       const recFilled = rec !== 'NA' ? 1 : 0;
                       return amtFilled + recFilled;
                     })()
-                  : stageItems.filter(i => (stageData[i.key] || 'NA') !== 'NA').length;
+                  : stageItems.filter(isDecisionItem).filter(i => (stageData[i.key] || 'NA') !== 'NA').length;
+                const decisionItems = stageItems.filter(isDecisionItem);
 
                 return (
                   <div key={stage.key} className={`bg-slate-900/50 rounded-xl border-l-4 ${stageAccentClass(stage.color)} border border-slate-700 overflow-hidden`}>
                     {/* Stage Header */}
                     <button type="button" onClick={() => toggleStage(stage.key)}
                       className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-800/30 transition-colors">
-                      <span className={`font-semibold text-sm ${stageTitleClass(stage.color)}`}>{stage.title}</span>
+                      <StageHeading title={stage.title} description={stage.description} color={stage.color} />
                       <div className="flex items-center gap-3">
-                        <span className="text-xs text-gray-500">{completedCount}/{stageItems.length}</span>
+                        <span className="text-xs text-gray-500">{completedCount}/{decisionItems.length}</span>
                         <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${statusBadgeClass(color)}`}>{status}</span>
                         {isExpanded ? <RiArrowUpSLine className="text-gray-400 text-lg" /> : <RiArrowDownSLine className="text-gray-400 text-lg" />}
                       </div>
@@ -496,26 +542,50 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                             </div>
                           </>
                         ) : (
-                          stageItems.map((item) => {
+                          decisionItems.map((item) => {
                             const currentValue = stageData[item.key] || 'NA';
+                            const dependentNumberItems = stageItems.filter(numberItem =>
+                              isNumberItem(numberItem) &&
+                              numberItem.dependsOn === item.key &&
+                              (!numberItem.showWhen || numberItem.showWhen === currentValue)
+                            );
                             return (
-                              <div key={item.key} className="flex items-center justify-between py-2.5 px-4 bg-slate-800/40 rounded-lg border border-slate-700/50">
-                                <span className="text-white text-sm">{item.label}</span>
-                                <div className="flex items-center gap-1">
-                                  {['Yes', 'No', 'NA'].map(val => (
-                                    <button key={val} type="button"
-                                      onClick={() => handleStageItemChange(stage.key, item.key, val)}
-                                      className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
-                                        currentValue === val
-                                          ? val === 'Yes' ? 'bg-green-600 text-white shadow-lg shadow-green-600/30'
-                                            : val === 'No' ? 'bg-red-600 text-white shadow-lg shadow-red-600/30'
-                                              : 'bg-slate-500 text-white shadow-lg shadow-slate-500/30'
-                                          : 'bg-slate-700/50 text-gray-400 hover:bg-slate-600/50 border border-slate-600'
-                                      }`}>
-                                      {val}
-                                    </button>
-                                  ))}
+                              <div key={item.key} className="py-2.5 px-4 bg-slate-800/40 rounded-lg border border-slate-700/50">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-white text-sm">{item.label}</span>
+                                  <div className="flex items-center gap-1">
+                                    {['Yes', 'No', 'NA'].map(val => (
+                                      <button key={val} type="button"
+                                        onClick={() => handleStageItemChange(stage.key, item.key, val)}
+                                        className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
+                                          currentValue === val
+                                            ? val === 'Yes' ? 'bg-green-600 text-white shadow-lg shadow-green-600/30'
+                                              : val === 'No' ? 'bg-red-600 text-white shadow-lg shadow-red-600/30'
+                                                : 'bg-slate-500 text-white shadow-lg shadow-slate-500/30'
+                                            : 'bg-slate-700/50 text-gray-400 hover:bg-slate-600/50 border border-slate-600'
+                                        }`}>
+                                        {val}
+                                      </button>
+                                    ))}
+                                  </div>
                                 </div>
+                                {dependentNumberItems.map(numberItem => (
+                                  <div className="mt-3 flex items-center justify-between gap-4 border-t border-slate-700/60 pt-3">
+                                    <label className="text-sm text-gray-300" htmlFor={`${stage.key}-${numberItem.key}`}>
+                                      {numberItem.label}
+                                    </label>
+                                    <input
+                                      id={`${stage.key}-${numberItem.key}`}
+                                      type="number"
+                                      min="0"
+                                      step="1"
+                                      value={stageData[numberItem.key] ?? ''}
+                                      onChange={(e) => handleStageItemChange(stage.key, numberItem.key, e.target.value)}
+                                      placeholder="0"
+                                      className="input w-40 text-sm"
+                                    />
+                                  </div>
+                                ))}
                               </div>
                             );
                           })
@@ -526,7 +596,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                           <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
                             <div className={`h-full rounded-full transition-all duration-300 ${
                               color === 'green' ? 'bg-green-500' : color === 'yellow' ? 'bg-yellow-500' : 'bg-slate-600'
-                            }`} style={{ width: `${stageItems.length > 0 ? (completedCount / stageItems.length) * 100 : 0}%` }} />
+                            }`} style={{ width: `${decisionItems.length > 0 ? (completedCount / decisionItems.length) * 100 : 0}%` }} />
                           </div>
                         </div>
                       </div>

@@ -3,11 +3,11 @@ import { usePicklist } from '../hooks/usePicklist';
 
 // Stage metadata (picklist name → display config) — same as L2ReviewModal
 const STAGE_META = [
-  { picklistName: 'stage1-basicOnboarding', key: 'basicOnboarding', title: '1. Basic Artist Onboarding', color: 'blue' },
-  { picklistName: null, key: 'interestedInvestment', title: '2. Interested in Investment', color: 'cyan', customType: 'investmentInterest' },
+  { picklistName: 'stage1-basicOnboarding', key: 'basicOnboarding', title: '1. Basic Artist Onboarding', color: 'blue', description: 'Sending them the Goongoonalo Agreement for review' },
+  { picklistName: null, key: 'interestedInvestment', title: '2. Interested in Investment', color: 'cyan', customType: 'investmentInterest', description: 'All Process Completed' },
   { picklistName: 'stage2-artistInvestment', key: 'artistInvestment', title: '3. Artist Investment Document', color: 'purple' },
-  { picklistName: 'stage3-distributionAgreement', key: 'distributionAgreement', title: '4. Distribution Agreement signed', color: 'emerald' },
-  { picklistName: 'stage4-nonExclusiveLicense', key: 'nonExclusiveLicense', title: '5. Non-Exclusive License for Streaming on Goongoonalo', color: 'amber' },
+  { picklistName: 'stage3-distributionAgreement', key: 'distributionAgreement', title: '4. Distribution Agreement signed', color: 'emerald', description: 'Become the exclusive distributor for the artist content across streaming platform' },
+  { picklistName: 'stage4-nonExclusiveLicense', key: 'nonExclusiveLicense', title: '5. Non-Exclusive License for Streaming on Goongoonalo', color: 'amber', description: 'For Streaming content on Goongoonalo' },
   { picklistName: 'stage5-finalClosure', key: 'finalClosure', title: '6. Final Closure', color: 'red' },
 ];
 
@@ -15,6 +15,9 @@ const INVESTMENT_INTEREST_ITEMS = [
   { key: 'amount', label: 'Investment Amount', type: 'number' },
   { key: 'received', label: 'Interested in Investment', type: 'yesno' },
 ];
+
+const isNumberItem = (item) => item.type === 'number';
+const isDecisionItem = (item) => !isNumberItem(item);
 
 const getStageStatus = (stageData, stageItems, customType) => {
   if (!stageData || !stageItems || stageItems.length === 0) return { status: 'Open', color: 'gray' };
@@ -26,7 +29,7 @@ const getStageStatus = (stageData, stageItems, customType) => {
     if (rec === 'NA' && amt === 0) return { status: 'Open', color: 'gray' };
     return { status: 'In Progress', color: 'yellow' };
   }
-  const values = stageItems.map(item => stageData[item.key] || 'NA');
+  const values = stageItems.filter(isDecisionItem).map(item => stageData[item.key] || 'NA');
   const nonNA = values.filter(v => v !== 'NA');
   if (nonNA.length === 0) return { status: 'Open', color: 'gray' };
   if (nonNA.length === values.length) return { status: 'Closed', color: 'green' };
@@ -72,12 +75,23 @@ const valueBadge = (val) => {
   return 'bg-slate-600 text-slate-300';
 };
 
+const StageHeading = ({ title, description, color }) => (
+  <span className="min-w-0 flex flex-1 flex-wrap items-baseline gap-x-2 gap-y-1 pr-4 text-left">
+    <span className={`font-semibold text-sm ${stageTitleClass(color)}`}>{title}</span>
+    {description && (
+      <span className="text-xs font-medium text-slate-400 leading-snug">
+        ({description})
+      </span>
+    )}
+  </span>
+);
+
 const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
-  const { items: stage1Items } = usePicklist('stage1-basicOnboarding');
-  const { items: stage2Items } = usePicklist('stage2-artistInvestment');
-  const { items: stage3Items } = usePicklist('stage3-distributionAgreement');
-  const { items: stage4Items } = usePicklist('stage4-nonExclusiveLicense');
-  const { items: stage5Items } = usePicklist('stage5-finalClosure');
+  const { items: stage1Items, picklist: stage1Picklist } = usePicklist('stage1-basicOnboarding');
+  const { items: stage2Items, picklist: stage2Picklist } = usePicklist('stage2-artistInvestment');
+  const { items: stage3Items, picklist: stage3Picklist } = usePicklist('stage3-distributionAgreement');
+  const { items: stage4Items, picklist: stage4Picklist } = usePicklist('stage4-nonExclusiveLicense');
+  const { items: stage5Items, picklist: stage5Picklist } = usePicklist('stage5-finalClosure');
 
   if (!isOpen || !onboarding) return null;
 
@@ -89,11 +103,26 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
     'stage5-finalClosure': stage5Items,
   };
 
+  const stagePicklistMap = {
+    'stage1-basicOnboarding': stage1Picklist,
+    'stage2-artistInvestment': stage2Picklist,
+    'stage3-distributionAgreement': stage3Picklist,
+    'stage4-nonExclusiveLicense': stage4Picklist,
+    'stage5-finalClosure': stage5Picklist,
+  };
+
   const stagesConfig = STAGE_META.map(meta => ({
     ...meta,
+    description: stagePicklistMap[meta.picklistName]?.description || meta.description || '',
     items: meta.customType === 'investmentInterest'
       ? INVESTMENT_INTEREST_ITEMS
-      : (stageItemsMap[meta.picklistName] || []).map(i => ({ key: i.value, label: i.label })),
+      : (stageItemsMap[meta.picklistName] || []).map(i => ({
+        key: i.value,
+        label: i.label,
+        type: i.type || 'yesno',
+        dependsOn: i.dependsOn || '',
+        showWhen: i.showWhen || ''
+      })),
   }));
 
   const data = onboarding.l2ReviewData || {};
@@ -208,17 +237,16 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
                 const { status, color } = getStageStatus(stageData, stage.items, stage.customType);
                 const completedCount = stage.customType === 'investmentInterest'
                   ? ((Number(stageData.amount) > 0 ? 1 : 0) + ((stageData.received || 'NA') !== 'NA' ? 1 : 0))
-                  : stage.items.filter(item => (stageData[item.key] || 'NA') !== 'NA').length;
+                  : stage.items.filter(isDecisionItem).filter(item => (stageData[item.key] || 'NA') !== 'NA').length;
+                const decisionItems = stage.items.filter(isDecisionItem);
 
                 return (
                   <div key={stage.key} className={`bg-slate-900/50 rounded-xl border-l-4 ${stageAccentClass(stage.color)} border border-slate-700 overflow-hidden`}>
                     {/* Stage Header */}
                     <div className="flex items-center justify-between px-5 py-3">
-                      <span className={`font-semibold text-sm ${stageTitleClass(stage.color)}`}>
-                        {stage.title}
-                      </span>
+                      <StageHeading title={stage.title} description={stage.description} color={stage.color} />
                       <div className="flex items-center gap-3">
-                        <span className="text-xs text-gray-500">{completedCount}/{stage.items.length}</span>
+                        <span className="text-xs text-gray-500">{completedCount}/{decisionItems.length}</span>
                         <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${statusBadgeClass(color)}`}>
                           {status}
                         </span>
@@ -242,14 +270,29 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
                             </span>
                           </div>
                         </>
-                      ) : stage.items.map((item) => {
+                      ) : decisionItems.map((item) => {
                         const val = stageData[item.key] || 'NA';
+                        const dependentNumberItems = stage.items.filter(numberItem =>
+                          isNumberItem(numberItem) &&
+                          numberItem.dependsOn === item.key &&
+                          (!numberItem.showWhen || numberItem.showWhen === val)
+                        );
                         return (
-                          <div key={item.key} className="flex items-center justify-between py-2 px-3 bg-slate-800/30 rounded-lg">
-                            <span className="text-gray-300 text-sm">{item.label}</span>
-                            <span className={`px-3 py-0.5 rounded-md text-xs font-medium ${valueBadge(val)}`}>
-                              {val}
-                            </span>
+                          <div key={item.key} className="py-2 px-3 bg-slate-800/30 rounded-lg">
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-300 text-sm">{item.label}</span>
+                              <span className={`px-3 py-0.5 rounded-md text-xs font-medium ${valueBadge(val)}`}>
+                                {val}
+                              </span>
+                            </div>
+                            {dependentNumberItems.map(numberItem => (
+                              <div className="mt-2 flex items-center justify-between border-t border-slate-700/60 pt-2">
+                                <span className="text-gray-400 text-xs">{numberItem.label}</span>
+                                <span className="px-3 py-0.5 rounded-md text-xs font-medium bg-slate-600 text-white">
+                                  {stageData[numberItem.key] ?? 'N/A'}
+                                </span>
+                              </div>
+                            ))}
                           </div>
                         );
                       })}
@@ -261,7 +304,7 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
                             className={`h-full rounded-full ${
                               color === 'green' ? 'bg-green-500' : color === 'yellow' ? 'bg-yellow-500' : 'bg-slate-600'
                             }`}
-                            style={{ width: `${stage.items.length > 0 ? (completedCount / stage.items.length) * 100 : 0}%` }}
+                            style={{ width: `${decisionItems.length > 0 ? (completedCount / decisionItems.length) * 100 : 0}%` }}
                           />
                         </div>
                       </div>

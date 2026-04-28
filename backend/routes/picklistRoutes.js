@@ -33,7 +33,7 @@ router.get('/:name', async (req, res) => {
 // POST /api/picklists/:name/items - Add item to a picklist (any authenticated user)
 router.post('/:name/items', async (req, res) => {
   try {
-    const { value, label } = req.body;
+    const { value, label, type, dependsOn, showWhen } = req.body;
     if (!value || !label) {
       return res.status(400).json({ message: 'Value and label are required' });
     }
@@ -56,7 +56,7 @@ router.post('/:name/items', async (req, res) => {
       ? Math.max(...picklist.items.map(i => i.order)) + 1
       : 1;
 
-    picklist.items.push({ value, label, order: maxOrder, isActive: true });
+    picklist.items.push({ value, label, type, dependsOn, showWhen, order: maxOrder, isActive: true });
     await picklist.save();
 
     res.status(201).json({ success: true, data: picklist });

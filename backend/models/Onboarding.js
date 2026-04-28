@@ -137,12 +137,14 @@ const onboardingSchema = new mongoose.Schema({
           distributionAgreementSent: { type: String, default: 'NA' },
           contentReceivedForUpload: { type: String, default: 'NA' },
           contentSentToDevi: { type: String, default: 'NA' },
+          totalSongsReceivedByArtist: { type: Number, default: null },
           contentVisibleOnGoongoonalo: { type: String, default: 'NA' }
         },
         nonExclusiveLicense: {
           streamingAgreementSent: { type: String, default: 'NA' },
           contentReceivedForUpload: { type: String, default: 'NA' },
           contentSentToDevi: { type: String, default: 'NA' },
+          totalSongsReceivedByArtist: { type: Number, default: null },
           contentVisibleOnGoongoonalo: { type: String, default: 'NA' },
           artistReviewMeeting: { type: String, default: 'NA' },
           subscriptionActivated: { type: String, default: 'NA' }

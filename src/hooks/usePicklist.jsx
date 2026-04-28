@@ -40,9 +40,13 @@ export const PicklistProvider = ({ children }) => {
 export const usePicklist = (name) => {
   const context = useContext(PicklistContext);
   if (!context) {
-    return { items: [], loading: true };
+    return { items: [], picklist: null, loading: true };
   }
-  return { items: context.picklists[name] || [], loading: context.loading };
+  return {
+    items: context.picklists[name] || [],
+    picklist: context.rawPicklists.find((picklist) => picklist.name === name) || null,
+    loading: context.loading
+  };
 };
 
 export const usePicklists = () => {

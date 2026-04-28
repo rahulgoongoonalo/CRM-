@@ -164,6 +164,7 @@ connectDB().then(async () => {
         {
           name: 'stage1-basicOnboarding',
           label: 'Stage 1 - Basic Artist Onboarding',
+          description: 'Sending them the Goongoonalo Agreement for review',
           items: [
             { value: 'firstCallCompleted', label: 'First call completed', order: 1 },
             { value: 'artistInfoUpdated', label: 'Artist information updated', order: 2 },
@@ -175,6 +176,7 @@ connectDB().then(async () => {
         {
           name: 'stage2-interestedInvestment',
           label: 'Stage 2 - Interested in Investment',
+          description: 'All Process Completed',
           items: [
             { value: 'amount', label: 'Investment Amount (number)', order: 1 },
             { value: 'received', label: 'Interested in Investment (Yes/No)', order: 2 },
@@ -193,23 +195,27 @@ connectDB().then(async () => {
         {
           name: 'stage3-distributionAgreement',
           label: 'Stage 4 - Distribution Agreement signed',
+          description: 'Become the exclusive distributor for the artist content across streaming platform',
           items: [
             { value: 'distributionAgreementSent', label: 'Distribution agreement sent', order: 1 },
             { value: 'contentReceivedForUpload', label: 'Content received for upload', order: 2 },
             { value: 'contentSentToDevi', label: 'Content sent to Devi for upload', order: 3 },
-            { value: 'contentVisibleOnGoongoonalo', label: 'Content visible on Goongoonalo', order: 4 },
+            { value: 'totalSongsReceivedByArtist', label: 'Total song received by Artist', order: 4, type: 'number', dependsOn: 'contentSentToDevi', showWhen: 'Yes' },
+            { value: 'contentVisibleOnGoongoonalo', label: 'Content visible on Goongoonalo', order: 5 },
           ]
         },
         {
           name: 'stage4-nonExclusiveLicense',
           label: 'Stage 5 - Non-Exclusive License for Streaming',
+          description: 'For Streaming content on Goongoonalo',
           items: [
             { value: 'streamingAgreementSent', label: 'Non-exclusive streaming agreement sent', order: 1 },
             { value: 'contentReceivedForUpload', label: 'Content received for Goongoonalo upload', order: 2 },
             { value: 'contentSentToDevi', label: 'Content sent to Devi for upload', order: 3 },
-            { value: 'contentVisibleOnGoongoonalo', label: 'Content visible on Goongoonalo', order: 4 },
-            { value: 'artistReviewMeeting', label: 'Artist review meeting completed', order: 5 },
-            { value: 'subscriptionActivated', label: 'Subscription activated for review, if needed', order: 6 },
+            { value: 'totalSongsReceivedByArtist', label: 'Total song received by Artist', order: 4, type: 'number', dependsOn: 'contentSentToDevi', showWhen: 'Yes' },
+            { value: 'contentVisibleOnGoongoonalo', label: 'Content visible on Goongoonalo', order: 5 },
+            { value: 'artistReviewMeeting', label: 'Artist review meeting completed', order: 6 },
+            { value: 'subscriptionActivated', label: 'Subscription activated for review, if needed', order: 7 },
           ]
         },
         {
@@ -231,15 +237,19 @@ connectDB().then(async () => {
 
     // Idempotent label rename for renumbered stages (preserves items + values)
     const labelUpdates = [
+      { name: 'stage1-basicOnboarding', label: 'Stage 1 - Basic Artist Onboarding', description: 'Sending them the Goongoonalo Agreement for review' },
+      { name: 'stage2-interestedInvestment', label: 'Stage 2 - Interested in Investment', description: 'All Process Completed' },
       { name: 'stage2-artistInvestment', label: 'Stage 3 - Artist Investment Document' },
-      { name: 'stage3-distributionAgreement', label: 'Stage 4 - Distribution Agreement signed' },
-      { name: 'stage4-nonExclusiveLicense', label: 'Stage 5 - Non-Exclusive License for Streaming' },
+      { name: 'stage3-distributionAgreement', label: 'Stage 4 - Distribution Agreement signed', description: 'Become the exclusive distributor for the artist content across streaming platform' },
+      { name: 'stage4-nonExclusiveLicense', label: 'Stage 5 - Non-Exclusive License for Streaming', description: 'For Streaming content on Goongoonalo' },
       { name: 'stage5-finalClosure', label: 'Stage 6 - Final Closure' },
     ];
     for (const u of labelUpdates) {
+      const update = { label: u.label };
+      if (u.description !== undefined) update.description = u.description;
       const res = await Picklist.updateOne(
-        { name: u.name, label: { $ne: u.label } },
-        { $set: { label: u.label } }
+        { name: u.name },
+        { $set: update }
       );
       if (res.modifiedCount > 0) console.log(`Picklist label updated: ${u.name} -> ${u.label}`);
     }
@@ -248,6 +258,7 @@ connectDB().then(async () => {
     const newStagePicklist = {
       name: 'stage2-interestedInvestment',
       label: 'Stage 2 - Interested in Investment',
+      description: 'All Process Completed',
       items: [
         { value: 'amount', label: 'Investment Amount (number)', order: 1, isActive: true },
         { value: 'received', label: 'Amount Received (Yes/No)', order: 2, isActive: true },

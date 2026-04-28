@@ -8,11 +8,11 @@ export const startClosureReportCron = () => {
     console.log('[CRON] Running daily closure stages report at', new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }));
 
     try {
-      const recipientEmail = 'rahul.goongoonalo@gmail.com, sherley@goongoonalo.com, vaishali.goongoonalo@gmail.com, aayush@goongoonalo.com';
+      const recipientEmail = 'rahul.goongoonalo@gmail.com, sherley@goongoonalo.com, vaishali@goongoonalo.com, aayush@goongoonalo.com';
 
-      // Fetch all onboardings that have stages data
+      // Fetch onboardings currently in L2 review — matches both casings present in DB
       const onboardings = await Onboarding.find({
-        'l2ReviewData.stages': { $exists: true }
+        status: { $regex: /^review[\s-]?l2$/i }
       }).populate('member', 'artistName email').sort({ taskNumber: 1 });
 
       if (onboardings.length === 0) {

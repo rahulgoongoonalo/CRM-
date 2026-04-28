@@ -28,18 +28,21 @@ const formatStatus = (s) => {
  * Stage metadata — items are loaded dynamically from picklists
  */
 const STAGE_META = [
-  { picklistName: 'stage1-basicOnboarding', key: 'basicOnboarding', title: 'Basic Artist Onboarding', color: '#3b82f6' },
-  { picklistName: null, key: 'interestedInvestment', title: 'Interested in Investment', color: '#06b6d4', customType: 'investmentInterest' },
+  { picklistName: 'stage1-basicOnboarding', key: 'basicOnboarding', title: 'Basic Artist Onboarding', color: '#3b82f6', description: 'Sending them the Goongoonalo Agreement for review' },
+  { picklistName: null, key: 'interestedInvestment', title: 'Interested in Investment', color: '#06b6d4', customType: 'investmentInterest', description: 'All Process Completed' },
   { picklistName: 'stage2-artistInvestment', key: 'artistInvestment', title: 'Artist Investment Document', color: '#a855f7' },
-  { picklistName: 'stage3-distributionAgreement', key: 'distributionAgreement', title: 'Distribution Agreement signed', color: '#10b981' },
-  { picklistName: 'stage4-nonExclusiveLicense', key: 'nonExclusiveLicense', title: 'Non-Exclusive License', color: '#f59e0b' },
+  { picklistName: 'stage3-distributionAgreement', key: 'distributionAgreement', title: 'Distribution Agreement signed', color: '#10b981', description: 'Become the exclusive distributor for the artist content across streaming platform' },
+  { picklistName: 'stage4-nonExclusiveLicense', key: 'nonExclusiveLicense', title: 'Non-Exclusive License', color: '#f59e0b', description: 'For Streaming content on Goongoonalo' },
   { picklistName: 'stage5-finalClosure', key: 'finalClosure', title: 'Final Closure', color: '#ef4444' },
 ];
 
 const INVESTMENT_INTEREST_ITEMS = [
-  { key: 'amount', label: 'Investment Amount' },
-  { key: 'received', label: 'Interested in Investment' },
+  { key: 'amount', label: 'Investment Amount', type: 'number' },
+  { key: 'received', label: 'Interested in Investment', type: 'yesno' },
 ];
+
+const isNumberItem = (item) => item.type === 'number';
+const isDecisionItem = (item) => !isNumberItem(item);
 
 /**
  * Load stages config dynamically from picklists DB
@@ -49,13 +52,23 @@ const loadStagesConfig = async () => {
     name: { $in: STAGE_META.map(m => m.picklistName) }
   });
   const plMap = {};
-  picklists.forEach(pl => { plMap[pl.name] = pl.items.filter(i => i.isActive).sort((a, b) => a.order - b.order); });
+  picklists.forEach(pl => {
+    plMap[pl.name] = {
+      description: pl.description || '',
+      items: pl.items.filter(i => i.isActive).sort((a, b) => a.order - b.order)
+    };
+  });
 
   return STAGE_META.map(meta => ({
     ...meta,
+    description: plMap[meta.picklistName]?.description || meta.description || '',
     items: meta.customType === 'investmentInterest'
       ? INVESTMENT_INTEREST_ITEMS
-      : (plMap[meta.picklistName] || []).map(i => ({ key: i.value, label: i.label })),
+      : (plMap[meta.picklistName]?.items || []).map(i => ({
+        key: i.value,
+        label: i.label,
+        type: i.type || 'yesno',
+      })),
   }));
 };
 
@@ -69,7 +82,7 @@ const getStageStatus = (stageData, stageItems, customType) => {
     if (rec === 'NA' && amt === 0) return 'Open';
     return 'In Progress';
   }
-  const values = stageItems.map(i => stageData[i.key] || 'NA');
+  const values = stageItems.filter(isDecisionItem).map(i => stageData[i.key] || 'NA');
   const nonNA = values.filter(v => v !== 'NA');
   if (nonNA.length === 0) return 'Open';
   if (nonNA.length === values.length) return 'Closed';
@@ -121,7 +134,7 @@ export const sendDailyClosureReport = async (to, onboardings, options = {}) => {
       if (rec === 'No') return 'No';
       return 'NotUpdated';
     }
-    const values = items.map(i => sd[i.key] || 'NA');
+    const values = items.filter(isDecisionItem).map(i => sd[i.key] || 'NA');
     if (values.some(v => v === 'NA')) return 'NotUpdated';
     if (values.every(v => v === 'Yes')) return 'Yes';
     if (values.every(v => v === 'No')) return 'No';
@@ -190,6 +203,7 @@ export const sendDailyClosureReport = async (to, onboardings, options = {}) => {
     <tr style="background: ${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
       <td style="padding: 14px 18px; border-bottom: 1px solid #e5e7eb; border-left: 4px solid ${sc.color};">
         <div style="font-weight: 600; color: #1e293b; font-size: 14px;">${idx + 1}. ${sc.title}</div>
+        ${sc.description ? `<div style="margin-top: 4px; color: #64748b; font-size: 12px; line-height: 1.35;">(${sc.description})</div>` : ''}
       </td>
       <td style="padding: 14px 18px; text-align: center; border-bottom: 1px solid #e5e7eb;">
         ${renderCell(sc.yesCount, prev.Yes, '#10b981', '#ffffff')}

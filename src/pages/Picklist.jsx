@@ -151,7 +151,9 @@ const Picklist = () => {
                       <p className="text-sm font-semibold text-text-primary group-hover:text-brand-accent transition-colors">
                         {picklist.label}
                       </p>
-                      <p className="text-xs text-text-muted">{activeItems.length} items</p>
+                      <p className="text-xs text-text-muted">
+                        {activeItems.length} items{picklist.description ? ` • ${picklist.description}` : ''}
+                      </p>
                     </div>
                   </div>
                   <RiArrowDownSLine

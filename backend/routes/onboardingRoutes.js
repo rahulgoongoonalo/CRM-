@@ -208,10 +208,12 @@ router.get('/reports/full-export', async (req, res) => {
         l2Distribution_agreementSent: l2.stages?.distributionAgreement?.distributionAgreementSent || 'NA',
         l2Distribution_contentReceived: l2.stages?.distributionAgreement?.contentReceivedForUpload || 'NA',
         l2Distribution_contentSentToDevi: l2.stages?.distributionAgreement?.contentSentToDevi || 'NA',
+        l2Distribution_totalSongsReceivedByArtist: l2.stages?.distributionAgreement?.totalSongsReceivedByArtist ?? 'N/A',
         l2Distribution_contentVisible: l2.stages?.distributionAgreement?.contentVisibleOnGoongoonalo || 'NA',
         l2NonExclusive_streamingAgreementSent: l2.stages?.nonExclusiveLicense?.streamingAgreementSent || 'NA',
         l2NonExclusive_contentReceived: l2.stages?.nonExclusiveLicense?.contentReceivedForUpload || 'NA',
         l2NonExclusive_contentSentToDevi: l2.stages?.nonExclusiveLicense?.contentSentToDevi || 'NA',
+        l2NonExclusive_totalSongsReceivedByArtist: l2.stages?.nonExclusiveLicense?.totalSongsReceivedByArtist ?? 'N/A',
         l2NonExclusive_contentVisible: l2.stages?.nonExclusiveLicense?.contentVisibleOnGoongoonalo || 'NA',
         l2NonExclusive_artistReviewMeeting: l2.stages?.nonExclusiveLicense?.artistReviewMeeting || 'NA',
         l2NonExclusive_subscriptionActivated: l2.stages?.nonExclusiveLicense?.subscriptionActivated || 'NA',
@@ -282,9 +284,10 @@ router.get('/reports/l2-review', async (req, res) => {
       return 'Not Updated'; // mixed Yes/No falls here
     };
 
-    // Only L2 review onboardings — same query as the daily email cron for consistency
+    // Only onboardings whose CURRENT status is review-l2 (matches both casings present in DB).
+    // Records that have moved past L2 (closed-won, closed-lost, cold-storage, warm) are excluded.
     const onboardings = await Onboarding.find({
-      'l2ReviewData.stages': { $exists: true }
+      status: { $regex: /^review[\s-]?l2$/i }
     })
       .populate('member', 'artistName email phone source primaryGenres tier')
       .sort({ taskNumber: 1 })

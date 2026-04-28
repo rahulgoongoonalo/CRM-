@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { RiArrowDownSLine, RiArrowUpSLine, RiSearchLine, RiCloseLine, RiBarChart2Line } from 'react-icons/ri';
+import { RiArrowDownSLine, RiArrowUpSLine, RiSearchLine, RiCloseLine, RiBarChart2Line, RiRefreshLine } from 'react-icons/ri';
 import { getL2ReviewReport, getL2WeeklyAnalytics } from '../services/api';
 import WeeklyAnalyticsChart from '../components/WeeklyAnalyticsChart';
 
@@ -17,6 +17,8 @@ const L2ReviewReport = () => {
   const [clients, setClients] = useState([]);
   const [weeklyData, setWeeklyData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastFetchedAt, setLastFetchedAt] = useState(null);
   const [expandedStage, setExpandedStage] = useState(null); // `${stageKey}-${status}`
   const [search, setSearch] = useState('');
   const [sourceFilter, setSourceFilter] = useState('all');
@@ -25,9 +27,10 @@ const L2ReviewReport = () => {
     fetchReport();
   }, []);
 
-  const fetchReport = async () => {
+  const fetchReport = async (isRefresh = false) => {
     try {
-      setLoading(true);
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
       const [report, weekly] = await Promise.all([
         getL2ReviewReport(),
         getL2WeeklyAnalytics().catch(() => ({ success: false, data: { weeks: [] } })),
@@ -40,10 +43,12 @@ const L2ReviewReport = () => {
       if (weekly.success) {
         setWeeklyData(weekly.data.weeks || []);
       }
+      setLastFetchedAt(new Date());
     } catch (e) {
       console.error('L2 report fetch failed:', e);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -83,14 +88,32 @@ const L2ReviewReport = () => {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="bg-gradient-to-r from-orange-600 to-orange-500 p-2.5 rounded-lg shadow-lg shadow-orange-600/30">
-            <RiBarChart2Line className="text-white text-2xl" />
+      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="bg-gradient-to-r from-orange-600 to-orange-500 p-2.5 rounded-lg shadow-lg shadow-orange-600/30">
+              <RiBarChart2Line className="text-white text-2xl" />
+            </div>
+            <h1 className="text-2xl font-bold text-white">L2 Review Report</h1>
           </div>
-          <h1 className="text-2xl font-bold text-white">L2 Review Report</h1>
+          <p className="text-text-secondary text-sm">Stage-wise breakdown and detailed view of all onboardings in L2 review</p>
         </div>
-        <p className="text-text-secondary text-sm">Stage-wise breakdown and detailed view of all onboardings in L2 review</p>
+        <div className="flex items-center gap-3">
+          {lastFetchedAt && (
+            <span className="text-xs text-text-muted">
+              Updated {lastFetchedAt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={() => fetchReport(true)}
+            disabled={refreshing || loading}
+            className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg shadow-md shadow-orange-600/20 transition-all text-sm font-medium"
+          >
+            <RiRefreshLine className={`text-base ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Refreshing…' : 'Refresh'}
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
