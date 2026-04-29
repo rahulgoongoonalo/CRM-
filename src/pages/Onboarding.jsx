@@ -7,6 +7,9 @@ import L2ReviewModal from '../components/L2ReviewModal';
 import { onboardingAPI } from '../services/api';
 import { useToast, useConfirm } from '../components/ToastNotification';
 import { usePicklist } from '../hooks/usePicklist';
+import { useAuth } from '../context/AuthContext';
+
+const L2_EDIT_BYPASS_EMAILS = ['rahuljadhav0417@gmail.com', 'vaishali@milkdigital.in'];
 
 const SortIcon = ({ active, direction }) => {
   if (!active) {
@@ -26,6 +29,8 @@ const SortIcon = ({ active, direction }) => {
 };
 
 const Onboarding = () => {
+  const { user } = useAuth();
+  const canEditCompletedL2 = L2_EDIT_BYPASS_EMAILS.includes((user?.email || '').toLowerCase());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -183,12 +188,30 @@ const Onboarding = () => {
     }
   };
 
-  const handleOpenL2Review = (onboarding) => {
+  const handleOpenL2Review = async (onboarding) => {
     const doneStatuses = ['closed-won', 'closed-lost', 'cold-storage'];
-    if (doneStatuses.includes(onboarding.status)) {
-      toast.info('L2 Review is already done for this onboarding');
+    const isDone = doneStatuses.includes(onboarding.status);
+
+    if (isDone && !canEditCompletedL2) {
+      toast.info('Only Vaishali can edit closed L2 reviews');
       return;
     }
+
+    if (isDone && canEditCompletedL2) {
+      const statusLabel = onboarding.status
+        .split('-')
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+      const proceed = await confirm({
+        title: 'Edit completed L2 Review?',
+        message: `This onboarding is already marked as "${statusLabel}". Editing may overwrite finalized data. Proceed with caution.`,
+        confirmText: 'Yes, Edit',
+        cancelText: 'Cancel',
+        type: 'warning',
+      });
+      if (!proceed) return;
+    }
+
     setSelectedOnboarding(onboarding);
     setIsL2ReviewModalOpen(true);
   };

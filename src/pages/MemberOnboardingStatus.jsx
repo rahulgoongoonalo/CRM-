@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RiArrowLeftLine, RiFilterLine, RiSearchLine, RiDownloadLine, RiFileExcel2Line } from 'react-icons/ri';
-import { getOnboardingStatusReport, getFullExportData } from '../services/api';
+import { getOnboardingStatusReport, getFullExportData, picklistAPI } from '../services/api';
 
 const MemberOnboardingStatus = () => {
   const navigate = useNavigate();
@@ -9,19 +9,46 @@ const MemberOnboardingStatus = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterTier, setFilterTier] = useState('all');
+  const [filterSource, setFilterSource] = useState('all');
+  const [filterMemberStatus, setFilterMemberStatus] = useState('all');
+  const [filterOnboardingStatus, setFilterOnboardingStatus] = useState('all');
+  const [sourceOptions, setSourceOptions] = useState([]);
+  const [memberStatusOptions, setMemberStatusOptions] = useState([]);
+  const [onboardingStatusOptions, setOnboardingStatusOptions] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     fetchReportData();
+    fetchPicklistOptions();
   }, []);
 
   useEffect(() => {
     filterData();
     setCurrentPage(1); // Reset to first page when filters change
-  }, [searchTerm, filterStatus, filterTier, reportData]);
+  }, [searchTerm, filterSource, filterMemberStatus, filterOnboardingStatus, reportData]);
+
+  const fetchPicklistOptions = async () => {
+    try {
+      const [src, mem, onb] = await Promise.all([
+        picklistAPI.getByName('source').catch(() => null),
+        picklistAPI.getByName('memberStatus').catch(() => null),
+        picklistAPI.getByName('onboardingStatus').catch(() => null),
+      ]);
+      const norm = (res) => {
+        const items = res?.data?.items || res?.items || [];
+        return items
+          .filter(i => i.isActive !== false)
+          .sort((a, b) => (a.order || 0) - (b.order || 0))
+          .map(i => ({ value: i.value, label: i.label || i.value }));
+      };
+      setSourceOptions(norm(src));
+      setMemberStatusOptions(norm(mem));
+      setOnboardingStatusOptions(norm(onb));
+    } catch (e) {
+      console.error('Error loading filter picklists:', e);
+    }
+  };
 
   const fetchReportData = async () => {
     try {
@@ -43,21 +70,29 @@ const MemberOnboardingStatus = () => {
 
     // Search filter
     if (searchTerm) {
+      const q = searchTerm.toLowerCase();
       filtered = filtered.filter(item =>
-        item.artistName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.genre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.spoc.toLowerCase().includes(searchTerm.toLowerCase())
+        (item.artistName || '').toLowerCase().includes(q) ||
+        (item.email || '').toLowerCase().includes(q) ||
+        (item.phone || '').toLowerCase().includes(q) ||
+        (item.source || '').toLowerCase().includes(q) ||
+        (item.spoc || '').toLowerCase().includes(q)
       );
     }
 
-    // Status filter
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter(item => item.onboardingStatus === filterStatus);
+    // Source filter
+    if (filterSource !== 'all') {
+      filtered = filtered.filter(item => (item.source || '').toLowerCase() === filterSource.toLowerCase());
     }
 
-    // Tier filter
-    if (filterTier !== 'all') {
-      filtered = filtered.filter(item => item.tier.toLowerCase() === filterTier.toLowerCase());
+    // Member Management Status filter
+    if (filterMemberStatus !== 'all') {
+      filtered = filtered.filter(item => (item.memberStatus || '').toLowerCase() === filterMemberStatus.toLowerCase());
+    }
+
+    // Onboarding Status filter
+    if (filterOnboardingStatus !== 'all') {
+      filtered = filtered.filter(item => (item.onboardingStatus || '').toLowerCase() === filterOnboardingStatus.toLowerCase());
     }
 
     setFilteredData(filtered);
@@ -129,17 +164,16 @@ const MemberOnboardingStatus = () => {
   };
 
   const exportToCSV = () => {
-    const headers = ['Serial No', 'Artist Name', 'Genre', 'Source', 'SPOC', 'Tier', 'Onboarding Status', 'ETA Closure', 'Days from ETA'];
+    const headers = ['S.No', 'Name', 'Email', 'Number', 'Source', 'SPOC', 'Member Management Status', 'Onboarding Status'];
     const csvData = filteredData.map(item => [
       item.serialNo,
       item.artistName,
-      item.genre,
+      item.email || 'N/A',
+      item.phone || 'N/A',
       item.source,
       item.spoc,
-      item.tier,
-      item.onboardingStatus,
-      item.etaClosure,
-      item.daysFromETA
+      item.memberStatus || 'N/A',
+      item.onboardingStatus
     ]);
 
     const csvContent = [
@@ -440,51 +474,61 @@ const MemberOnboardingStatus = () => {
 
       {/* Filters */}
       <div className="bg-surface-card rounded-lg p-4 border border-border mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Search */}
           <div className="relative">
             <RiSearchLine className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" />
             <input
               type="text"
-              placeholder="Search by artist, genre, or SPOC..."
+              placeholder="Search by name, email, number, source or SPOC..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-surface-lighter border border-border rounded-lg text-text-primary placeholder-text-secondary focus:outline-none focus:ring-2 focus:ring-brand-primary"
             />
           </div>
 
-          {/* Status Filter */}
+          {/* Source Filter */}
           <div className="relative">
             <RiFilterLine className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" />
             <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              value={filterSource}
+              onChange={(e) => setFilterSource(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-surface-lighter border border-border rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary appearance-none cursor-pointer"
             >
-              <option value="all">All Statuses</option>
-              <option value="Hot">Hot</option>
-              <option value="Warm">Warm</option>
-              <option value="Cold">Cold</option>
+              <option value="all">All Sources</option>
+              {sourceOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
             </select>
           </div>
 
-          {/* Tier Filter */}
+          {/* Member Management Status Filter */}
           <div className="relative">
             <RiFilterLine className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" />
             <select
-              value={filterTier}
-              onChange={(e) => setFilterTier(e.target.value)}
+              value={filterMemberStatus}
+              onChange={(e) => setFilterMemberStatus(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-surface-lighter border border-border rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary appearance-none cursor-pointer"
             >
-              <option value="all">All Tiers</option>
-              <option value="tier1">Tier 1</option>
-              <option value="tier2">Tier 2</option>
-              <option value="tier3">Tier 3</option>
-              <option value="tier4">Tier 4</option>
-              <option value="tier5">Tier 5</option>
-              <option value="tier6">Tier 6</option>
-              <option value="tier7">Tier 7</option>
-              <option value="tier8">Tier 8</option>
+              <option value="all">All Member Statuses</option>
+              {memberStatusOptions.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Onboarding Status Filter */}
+          <div className="relative">
+            <RiFilterLine className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-secondary" />
+            <select
+              value={filterOnboardingStatus}
+              onChange={(e) => setFilterOnboardingStatus(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-surface-lighter border border-border rounded-lg text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-primary appearance-none cursor-pointer"
+            >
+              <option value="all">All Onboarding Statuses</option>
+              {onboardingStatusOptions.map(opt => (
+                <option key={opt.value} value={opt.label}>{opt.label}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -497,21 +541,21 @@ const MemberOnboardingStatus = () => {
           <div className="text-2xl font-bold text-text-primary">{filteredData.length}</div>
         </div>
         <div className="bg-surface-card rounded-lg p-4 border border-border">
-          <div className="text-text-secondary text-sm mb-1">Active Onboarding</div>
-          <div className="text-2xl font-bold text-brand-accent">
-            {filteredData.filter(item => !['Closed Won', 'Closed Lost'].includes(item.onboardingStatus)).length}
+          <div className="text-text-secondary text-sm mb-1">Updated Members</div>
+          <div className="text-2xl font-bold text-blue-400">
+            {filteredData.filter(item => item.memberStatus === 'Updated').length}
+          </div>
+        </div>
+        <div className="bg-surface-card rounded-lg p-4 border border-border">
+          <div className="text-text-secondary text-sm mb-1">Review L2</div>
+          <div className="text-2xl font-bold text-amber-400">
+            {filteredData.filter(item => item.onboardingStatus === 'Review L2').length}
           </div>
         </div>
         <div className="bg-surface-card rounded-lg p-4 border border-border">
           <div className="text-text-secondary text-sm mb-1">Closed Won</div>
           <div className="text-2xl font-bold text-emerald-400">
             {filteredData.filter(item => item.onboardingStatus === 'Closed Won').length}
-          </div>
-        </div>
-        <div className="bg-surface-card rounded-lg p-4 border border-border">
-          <div className="text-text-secondary text-sm mb-1">Overdue</div>
-          <div className="text-2xl font-bold text-red-400">
-            {filteredData.filter(item => typeof item.daysFromETA === 'number' && item.daysFromETA > 0).length}
           </div>
         </div>
       </div>
@@ -532,14 +576,13 @@ const MemberOnboardingStatus = () => {
               <thead className="bg-surface-lighter border-b border-border sticky top-0">
                 <tr>
                   <th className="w-16 px-3 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">S.No</th>
-                  <th className="w-48 px-4 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">Artist Name</th>
-                  <th className="w-56 px-4 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">Genre</th>
+                  <th className="w-48 px-4 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">Name</th>
+                  <th className="w-56 px-4 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">Email</th>
+                  <th className="w-36 px-4 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">Number</th>
                   <th className="w-32 px-4 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">Source</th>
                   <th className="w-32 px-4 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">SPOC</th>
-                  <th className="w-24 px-4 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">Tier</th>
-                  <th className="w-40 px-4 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">Status</th>
-                  <th className="w-32 px-4 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">ETA Closure</th>
-                  <th className="w-32 px-4 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">Days from ETA</th>
+                  <th className="w-44 px-4 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">Member Mgmt Status</th>
+                  <th className="w-40 px-4 py-4 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider">Onboarding Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border bg-surface-card">
@@ -552,8 +595,13 @@ const MemberOnboardingStatus = () => {
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <div className="text-xs text-text-secondary line-clamp-2" title={item.genre}>
-                        {item.genre}
+                      <div className="text-sm text-text-secondary truncate" title={item.email || 'N/A'}>
+                        {item.email || 'N/A'}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <div className="text-sm text-text-secondary truncate" title={item.phone || 'N/A'}>
+                        {item.phone || 'N/A'}
                       </div>
                     </td>
                     <td className="px-4 py-4">
@@ -567,19 +615,13 @@ const MemberOnboardingStatus = () => {
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <span className={`inline-block px-2 py-1 rounded text-xs font-semibold whitespace-nowrap ${getTierColor(item.tier)}`}>
-                        {getTierLabel(item.tier)}
+                      <span className="inline-block px-2 py-1 rounded text-xs font-semibold whitespace-nowrap bg-surface-lighter text-text-primary border border-border" title={item.memberStatus || 'N/A'}>
+                        {item.memberStatus || 'N/A'}
                       </span>
                     </td>
                     <td className="px-4 py-4">
                       <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium border whitespace-nowrap ${getStatusColor(item.onboardingStatus)}`}>
                         {item.onboardingStatus}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-sm text-text-secondary whitespace-nowrap">{item.etaClosure}</td>
-                    <td className="px-4 py-4">
-                      <span className={`text-sm font-bold whitespace-nowrap ${getDaysColor(item.daysFromETA)}`}>
-                        {item.daysFromETA !== 'N/A' ? `${item.daysFromETA} days` : 'N/A'}
                       </span>
                     </td>
                   </tr>

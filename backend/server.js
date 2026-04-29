@@ -156,9 +156,10 @@ connectDB().then(async () => {
             { value: 'hot', label: 'Hot', order: 1 },
             { value: 'warm', label: 'Warm', order: 2 },
             { value: 'cold', label: 'Cold', order: 3 },
-            { value: 'closed-won', label: 'Closed Won', order: 4 },
-            { value: 'closed-lost', label: 'Closed Lost', order: 5 },
-            { value: 'cold-storage', label: 'Cold Storage', order: 6 },
+            { value: 'review-l2', label: 'Review L2', order: 4 },
+            { value: 'closed-won', label: 'Closed Won', order: 5 },
+            { value: 'closed-lost', label: 'Closed Lost', order: 6 },
+            { value: 'cold-storage', label: 'Cold Storage', order: 7 },
           ]
         },
         {

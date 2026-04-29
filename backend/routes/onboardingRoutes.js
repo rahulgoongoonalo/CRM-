@@ -399,7 +399,7 @@ router.get('/reports/l2-weekly-analytics', async (req, res) => {
 router.get('/reports/onboarding-status', async (req, res) => {
   try {
     const onboardings = await Onboarding.find()
-      .populate('member', 'artistName primaryGenres source tier')
+      .populate('member', 'artistName primaryGenres source tier email phone status')
       .sort({ createdAt: -1 })
       .lean();
     
@@ -421,8 +421,23 @@ router.get('/reports/onboarding-status', async (req, res) => {
       const statusMapping = {
         'hot': 'Hot',
         'warm': 'Warm',
-        'cold': 'Cold'
+        'cold': 'Cold',
+        'review-l2': 'Review L2',
+        'closed-won': 'Closed Won',
+        'closed-lost': 'Closed Lost',
+        'cold-storage': 'Cold Storage'
       };
+
+      // Map legacy member.status values to picklist labels
+      const memberStatusMapping = {
+        'active': 'Updated',
+        'updated': 'Updated',
+        'inactive': 'On Hold',
+        'on hold': 'On Hold',
+        'pending': 'Pending'
+      };
+      const rawMemberStatus = (member?.status || '').toString().trim();
+      const normalizedMemberStatus = memberStatusMapping[rawMemberStatus.toLowerCase()] || rawMemberStatus || 'N/A';
       
       // Clean and normalize tier value
       let cleanTier = 'N/A';
@@ -440,10 +455,13 @@ router.get('/reports/onboarding-status', async (req, res) => {
       return {
         serialNo: index + 1,
         artistName: member?.artistName || onboarding.artistName || 'N/A',
+        email: member?.email || onboarding.l1Data?.email || 'N/A',
+        phone: member?.phone || onboarding.l1Data?.phone || 'N/A',
         genre: member?.primaryGenres || 'N/A',
         source: member?.source || onboarding.step1Data?.source || 'N/A',
         spoc: onboarding.spoc || 'N/A',
         tier: cleanTier,
+        memberStatus: normalizedMemberStatus,
         onboardingStatus: statusMapping[onboarding.status.toLowerCase()] || statusMapping[onboarding.status] || onboarding.status,
         etaClosure: etaClosure ? new Date(etaClosure).toLocaleDateString() : 'N/A',
         daysFromETA: daysFromETA !== null ? daysFromETA : 'N/A',
