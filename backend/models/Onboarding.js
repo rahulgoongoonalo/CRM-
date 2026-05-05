@@ -118,48 +118,10 @@ const onboardingSchema = new mongoose.Schema({
         techOnboarding: { type: Boolean, default: false },
         contentIngestion: { type: Boolean, default: false }
       },
-      // New 5-stage closure tracking
+      // Picklist-driven stage tracking — Mixed so admin-added picklist items persist without schema changes
       stages: {
-        basicOnboarding: {
-          firstCallCompleted: { type: String, default: 'NA' },
-          artistInfoUpdated: { type: String, default: 'NA' },
-          whatsappGroupCreated: { type: String, default: 'NA' },
-          introEmailSent: { type: String, default: 'NA' },
-          notInterested: { type: String, default: 'NA' }
-        },
-        interestedInvestment: {
-          amount: { type: Number, default: null },
-          received: { type: String, default: 'NA' }
-        },
-        artistInvestment: {
-          ssaShaShared: { type: String, default: 'NA' },
-          kycReceived: { type: String, default: 'NA' },
-          investmentReceived: { type: String, default: 'NA' },
-          shareCertificateSent: { type: String, default: 'NA' }
-        },
-        distributionAgreement: {
-          distributionAgreementSent: { type: String, default: 'NA' },
-          contentReceivedForUpload: { type: String, default: 'NA' },
-          contentSentToDevi: { type: String, default: 'NA' },
-          totalSongsReceivedByArtist: { type: Number, default: null },
-          contentVisibleOnGoongoonalo: { type: String, default: 'NA' }
-        },
-        nonExclusiveLicense: {
-          streamingAgreementSent: { type: String, default: 'NA' },
-          contentReceivedForUpload: { type: String, default: 'NA' },
-          contentSentToDevi: { type: String, default: 'NA' },
-          totalSongsReceivedByArtist: { type: Number, default: null },
-          contentVisibleOnGoongoonalo: { type: String, default: 'NA' },
-          artistReviewMeeting: { type: String, default: 'NA' },
-          subscriptionActivated: { type: String, default: 'NA' }
-        },
-        finalClosure: {
-          notInterested: { type: String, default: 'NA' },
-          investmentClosed: { type: String, default: 'NA' },
-          distributionClosed: { type: String, default: 'NA' },
-          licensingClosed: { type: String, default: 'NA' },
-          ayushDemoCompleted: { type: String, default: 'NA' }
-        }
+        type: mongoose.Schema.Types.Mixed,
+        default: () => ({})
       },
       notes: String,
       documents: [{

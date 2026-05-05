@@ -136,8 +136,8 @@ const Onboarding = () => {
   const handleDeleteOnboarding = async (onboardingId) => {
     const confirmed = await confirm({
       title: 'Delete Onboarding',
-      message: 'Are you sure you want to delete this onboarding? This action cannot be undone.',
-      confirmText: 'Delete',
+      message: 'Deleting this onboarding will ALSO delete the linked Member record (cascade), unless other onboardings still reference that member. This is to keep Member Management and Onboarding in sync. This action cannot be undone. Continue?',
+      confirmText: 'Delete Both',
       cancelText: 'Cancel',
       type: 'danger',
     });
@@ -146,7 +146,11 @@ const Onboarding = () => {
         const response = await onboardingAPI.delete(onboardingId);
         if (response.success) {
           await fetchOnboardings();
-          toast.success('Onboarding deleted successfully');
+          toast.success(
+            response.cascadedMember
+              ? 'Onboarding deleted. Linked member also removed.'
+              : 'Onboarding deleted successfully'
+          );
         }
       } catch (error) {
         console.error('Error deleting onboarding:', error);

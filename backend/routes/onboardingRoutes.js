@@ -264,8 +264,14 @@ router.get('/reports/l2-review', async (req, res) => {
     const STAGES = STAGE_META.map(m => ({
       ...m,
       items: m.customType === 'investmentInterest'
-        ? [{ key: 'amount', label: 'Investment Amount' }, { key: 'received', label: 'Interested in Investment' }]
-        : (plMap[m.picklistName] || []).map(i => ({ key: i.value, label: i.label })),
+        ? [{ key: 'amount', label: 'Investment Amount', type: 'number' }, { key: 'received', label: 'Interested in Investment', type: 'yesno' }]
+        : (plMap[m.picklistName] || []).map(i => ({
+            key: i.value,
+            label: i.label,
+            type: i.type || 'yesno',
+            dependsOn: i.dependsOn || '',
+            showWhen: i.showWhen || ''
+          })),
     }));
 
     // Classify a stage for one onboarding into Yes / No / Not Updated buckets
@@ -277,7 +283,16 @@ router.get('/reports/l2-review', async (req, res) => {
         if (rec === 'No') return 'No';
         return 'Not Updated';
       }
-      const values = items.map(i => sd[i.key] || 'NA');
+      // Only yes/no decision items count toward stage status. Number fields
+      // (e.g. totalSongsReceivedByArtist) are excluded. Conditional items
+      // hidden by dependsOn/showWhen are also excluded.
+      const decisionItems = items.filter(i => {
+        if (i.type && i.type !== 'yesno') return false;
+        if (i.dependsOn && i.showWhen && sd[i.dependsOn] !== i.showWhen) return false;
+        return true;
+      });
+      if (decisionItems.length === 0) return 'Not Updated';
+      const values = decisionItems.map(i => sd[i.key] || 'NA');
       if (values.some(v => v === 'NA')) return 'Not Updated';
       if (values.every(v => v === 'Yes')) return 'Yes';
       if (values.every(v => v === 'No')) return 'No';
@@ -396,79 +411,102 @@ router.get('/reports/l2-weekly-analytics', async (req, res) => {
 });
 
 // Get onboarding status report data (must be before /:id route)
+// Driven by Members: every member appears. Onboarding fields are filled if a linked
+// onboarding exists (by ref OR by exact artistName fallback for legacy records);
+// otherwise onboarding-side fields show 'N/A'.
 router.get('/reports/onboarding-status', async (req, res) => {
   try {
-    const onboardings = await Onboarding.find()
-      .populate('member', 'artistName primaryGenres source tier email phone status')
-      .sort({ createdAt: -1 })
-      .lean();
-    
-    // Transform data for the report
-    const reportData = onboardings.map((onboarding, index) => {
-      const member = onboarding.member;
-      const etaClosure = onboarding.etaClosure;
-      
-      // Calculate days from ETA
+    const [members, onboardings] = await Promise.all([
+      Member.find().sort({ createdAt: -1 }).lean(),
+      Onboarding.find().lean()
+    ]);
+
+    // Index onboardings by member ref AND by lowercased artistName (fallback for broken refs)
+    const onbByMemberId = new Map();
+    const onbByArtistName = new Map();
+    onboardings.forEach(o => {
+      if (o.member) {
+        const key = o.member.toString();
+        // Prefer the most recently created onboarding if a member has multiple
+        const prev = onbByMemberId.get(key);
+        if (!prev || new Date(o.createdAt) > new Date(prev.createdAt)) {
+          onbByMemberId.set(key, o);
+        }
+      }
+      const nameKey = (o.artistName || '').trim().toLowerCase();
+      if (nameKey) {
+        const prev = onbByArtistName.get(nameKey);
+        if (!prev || new Date(o.createdAt) > new Date(prev.createdAt)) {
+          onbByArtistName.set(nameKey, o);
+        }
+      }
+    });
+
+    const statusMapping = {
+      'hot': 'Hot',
+      'warm': 'Warm',
+      'cold': 'Cold',
+      'review-l2': 'Review L2',
+      'closed-won': 'Closed Won',
+      'closed-lost': 'Closed Lost',
+      'cold-storage': 'Cold Storage'
+    };
+
+    const memberStatusMapping = {
+      'active': 'Updated',
+      'updated': 'Updated',
+      'inactive': 'On Hold',
+      'on hold': 'On Hold',
+      'pending': 'Pending'
+    };
+
+    const reportData = members.map((member, index) => {
+      // Try ref first, then artistName fallback
+      const onboarding =
+        onbByMemberId.get(member._id.toString()) ||
+        onbByArtistName.get((member.artistName || '').trim().toLowerCase()) ||
+        null;
+
+      const etaClosure = onboarding?.etaClosure || null;
       let daysFromETA = null;
       if (etaClosure) {
         const today = new Date();
         const eta = new Date(etaClosure);
-        const timeDiff = today - eta;
-        daysFromETA = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        daysFromETA = Math.floor((today - eta) / (1000 * 60 * 60 * 24));
       }
-      
-      // Format onboarding status
-      const statusMapping = {
-        'hot': 'Hot',
-        'warm': 'Warm',
-        'cold': 'Cold',
-        'review-l2': 'Review L2',
-        'closed-won': 'Closed Won',
-        'closed-lost': 'Closed Lost',
-        'cold-storage': 'Cold Storage'
-      };
 
-      // Map legacy member.status values to picklist labels
-      const memberStatusMapping = {
-        'active': 'Updated',
-        'updated': 'Updated',
-        'inactive': 'On Hold',
-        'on hold': 'On Hold',
-        'pending': 'Pending'
-      };
       const rawMemberStatus = (member?.status || '').toString().trim();
       const normalizedMemberStatus = memberStatusMapping[rawMemberStatus.toLowerCase()] || rawMemberStatus || 'N/A';
-      
-      // Clean and normalize tier value
+
       let cleanTier = 'N/A';
       if (member?.tier) {
         const tierStr = member.tier.toString().toLowerCase();
-        // Extract tier number from formats like "tier 3 - 500k" or "tier3"
         const tierMatch = tierStr.match(/tier\s*(\d+)/);
-        if (tierMatch) {
-          cleanTier = `tier${tierMatch[1]}`;
-        } else {
-          cleanTier = tierStr;
-        }
+        cleanTier = tierMatch ? `tier${tierMatch[1]}` : tierStr;
       }
-      
+
+      const rawOnbStatus = (onboarding?.status || '').toString();
+      const onboardingStatus = onboarding
+        ? (statusMapping[rawOnbStatus.toLowerCase()] || statusMapping[rawOnbStatus] || rawOnbStatus || 'N/A')
+        : 'N/A';
+
       return {
         serialNo: index + 1,
-        artistName: member?.artistName || onboarding.artistName || 'N/A',
-        email: member?.email || onboarding.l1Data?.email || 'N/A',
-        phone: member?.phone || onboarding.l1Data?.phone || 'N/A',
+        artistName: member?.artistName || onboarding?.artistName || 'N/A',
+        email: member?.email || onboarding?.l1Data?.email || 'N/A',
+        phone: member?.phone || onboarding?.l1Data?.phone || 'N/A',
         genre: member?.primaryGenres || 'N/A',
-        source: member?.source || onboarding.step1Data?.source || 'N/A',
-        spoc: onboarding.spoc || 'N/A',
+        source: member?.source || onboarding?.step1Data?.source || 'N/A',
+        spoc: onboarding?.spoc || 'N/A',
         tier: cleanTier,
         memberStatus: normalizedMemberStatus,
-        onboardingStatus: statusMapping[onboarding.status.toLowerCase()] || statusMapping[onboarding.status] || onboarding.status,
+        onboardingStatus,
         etaClosure: etaClosure ? new Date(etaClosure).toLocaleDateString() : 'N/A',
         daysFromETA: daysFromETA !== null ? daysFromETA : 'N/A',
         rawEtaClosure: etaClosure
       };
     });
-    
+
     res.json({
       success: true,
       data: reportData
@@ -504,9 +542,13 @@ router.get('/', async (req, res) => {
     const query = {};
 
     // Status filter — normalize picklist label to db value (e.g. "Review L2" → "review-l2")
+    // Case-insensitive + tolerant of space-vs-hyphen drift so legacy bad-cased rows still match
     if (status && status !== 'All Status') {
       const normalized = status.toLowerCase().replace(/\s+/g, '-');
-      query.status = normalized;
+      const escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      // Match "review-l2" OR "Review L2" OR "review l2" etc.
+      const flexible = escaped.replace(/-/g, '[\\s-]?');
+      query.status = { $regex: new RegExp(`^${flexible}$`, 'i') };
     }
 
     // Source filter — find members with matching source, then filter onboardings by those member IDs
@@ -696,21 +738,34 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// Delete onboarding
+// Delete onboarding + cascade-delete linked member (only if no other onboarding still references that member)
 router.delete('/:id', async (req, res) => {
   try {
-    const deletedOnboarding = await Onboarding.findByIdAndDelete(req.params.id);
-    
-    if (!deletedOnboarding) {
+    const onboarding = await Onboarding.findById(req.params.id);
+    if (!onboarding) {
       return res.status(404).json({
         success: false,
         message: 'Onboarding not found'
       });
     }
-    
+
+    const memberRef = onboarding.member;
+    await Onboarding.findByIdAndDelete(req.params.id);
+
+    let cascadedMember = false;
+    if (memberRef) {
+      // Only delete the member if no other onboarding still references it
+      const remaining = await Onboarding.countDocuments({ member: memberRef });
+      if (remaining === 0) {
+        const del = await Member.findByIdAndDelete(memberRef);
+        cascadedMember = !!del;
+      }
+    }
+
     res.json({
       success: true,
-      message: 'Onboarding deleted successfully'
+      message: 'Onboarding deleted successfully',
+      cascadedMember
     });
   } catch (error) {
     console.error('Error deleting onboarding:', error);

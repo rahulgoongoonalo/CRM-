@@ -16,6 +16,7 @@ import DataHygiene from './pages/DataHygiene';
 import Glossary from './pages/Glossary';
 import FAQ from './pages/FAQ';
 import Picklist from './pages/Picklist';
+import GristDataSync from './pages/GristDataSync';
 import L2ReviewReport from './pages/L2ReviewReport';
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
             <Route path="faq" element={<FAQ />} />
             <Route path="campaigns" element={<Campaigns />} />
             <Route path="picklist" element={<Picklist />} />
+            <Route path="grist-sync" element={<GristDataSync />} />
             <Route path="settings" element={<Settings />} />
           </Route>
 

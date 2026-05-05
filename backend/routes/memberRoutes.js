@@ -407,21 +407,33 @@ router.put('/:id', async (req, res) => {
 });
 
 // @route   DELETE /api/members/:id
-// @desc    Delete member
+// @desc    Delete member + cascade-delete linked onboardings (by ref AND by name fallback for legacy records)
 // @access  Private
 router.delete('/:id', async (req, res) => {
   try {
+    const Onboarding = (await import('../models/Onboarding.js')).default;
     const member = await Member.findById(req.params.id);
 
     if (!member) {
       return res.status(404).json({ message: 'Member not found' });
     }
 
+    // Cascade: delete onboardings linked by ref OR (legacy) by exact artistName match
+    const onbFilter = {
+      $or: [
+        { member: member._id },
+        { artistName: member.artistName, member: { $exists: false } },
+        { artistName: member.artistName, member: null }
+      ]
+    };
+    const cascade = await Onboarding.deleteMany(onbFilter);
+
     await Member.findByIdAndDelete(req.params.id);
 
     res.json({
       success: true,
-      message: 'Member deleted successfully'
+      message: 'Member deleted successfully',
+      cascadedOnboardings: cascade.deletedCount
     });
   } catch (error) {
     console.error(error);

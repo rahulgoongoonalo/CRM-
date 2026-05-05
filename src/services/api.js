@@ -228,6 +228,31 @@ export const picklistAPI = {
   }
 };
 
+// Grist Staging API
+export const gristSyncAPI = {
+  list: async (status) => {
+    const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+    const response = await api.get(`/grist-sync/staging${qs}`);
+    return response.data;
+  },
+  refresh: async () => {
+    const response = await api.post('/grist-sync/refresh');
+    return response.data;
+  },
+  promote: async (ids) => {
+    const response = await api.post('/grist-sync/promote', { ids });
+    return response.data;
+  },
+  ignore: async (ids) => {
+    const response = await api.post('/grist-sync/ignore', { ids });
+    return response.data;
+  },
+  unignore: async (ids) => {
+    const response = await api.post('/grist-sync/unignore', { ids });
+    return response.data;
+  },
+};
+
 // Reports API
 export const getOnboardingStatusReport = async () => {
   const response = await api.get('/onboarding/reports/onboarding-status');
