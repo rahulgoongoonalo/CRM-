@@ -13,6 +13,7 @@ const GristDataSync = () => {
   const [activeTab, setActiveTab] = useState('pending');
   const [rows, setRows] = useState([]);
   const [counts, setCounts] = useState({ pending: 0, synced: 0, ignored: 0 });
+  const [appCounts, setAppCounts] = useState({ getgristMembers: 0, getgristOnboardings: 0 });
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -28,6 +29,7 @@ const GristDataSync = () => {
       if (res.success) {
         setRows(res.data || []);
         setCounts(res.counts || { pending: 0, synced: 0, ignored: 0 });
+        setAppCounts(res.appCounts || { getgristMembers: 0, getgristOnboardings: 0 });
       }
     } catch (e) {
       toast.error('Failed to load staging rows');
@@ -54,6 +56,7 @@ const GristDataSync = () => {
 
   const allSelected = filteredRows.length > 0 && filteredRows.every(r => selected.has(r._id));
   const someSelected = filteredRows.some(r => selected.has(r._id));
+  const tableColSpan = 10 + (activeTab !== 'synced' ? 1 : 0) + (activeTab === 'pending' ? 1 : 0) + (activeTab === 'synced' ? 1 : 0);
 
   const toggleSelectAll = () => {
     if (allSelected) {
@@ -223,6 +226,18 @@ const GristDataSync = () => {
         })}
       </div>
 
+      <div className="flex flex-wrap gap-2 text-xs text-text-muted">
+        <span className="rounded-md border border-border bg-surface px-3 py-2">
+          Member Management Getgrist: <strong className="text-white">{appCounts.getgristMembers || 0}</strong>
+        </span>
+        <span className="rounded-md border border-border bg-surface px-3 py-2">
+          Onboarding linked to Getgrist: <strong className="text-white">{appCounts.getgristOnboardings || 0}</strong>
+        </span>
+        <span className="rounded-md border border-border bg-surface px-3 py-2">
+          Current Grist staging rows: <strong className="text-white">{counts.pending + counts.synced + counts.ignored}</strong>
+        </span>
+      </div>
+
       {/* Search + Actions */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[240px]">
@@ -288,6 +303,7 @@ const GristDataSync = () => {
                 )}
                 <th className="px-4 py-3">Grist ID</th>
                 <th className="px-4 py-3">Artist Name</th>
+                {activeTab === 'pending' && <th className="px-4 py-3">Review</th>}
                 <th className="px-4 py-3">Contact Name</th>
                 <th className="px-4 py-3">Email</th>
                 <th className="px-4 py-3">Phone</th>
@@ -301,10 +317,10 @@ const GristDataSync = () => {
             </thead>
             <tbody>
               {loading && (
-                <tr><td colSpan={12} className="px-4 py-10 text-center text-text-muted">Loading…</td></tr>
+                <tr><td colSpan={tableColSpan} className="px-4 py-10 text-center text-text-muted">Loading…</td></tr>
               )}
               {!loading && filteredRows.length === 0 && (
-                <tr><td colSpan={12} className="px-4 py-10 text-center text-text-muted">No rows in this bucket</td></tr>
+                <tr><td colSpan={tableColSpan} className="px-4 py-10 text-center text-text-muted">No rows in this bucket</td></tr>
               )}
               {!loading && filteredRows.map(r => {
                 const f = r.fields || {};
@@ -323,6 +339,13 @@ const GristDataSync = () => {
                     )}
                     <td className="px-4 py-3 text-text-muted">{r.gristId}</td>
                     <td className="px-4 py-3 text-white font-semibold">{r.artistName || f.Artist_Name || '-'}</td>
+                    {activeTab === 'pending' && (
+                      <td className="px-4 py-3 text-xs">
+                        <div className="max-w-[260px] rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-amber-200">
+                          {r.reviewReason || 'Review before syncing.'}
+                        </div>
+                      </td>
+                    )}
                     <td className="px-4 py-3 text-text-secondary">{f.Contact_Name || '-'}</td>
                     <td className="px-4 py-3 text-text-secondary">{r.email || f.Email || '-'}</td>
                     <td className="px-4 py-3 text-text-secondary">{r.phone || f.Phone || '-'}</td>

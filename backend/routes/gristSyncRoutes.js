@@ -17,23 +17,65 @@ router.get('/staging', async (req, res) => {
       query.status = status;
     }
 
-    const rows = await GristStaging.find(query)
+    let rows = await GristStaging.find(query)
       .populate('member', 'artistName email phone memberNumber status source')
       .populate('onboarding', 'taskNumber status spoc')
       .sort({ lastSeenAt: -1 })
       .lean();
 
+    if (status === 'pending') {
+      const syncedRows = await GristStaging.find({ status: 'synced', member: { $ne: null } })
+        .select('gristId member')
+        .lean();
+      const syncedByMember = new Map(
+        syncedRows.map(row => [row.member.toString(), row.gristId])
+      );
+
+      rows = rows.map(row => {
+        const memberId = row.member?._id?.toString();
+        const representedByGristId = memberId ? syncedByMember.get(memberId) : null;
+
+        if (representedByGristId) {
+          return {
+            ...row,
+            reviewReason: `Duplicate Grist row. Already represented by Grist ID ${representedByGristId} / Member #${row.member.memberNumber}.`,
+          };
+        }
+
+        if (row.member) {
+          return {
+            ...row,
+            reviewReason: `Existing app match found: Member #${row.member.memberNumber}. Review before syncing.`,
+          };
+        }
+
+        return {
+          ...row,
+          reviewReason: 'No exact app match. Review and sync manually.',
+        };
+      });
+    }
+
     // Aggregate counts for tabs
-    const counts = await GristStaging.aggregate([
-      { $group: { _id: '$status', count: { $sum: 1 } } }
+    const [counts, getgristMembers] = await Promise.all([
+      GristStaging.aggregate([
+        { $group: { _id: '$status', count: { $sum: 1 } } }
+      ]),
+      Member.find({ source: 'Getgrist' }).select('_id').lean(),
     ]);
     const countMap = { pending: 0, synced: 0, ignored: 0 };
     counts.forEach(c => { countMap[c._id] = c.count; });
+    const getgristMemberIds = getgristMembers.map(member => member._id);
+    const getgristOnboardings = await Onboarding.countDocuments({ member: { $in: getgristMemberIds } });
 
     res.json({
       success: true,
       data: rows,
       counts: countMap,
+      appCounts: {
+        getgristMembers: getgristMembers.length,
+        getgristOnboardings,
+      },
       total: rows.length,
     });
   } catch (error) {

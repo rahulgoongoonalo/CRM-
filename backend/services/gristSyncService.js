@@ -6,6 +6,147 @@ import GristStaging from '../models/GristStaging.js';
 
 const GRIST_API_URL = process.env.GRIST_API_URL || 'https://ism.getgrist.com/api/docs/5T8YB3qAMkaS/tables/Table1/records';
 
+const normText = (value) => (value || '').toString().trim();
+const normEmail = (value) => normText(value).toLowerCase();
+const phoneDigits = (value) => normText(value).replace(/\D/g, '');
+const compactName = (value) => normText(value).toLowerCase().replace(/[^a-z0-9]+/g, '');
+const escapeRegex = (value) => normText(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+async function findStrictAppMatch(artistName, email) {
+  const cleanName = normText(artistName);
+  const cleanEmail = normEmail(email);
+  if (!cleanName || !cleanEmail) return null;
+
+  const nameRegex = new RegExp(`^${escapeRegex(cleanName)}$`, 'i');
+  const member = await Member.findOne({ email: cleanEmail, artistName: { $regex: nameRegex } });
+  if (!member) return null;
+
+  const onboarding = await Onboarding.findOne({ member: member._id, artistName: { $regex: nameRegex } });
+  return { member, onboarding };
+}
+
+function looseMatchReasons(row, member) {
+  const rowEmail = normEmail(row.email || row.fields?.Email);
+  const memberEmail = normEmail(member.email);
+  const rowPhone = phoneDigits(row.phone || row.fields?.Phone);
+  const memberPhone = phoneDigits(member.phone);
+  const rowName = compactName(row.artistName || row.fields?.Artist_Name);
+  const memberName = compactName(member.artistName);
+  const nameLooksSame = rowName && memberName && (rowName.includes(memberName) || memberName.includes(rowName));
+  const reasons = [];
+
+  if (rowEmail && memberEmail && rowEmail === memberEmail) reasons.push('email');
+  if (rowPhone && memberPhone && rowPhone === memberPhone) reasons.push('phone');
+  if (nameLooksSame) reasons.push('name');
+
+  if (reasons.includes('email')) return reasons;
+  if (reasons.includes('phone') && reasons.includes('name')) return reasons;
+  return [];
+}
+
+/**
+ * Rebuild staging buckets after refresh/manual changes.
+ * Only the first Grist row for a strict Member match stays "synced".
+ * Extra Grist submissions for the same Member stay "pending" for review.
+ */
+export async function normalizeGristStagingBuckets() {
+  const rows = await GristStaging.find({ status: { $ne: 'ignored' } }).sort({ gristId: 1 });
+  const getgristMembers = await Member.find({ source: 'Getgrist' }).sort({ memberNumber: 1 });
+  const firstSyncedByMember = new Map();
+  const pendingRows = [];
+  const results = {
+    synced: 0,
+    pending: 0,
+    duplicatesMovedToPending: 0,
+    missingMatchesMovedToPending: 0,
+    promotedToSynced: 0,
+    looseLinkedToSynced: 0,
+  };
+
+  for (const row of rows) {
+    const fields = row.fields || {};
+    const artistName = normText(fields.Artist_Name || row.artistName);
+    const email = normEmail(fields.Email || row.email);
+    const phone = normText(fields.Phone || row.phone);
+    const previousStatus = row.status;
+
+    row.artistName = artistName;
+    row.email = email;
+    row.phone = phone;
+
+    const match = await findStrictAppMatch(artistName, email);
+    if (!match) {
+      pendingRows.push({ row, previousStatus, strictMatch: null, pendingReason: 'missing-match' });
+      continue;
+    }
+
+    const memberId = match.member._id.toString();
+    const firstSynced = firstSyncedByMember.get(memberId);
+    row.member = match.member._id;
+    row.onboarding = match.onboarding?._id || null;
+
+    if (firstSynced) {
+      pendingRows.push({ row, previousStatus, strictMatch: match, pendingReason: 'duplicate' });
+    } else {
+      firstSyncedByMember.set(memberId, row.gristId);
+      row.status = 'synced';
+      row.syncedAt = row.syncedAt || match.member.createdAt || new Date();
+      results.synced++;
+      if (previousStatus === 'pending') results.promotedToSynced++;
+    }
+
+    await row.save();
+  }
+
+  for (const item of pendingRows) {
+    const usedMemberIds = new Set(firstSyncedByMember.keys());
+    const candidates = [];
+
+    for (const member of getgristMembers) {
+      const memberId = member._id.toString();
+      if (usedMemberIds.has(memberId)) continue;
+
+      const reasons = looseMatchReasons(item.row, member);
+      if (reasons.length > 0) candidates.push({ member, reasons });
+    }
+
+    if (candidates.length === 1) {
+      const { member } = candidates[0];
+      const onboarding = await Onboarding.findOne({ member: member._id });
+      const memberId = member._id.toString();
+
+      firstSyncedByMember.set(memberId, item.row.gristId);
+      item.row.status = 'synced';
+      item.row.member = member._id;
+      item.row.onboarding = onboarding?._id || null;
+      item.row.syncedAt = item.row.syncedAt || member.createdAt || new Date();
+      results.synced++;
+      results.looseLinkedToSynced++;
+      if (item.previousStatus === 'pending') results.promotedToSynced++;
+      await item.row.save();
+      continue;
+    }
+
+    item.row.status = 'pending';
+    item.row.syncedAt = null;
+    results.pending++;
+
+    if (item.strictMatch) {
+      item.row.member = item.strictMatch.member._id;
+      item.row.onboarding = item.strictMatch.onboarding?._id || null;
+      if (item.pendingReason === 'duplicate') results.duplicatesMovedToPending++;
+    } else {
+      item.row.member = null;
+      item.row.onboarding = null;
+      if (item.previousStatus === 'synced') results.missingMatchesMovedToPending++;
+    }
+
+    await item.row.save();
+  }
+
+  return results;
+}
+
 /**
  * Fetch all records from Grist API
  */
@@ -112,33 +253,17 @@ export async function refreshGristStaging() {
         continue;
       }
 
-      const artistName = (fields.Artist_Name || '').trim();
-      const email = (fields.Email || '').trim().toLowerCase();
-      const phone = (fields.Phone || '').toString().trim();
+      const artistName = normText(fields.Artist_Name);
+      const email = normEmail(fields.Email);
+      const phone = normText(fields.Phone);
 
+      // STRICT auto-link rule: only count as "already in app" if BOTH email AND artistName
+      // match the same Member. Name-only or email-only matches are NOT enough — those go
+      // to pending, where the user manually decides whether to sync.
       const existing = await GristStaging.findOne({ gristId });
 
       if (!existing) {
-        // Brand-new Grist row — check if it's already in the app first (legacy data)
-        const escapedName = artistName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const nameRegex = new RegExp(`^${escapedName}$`, 'i');
-
-        let preExistingMember = null;
-        if (email && artistName) {
-          preExistingMember = await Member.findOne({ email, artistName: { $regex: nameRegex } });
-        }
-        if (!preExistingMember && artistName) {
-          preExistingMember = await Member.findOne({ artistName: { $regex: nameRegex } });
-        }
-
-        let preExistingOnboarding = null;
-        if (preExistingMember) {
-          preExistingOnboarding = await Onboarding.findOne({
-            member: preExistingMember._id,
-            artistName: { $regex: nameRegex }
-          });
-        }
-
+        const match = await findStrictAppMatch(artistName, email);
         const stagingDoc = {
           gristId,
           fields,
@@ -149,11 +274,11 @@ export async function refreshGristStaging() {
           lastSeenAt: new Date(),
         };
 
-        if (preExistingMember) {
+        if (match) {
           stagingDoc.status = 'synced';
-          stagingDoc.member = preExistingMember._id;
-          stagingDoc.onboarding = preExistingOnboarding?._id || null;
-          stagingDoc.syncedAt = preExistingMember.createdAt || new Date();
+          stagingDoc.member = match.member._id;
+          stagingDoc.onboarding = match.onboarding?._id || null;
+          stagingDoc.syncedAt = match.member.createdAt || new Date();
           results.autoLinked++;
         } else {
           stagingDoc.status = 'pending';
@@ -162,7 +287,7 @@ export async function refreshGristStaging() {
 
         await GristStaging.create(stagingDoc);
         results.details.push({
-          action: preExistingMember ? 'auto-linked' : 'new-pending',
+          action: match ? 'auto-linked' : 'new-pending',
           gristId, artistName
         });
       } else {
@@ -173,24 +298,29 @@ export async function refreshGristStaging() {
         existing.phone = phone;
         existing.lastSeenAt = new Date();
 
-        // If still pending, re-check if it became "already in app" since last refresh
+        // If pending, re-check strict match (maybe user manually created the Member meanwhile)
         if (existing.status === 'pending') {
-          const escapedName = artistName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const nameRegex = new RegExp(`^${escapedName}$`, 'i');
-          let m = null;
-          if (email && artistName) {
-            m = await Member.findOne({ email, artistName: { $regex: nameRegex } });
-          }
-          if (!m && artistName) {
-            m = await Member.findOne({ artistName: { $regex: nameRegex } });
-          }
-          if (m) {
-            const o = await Onboarding.findOne({ member: m._id, artistName: { $regex: nameRegex } });
+          const match = await findStrictAppMatch(artistName, email);
+          if (match) {
             existing.status = 'synced';
-            existing.member = m._id;
-            existing.onboarding = o?._id || null;
-            existing.syncedAt = m.createdAt || new Date();
+            existing.member = match.member._id;
+            existing.onboarding = match.onboarding?._id || null;
+            existing.syncedAt = match.member.createdAt || new Date();
             results.autoLinked++;
+          }
+        } else if (existing.status === 'synced') {
+          // Sanity check: if a previously-synced row no longer has a strict match
+          // (e.g. Member was deleted, or artistName changed in Grist), demote it back to pending.
+          const match = await findStrictAppMatch(artistName, email);
+          if (!match) {
+            existing.status = 'pending';
+            existing.member = null;
+            existing.onboarding = null;
+            existing.syncedAt = null;
+          } else {
+            // Refresh refs in case Member/Onboarding _ids changed
+            existing.member = match.member._id;
+            existing.onboarding = match.onboarding?._id || null;
           }
         }
 
@@ -204,7 +334,9 @@ export async function refreshGristStaging() {
     }
   }
 
-  console.log(`[GristStaging] Refresh complete — Total: ${results.total}, New pending: ${results.newPending}, Refreshed: ${results.refreshed}, Auto-linked: ${results.autoLinked}, Errors: ${results.errors.length}`);
+  results.reclassified = await normalizeGristStagingBuckets();
+
+  console.log(`[GristStaging] Refresh complete — Total: ${results.total}, New pending: ${results.newPending}, Refreshed: ${results.refreshed}, Auto-linked: ${results.autoLinked}, Pending duplicates: ${results.reclassified.duplicatesMovedToPending}, Errors: ${results.errors.length}`);
 
   // Email report
   await sendGristStagingEmail(results);
@@ -255,6 +387,27 @@ export async function promoteStagingRow(stagingId) {
   }
 
   if (member) {
+    const duplicateSynced = await GristStaging.findOne({
+      _id: { $ne: staging._id },
+      status: 'synced',
+      member: member._id,
+    }).lean();
+
+    if (duplicateSynced) {
+      const onboarding = await Onboarding.findOne({
+        member: member._id,
+        artistName: { $regex: nameRegex }
+      });
+
+      staging.status = 'pending';
+      staging.member = member._id;
+      staging.onboarding = onboarding?._id || null;
+      staging.syncedAt = null;
+      await staging.save();
+
+      throw new Error(`Duplicate Grist row. "${member.artistName}" is already represented by Grist ID ${duplicateSynced.gristId} / Member #${member.memberNumber}. This row stays pending for review.`);
+    }
+
     // Update existing member with any new fields from Grist (don't overwrite artistName).
     // Skip email update if it would collide with another member.
     const updateFields = {};
