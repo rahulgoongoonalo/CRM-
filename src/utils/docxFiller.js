@@ -256,11 +256,12 @@ function mergeSplitPlaceholders(xml) {
   return out;
 }
 
-// After merging split placeholders, walk every <w:r>...</w:r> looking for <w:t> content
-// matching one of our placeholder keys. When found, rebuild that single run so its <w:rPr>
-// contains red colour (FF0000) — preserving other run properties. If only PART of the text
-// in the run is a placeholder, split the run into 3 sub-runs (before / red placeholder / after).
-function replacePlaceholdersWithRed(xml, map) {
+// Walk every <w:r>...</w:r> with a placeholder token in its <w:t>. Rebuild that run with
+// the substituted value. When `redize` is true, mark the substituted run with red color
+// (used for the in-app preview); when false, keep original styling (used for export).
+// Each substituted run is also wrapped in a sentinel attribute (data-filled="1") so the
+// HTML preview can detect filled values and color them red there even when redize=false.
+function replacePlaceholdersWithRed(xml, map, redize = true) {
   const keys = Object.keys(map);
   if (keys.length === 0) return xml;
   const tokenRe = new RegExp(keys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g');
@@ -270,48 +271,46 @@ function replacePlaceholdersWithRed(xml, map) {
     if (!tokenRe.test(runInner)) return runMatch;
     tokenRe.lastIndex = 0;
 
-    // Extract <w:rPr>...</w:rPr> if present
     const rPrMatch = runInner.match(/<w:rPr>[\s\S]*?<\/w:rPr>/);
     const rPrOriginal = rPrMatch ? rPrMatch[0] : '';
-    // Build a red variant: insert <w:color w:val="FF0000"/> (replacing any existing color)
-    const rPrRed = (() => {
+
+    const rPrFilled = (() => {
+      if (!redize) return rPrOriginal;
       if (!rPrOriginal) return '<w:rPr><w:color w:val="FF0000"/></w:rPr>';
       const stripped = rPrOriginal.replace(/<w:color\b[^/]*\/>/g, '');
       return stripped.replace('</w:rPr>', '<w:color w:val="FF0000"/></w:rPr>');
     })();
 
-    // Find the <w:t...>...</w:t> inside this run
     const tMatch = runInner.match(/<w:t(\s[^>]*)?>([^<]*)<\/w:t>/);
     if (!tMatch) return runMatch;
     const tAttrs = tMatch[1] || '';
     const tText = tMatch[2];
 
-    // If text is entirely the placeholder
     const exactMatch = keys.find(k => tText === k);
     if (exactMatch) {
       const replaced = escapeXml(map[exactMatch]);
       let attrs = tAttrs;
       if (/^\s|\s$/.test(replaced) && !/xml:space=/.test(attrs)) attrs += ' xml:space="preserve"';
-      return `<w:r>${rPrRed}<w:t${attrs}>${replaced}</w:t></w:r>`;
+      return `<w:r data-filled="1">${rPrFilled}<w:t${attrs}>${replaced}</w:t></w:r>`;
     }
 
-    // Partial match — split into chunks and rebuild as multiple <w:r> elements
     const parts = [];
     let lastIdx = 0;
     let mm;
     const partRe = new RegExp(keys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'g');
     while ((mm = partRe.exec(tText)) !== null) {
-      if (mm.index > lastIdx) parts.push({ text: tText.slice(lastIdx, mm.index), red: false });
-      parts.push({ text: escapeXml(map[mm[0]]), red: true });
+      if (mm.index > lastIdx) parts.push({ text: tText.slice(lastIdx, mm.index), filled: false });
+      parts.push({ text: escapeXml(map[mm[0]]), filled: true });
       lastIdx = mm.index + mm[0].length;
     }
-    if (lastIdx < tText.length) parts.push({ text: tText.slice(lastIdx), red: false });
+    if (lastIdx < tText.length) parts.push({ text: tText.slice(lastIdx), filled: false });
 
     return parts.map(p => {
       let attrs = '';
       if (/^\s|\s$/.test(p.text)) attrs = ' xml:space="preserve"';
-      const props = p.red ? rPrRed : rPrOriginal;
-      return `<w:r>${props}<w:t${attrs}>${p.text}</w:t></w:r>`;
+      const props = p.filled ? rPrFilled : rPrOriginal;
+      const runOpen = p.filled ? '<w:r data-filled="1">' : '<w:r>';
+      return `${runOpen}${props}<w:t${attrs}>${p.text}</w:t></w:r>`;
     }).join('');
   });
 }
@@ -338,30 +337,30 @@ export function buildPlaceholderMap(values) {
   return map;
 }
 
-// Generate the filled .docx as a Blob.
-export async function generateFilledDocx(values) {
+// Shared template fetch + decompress.
+async function fetchTemplateXml() {
   const resp = await fetch(TEMPLATE_URL);
   if (!resp.ok) throw new Error(`Template fetch failed: ${resp.status}`);
   const buf = new Uint8Array(await resp.arrayBuffer());
-
   const entries = parseZip(buf);
   const target = entries.find(e => e.name === TARGET_ENTRY);
   if (!target) throw new Error('document.xml not found in template');
-
-  // decompress (method 8 = deflate, method 0 = stored)
   let xmlBytes;
   if (target.method === 0) xmlBytes = target.data;
   else if (target.method === 8) xmlBytes = await inflateRaw(target.data);
   else throw new Error(`Unsupported compression: ${target.method}`);
+  return { xml: new TextDecoder('utf-8').decode(xmlBytes), entries };
+}
 
-  let xml = new TextDecoder('utf-8').decode(xmlBytes);
-  xml = mergeSplitPlaceholders(xml);
-  xml = replacePlaceholdersWithRed(xml, buildPlaceholderMap(values));
+// Generate the filled .docx as a Blob — substituted text uses ORIGINAL color (no red).
+export async function generateFilledDocx(values) {
+  const { xml: rawXml, entries } = await fetchTemplateXml();
+  let xml = mergeSplitPlaceholders(rawXml);
+  xml = replacePlaceholdersWithRed(xml, buildPlaceholderMap(values), /* redize */ false);
 
   const newBytes = new TextEncoder().encode(xml);
   const compressed = await deflateRaw(newBytes);
 
-  // Replace the entry
   const newEntries = entries.map(e => {
     if (e.name !== TARGET_ENTRY) return e;
     return {
@@ -378,32 +377,112 @@ export async function generateFilledDocx(values) {
   return new Blob([zipBytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
 }
 
-// Best-effort plain-text extraction of the filled doc for in-browser preview.
-// (Not a full Word renderer — just paragraphs of text for review.)
-export async function extractPlainText(values) {
-  const resp = await fetch(TEMPLATE_URL);
-  const buf = new Uint8Array(await resp.arrayBuffer());
-  const entries = parseZip(buf);
-  const target = entries.find(e => e.name === TARGET_ENTRY);
-  let xmlBytes = target.method === 0 ? target.data : await inflateRaw(target.data);
-  let xml = new TextDecoder('utf-8').decode(xmlBytes);
-  xml = mergeSplitPlaceholders(xml);
-  xml = replacePlaceholdersWithRed(xml, buildPlaceholderMap(values));
+// ---------- HTML preview renderer ----------
+// Produces HTML matching the Word doc's visual layout: bold/italic/underline/alignment,
+// font size, paragraph spacing. Filled placeholders are tagged via data-filled="1" on the
+// run so the preview can color them red — without affecting the export.
 
-  // Convert paragraphs to lines
-  const paras = xml.split(/<w:p[\s>]/).slice(1);
-  const lines = paras.map(p => {
-    const text = (p.match(/<w:t(?:\s[^>]*)?>([^<]*)<\/w:t>/g) || [])
-      .map(t => t.replace(/<w:t(?:\s[^>]*)?>/, '').replace(/<\/w:t>/, ''))
-      .join('');
-    return text
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&apos;/g, "'");
-  });
-  return lines;
+function decodeXmlEntities(s) {
+  return s
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'");
+}
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function parseRunStyle(rPr, isFilled) {
+  const styles = [];
+  if (!rPr) {
+    if (isFilled) styles.push('color:#dc2626');
+    return styles.join(';');
+  }
+  if (/<w:b\s*\/>|<w:b\s+[^>]*\/>/.test(rPr) && !/<w:b\s+w:val="(0|false)"/.test(rPr)) styles.push('font-weight:bold');
+  if (/<w:i\s*\/>|<w:i\s+[^>]*\/>/.test(rPr) && !/<w:i\s+w:val="(0|false)"/.test(rPr)) styles.push('font-style:italic');
+  if (/<w:u\s+w:val="(?!none)/.test(rPr)) styles.push('text-decoration:underline');
+  const sz = rPr.match(/<w:sz\s+w:val="(\d+)"/);
+  if (sz) styles.push(`font-size:${parseInt(sz[1], 10) / 2}pt`);
+  if (isFilled) {
+    // Override any other color directive — preview always shows filled values in red.
+    styles.push('color:#dc2626');
+  } else {
+    const color = rPr.match(/<w:color\s+w:val="([0-9A-Fa-f]{6})"/);
+    if (color) styles.push(`color:#${color[1]}`);
+  }
+  return styles.join(';');
+}
+
+function parseParaStyle(pPr) {
+  if (!pPr) return '';
+  const styles = [];
+  const jc = pPr.match(/<w:jc\s+w:val="(\w+)"/);
+  if (jc) {
+    const map = { center: 'center', right: 'right', both: 'justify', left: 'left' };
+    if (map[jc[1]]) styles.push(`text-align:${map[jc[1]]}`);
+  }
+  return styles.join(';');
+}
+
+// Convert a single <w:r ...>...</w:r> into HTML.
+function renderRun(runMatch) {
+  // Detect data-filled marker (we add it to substituted runs).
+  const isFilled = /data-filled="1"/.test(runMatch);
+  const rPrMatch = runMatch.match(/<w:rPr>[\s\S]*?<\/w:rPr>/);
+  const rPr = rPrMatch ? rPrMatch[0] : '';
+  const style = parseRunStyle(rPr, isFilled);
+
+  // Walk children of the run in order: <w:t>, <w:br/>, <w:tab/>
+  const inner = runMatch.replace(/<w:rPr>[\s\S]*?<\/w:rPr>/, '');
+  let html = '';
+  const childRe = /<w:t(?:\s[^>]*)?>([^<]*)<\/w:t>|<w:br\s*\/>|<w:tab\s*\/>/g;
+  let m;
+  while ((m = childRe.exec(inner)) !== null) {
+    if (m[0].startsWith('<w:br')) html += '<br/>';
+    else if (m[0].startsWith('<w:tab')) html += '<span style="display:inline-block;width:0.5in"></span>';
+    else html += escapeHtml(decodeXmlEntities(m[1] || ''));
+  }
+  if (!html) return '';
+  if (style) return `<span style="${style}">${html}</span>`;
+  return html;
+}
+
+// Render a <w:p>...</w:p> to <p>.
+function renderParagraph(paraInner) {
+  const pPrMatch = paraInner.match(/<w:pPr>[\s\S]*?<\/w:pPr>/);
+  const pStyle = parseParaStyle(pPrMatch ? pPrMatch[0] : '');
+  const body = paraInner.replace(/<w:pPr>[\s\S]*?<\/w:pPr>/, '');
+
+  const runRe = /<w:r\b[^>]*>[\s\S]*?<\/w:r>/g;
+  const runs = body.match(runRe) || [];
+  const html = runs.map(renderRun).join('');
+
+  if (!html.trim()) return `<p style="margin:0.5em 0;min-height:1em">&nbsp;</p>`;
+  return `<p style="margin:0.5em 0${pStyle ? ';' + pStyle : ''}">${html}</p>`;
+}
+
+// Build a Word-like HTML preview of the filled document. Filled placeholders -> red.
+export async function renderPreviewHtml(values) {
+  const { xml: rawXml } = await fetchTemplateXml();
+  let xml = mergeSplitPlaceholders(rawXml);
+  // Use redize=false so DOCX colors aren't inherited; preview's own CSS adds the red.
+  xml = replacePlaceholdersWithRed(xml, buildPlaceholderMap(values), /* redize */ false);
+
+  const bodyMatch = xml.match(/<w:body>([\s\S]*?)<\/w:body>/);
+  if (!bodyMatch) return '';
+  const body = bodyMatch[1];
+  const paraRe = /<w:p\b[^>]*>([\s\S]*?)<\/w:p>/g;
+  const out = [];
+  let m;
+  while ((m = paraRe.exec(body)) !== null) {
+    out.push(renderParagraph(m[1]));
+  }
+  return out.join('');
 }
 
 export function downloadBlob(blob, filename) {

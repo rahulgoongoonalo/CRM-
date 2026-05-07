@@ -3,7 +3,7 @@ import { RiCloseLine, RiFileWord2Line, RiEyeLine, RiAlertLine } from 'react-icon
 import {
   PLACEHOLDER_FIELDS,
   generateFilledDocx,
-  extractPlainText,
+  renderPreviewHtml,
   downloadBlob,
 } from '../utils/docxFiller';
 import { useToast } from './ToastNotification';
@@ -42,14 +42,14 @@ const FORM_TO_L1 = {
 const GenerateDocumentModal = ({ isOpen, onClose, onboarding, onSaved }) => {
   const toast = useToast();
   const [values, setValues] = useState({});
-  const [previewLines, setPreviewLines] = useState(null);
+  const [previewHtml, setPreviewHtml] = useState('');
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [isWorking, setIsWorking] = useState(false);
 
   useEffect(() => {
     if (isOpen && onboarding) {
       setValues(deriveInitialValues(onboarding));
-      setPreviewLines(null);
+      setPreviewHtml('');
       setIsPreviewing(false);
     }
   }, [isOpen, onboarding]);
@@ -79,9 +79,6 @@ const GenerateDocumentModal = ({ isOpen, onClose, onboarding, onSaved }) => {
     return `${name}_Music_Licensing_Agreement`;
   };
 
-  // Merge form values into existing l1QuestionnaireData so save-progress (which REPLACES the
-  // whole subdoc) never drops any pre-existing fields. Only writes when at least one mapped
-  // field is new or changed.
   const persistToL1 = async () => {
     const existingL1 = onboarding?.l1QuestionnaireData || {};
     const merged = { ...existingL1 };
@@ -126,8 +123,8 @@ const GenerateDocumentModal = ({ isOpen, onClose, onboarding, onSaved }) => {
     if (!validate()) return;
     try {
       setIsWorking(true);
-      const lines = await extractPlainText(values);
-      setPreviewLines(lines);
+      const html = await renderPreviewHtml(values);
+      setPreviewHtml(html);
       setIsPreviewing(true);
     } catch (e) {
       console.error(e);
@@ -141,7 +138,7 @@ const GenerateDocumentModal = ({ isOpen, onClose, onboarding, onSaved }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose}></div>
 
-      <div className="relative bg-surface-card rounded-lg shadow-2xl shadow-brand-primary/20 w-full max-w-3xl max-h-[92vh] overflow-hidden border border-border flex flex-col">
+      <div className={`relative bg-surface-card rounded-lg shadow-2xl shadow-brand-primary/20 w-full ${isPreviewing ? 'max-w-5xl' : 'max-w-3xl'} max-h-[92vh] overflow-hidden border border-border flex flex-col`}>
         {/* Header */}
         <div className="bg-gradient-to-r from-brand-primary to-brand-secondary px-6 py-4 flex items-center justify-between shadow-lg">
           <div>
@@ -219,13 +216,25 @@ const GenerateDocumentModal = ({ isOpen, onClose, onboarding, onSaved }) => {
           </>
         ) : (
           <>
-            <div className="overflow-y-auto p-6 flex-1 bg-white text-black">
-              <h1 className="text-center font-bold underline text-lg mb-4">MUSIC LICENSING AGREEMENT</h1>
-              {previewLines.map((line, i) => (
-                <p key={i} className="my-2 whitespace-pre-wrap text-sm" style={{ fontFamily: 'Times New Roman, serif' }}>
-                  {line || ' '}
-                </p>
-              ))}
+            <div className="overflow-y-auto flex-1 bg-neutral-300 p-6">
+              {/* Word page-like surface — mirrors the actual .docx layout */}
+              <div
+                className="mx-auto bg-white text-black shadow-xl"
+                style={{
+                  width: '8.5in',
+                  maxWidth: '100%',
+                  minHeight: '11in',
+                  padding: '1in',
+                  fontFamily: 'Times New Roman, Times, serif',
+                  fontSize: '12pt',
+                  lineHeight: 1.5,
+                  boxSizing: 'border-box',
+                }}
+                dangerouslySetInnerHTML={{ __html: previewHtml }}
+              />
+              <p className="text-center text-xs text-text-muted mt-3">
+                Filled values shown in <span className="text-red-500 font-semibold">red</span> for review only — exported Word file uses the document's original colors.
+              </p>
             </div>
             <div className="px-6 py-4 border-t border-border bg-surface-light/30 flex flex-wrap items-center justify-end gap-2">
               <button onClick={() => setIsPreviewing(false)} className="btn-secondary px-4 py-2 text-sm">Back to Edit</button>
