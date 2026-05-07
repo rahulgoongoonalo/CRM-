@@ -158,25 +158,62 @@ memberSchema.pre('save', async function(next) {
 });
 
 // Indexes for faster queries
-memberSchema.index({ artistName: 1 });
 memberSchema.index({ status: 1 });
 memberSchema.index({ tier: 1 });
 memberSchema.index({ source: 1 });
 memberSchema.index({ memberNumber: -1 });
 memberSchema.index({ createdAt: -1 });
 
-// Create partial unique index on email
-// Partial index only applies to documents where email exists and is a non-empty string
-// This allows unlimited documents with null/empty/missing email
-memberSchema.index(
-  { email: 1 }, 
-  { 
-    unique: true,
-    partialFilterExpression: { email: { $exists: true, $type: 'string', $gt: '' } },
-    name: 'email_unique_partial'
-  }
-);
+// artistName is the business identity for a member. Uniqueness is enforced at the route
+// layer (case-insensitive lookup before insert/update) — NOT as a DB unique index, so
+// pre-existing duplicate names in the collection cause no startup failure.
+memberSchema.index({ artistName: 1 });
+// Plain (non-unique) index on email for fast lookups, no constraint.
+memberSchema.index({ email: 1 }, { name: 'email_lookup' });
 
 const Member = mongoose.model('Member', memberSchema);
+
+// One-time index reconciliation: drop ANY unique index on the `email` field.
+// Safe — only removes index metadata, never touches documents.
+// Suppress noisy benign Mongoose "index already exists" warnings.
+Member.on('index', err => {
+  if (err && err.codeName !== 'IndexOptionsConflict' && !/same name as the requested index/.test(err.message || '')) {
+    console.warn('[Member index] sync warning:', err.message);
+  }
+});
+
+async function reconcileMemberIndexes() {
+  try {
+    // Wait for the mongoose default connection to be open before touching indexes.
+    if (mongoose.connection.readyState !== 1) {
+      await new Promise(resolve => {
+        const onOpen = () => { mongoose.connection.off('open', onOpen); resolve(); };
+        mongoose.connection.once('open', onOpen);
+      });
+    }
+    const indexes = await Member.collection.indexes();
+    let droppedAny = false;
+    for (const idx of indexes) {
+      const keys = Object.keys(idx.key || {});
+      if (idx.unique && keys.length === 1 && keys[0] === 'email') {
+        try {
+          await Member.collection.dropIndex(idx.name);
+          console.log(`[Member index] Dropped legacy unique-email index: ${idx.name}`);
+          droppedAny = true;
+        } catch (e) {
+          if (e?.codeName !== 'IndexNotFound') {
+            console.warn(`[Member index] Could not drop ${idx.name}:`, e.message);
+          }
+        }
+      }
+    }
+    if (!droppedAny) {
+      console.log('[Member index] No legacy unique-email index found — email is already non-unique.');
+    }
+  } catch (e) {
+    console.warn('[Member index] Reconcile failed:', e.message);
+  }
+}
+reconcileMemberIndexes();
 
 export default Member;

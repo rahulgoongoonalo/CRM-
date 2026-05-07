@@ -1,9 +1,10 @@
-import { RiUserAddLine, RiEyeLine, RiEditLine, RiDeleteBinLine, RiSendPlaneLine, RiSearchLine, RiArrowUpSLine, RiArrowDownSLine } from 'react-icons/ri';
+import { RiUserAddLine, RiEyeLine, RiEditLine, RiDeleteBinLine, RiSendPlaneLine, RiSearchLine, RiArrowUpSLine, RiArrowDownSLine, RiFileTextLine } from 'react-icons/ri';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import AddOnboardingModal from '../components/AddOnboardingModal';
 import ViewOnboardingModal from '../components/ViewOnboardingModal';
 import EditOnboardingModal from '../components/EditOnboardingModal';
 import L2ReviewModal from '../components/L2ReviewModal';
+import GenerateDocumentModal from '../components/GenerateDocumentModal';
 import { onboardingAPI } from '../services/api';
 import { useToast, useConfirm } from '../components/ToastNotification';
 import { usePicklist } from '../hooks/usePicklist';
@@ -35,6 +36,7 @@ const Onboarding = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isL2ReviewModalOpen, setIsL2ReviewModalOpen] = useState(false);
+  const [isGenerateDocOpen, setIsGenerateDocOpen] = useState(false);
   const [selectedOnboarding, setSelectedOnboarding] = useState(null);
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [sourceFilter, setSourceFilter] = useState('All Sources');
@@ -190,6 +192,11 @@ const Onboarding = () => {
       console.error('Error updating onboarding:', error);
       toast.error('Failed to update onboarding');
     }
+  };
+
+  const handleOpenGenerateDoc = (onboarding) => {
+    setSelectedOnboarding(onboarding);
+    setIsGenerateDocOpen(true);
   };
 
   const handleOpenL2Review = async (onboarding) => {
@@ -487,7 +494,7 @@ const Onboarding = () => {
                         >
                           <RiDeleteBinLine className="text-base" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleOpenL2Review(item)}
                           className={`transition-colors p-1 ${
                             ['closed-won', 'closed-lost', 'cold-storage'].includes(item.status)
@@ -496,6 +503,13 @@ const Onboarding = () => {
                           }`}
                         >
                           <RiSendPlaneLine className="text-base" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenGenerateDoc(item)}
+                          title="Generate Agreement Document"
+                          className="text-text-muted hover:text-brand-primary transition-colors p-1"
+                        >
+                          <RiFileTextLine className="text-base" />
                         </button>
                       </div>
                     </td>
@@ -585,7 +599,7 @@ const Onboarding = () => {
                     <RiDeleteBinLine className="text-lg" />
                     <span className="text-sm font-medium">Delete</span>
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleOpenL2Review(item)}
                     className={`flex-1 flex items-center justify-center space-x-1 py-2 transition-colors ${
                       ['closed-won', 'closed-lost', 'cold-storage'].includes(item.status)
@@ -595,6 +609,13 @@ const Onboarding = () => {
                   >
                     <RiSendPlaneLine className="text-lg" />
                     <span className="text-sm font-medium">Review</span>
+                  </button>
+                  <button
+                    onClick={() => handleOpenGenerateDoc(item)}
+                    className="flex-1 flex items-center justify-center space-x-1 text-text-muted hover:text-brand-primary py-2 transition-colors"
+                  >
+                    <RiFileTextLine className="text-lg" />
+                    <span className="text-sm font-medium">Doc</span>
                   </button>
                 </div>
               </div>
@@ -714,6 +735,17 @@ const Onboarding = () => {
         }}
         onboarding={selectedOnboarding}
         onSubmit={handleSubmitL2Review}
+      />
+
+      {/* Generate Document Modal */}
+      <GenerateDocumentModal
+        isOpen={isGenerateDocOpen}
+        onClose={() => {
+          setIsGenerateDocOpen(false);
+          setSelectedOnboarding(null);
+        }}
+        onboarding={selectedOnboarding}
+        onSaved={() => fetchOnboardings()}
       />
     </div>
   );

@@ -149,15 +149,18 @@ const MemberManagement = () => {
       };
 
       const response = await membersAPI.create(memberPayload);
-      
+
       if (response.success) {
         toast.success('Member added successfully!');
         setCurrentPage(1); // Go to page 1 to see new member
         setIsModalOpen(false);
+        return true;
       }
+      return false;
     } catch (error) {
       console.error('Error adding member:', error);
       toast.error(error.response?.data?.message || 'Failed to add member. Please try again.');
+      return false;
     }
   };
 

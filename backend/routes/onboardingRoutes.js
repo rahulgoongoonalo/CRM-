@@ -30,6 +30,26 @@ const upload = multer({
 
 const router = express.Router();
 
+// @route   GET /api/onboarding/onboarded-member-ids
+// @desc    Lightweight list of member IDs already linked to an Onboarding (for dup-check on Add)
+// @access  Private
+router.get('/onboarded-member-ids', async (req, res) => {
+  try {
+    const rows = await Onboarding.find({}, { member: 1, artistName: 1, taskNumber: 1 }).lean();
+    const data = rows
+      .filter(r => r.member)
+      .map(r => ({
+        memberId: String(r.member),
+        artistName: r.artistName,
+        taskNumber: r.taskNumber,
+      }));
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('Error fetching onboarded member IDs:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch list', error: error.message });
+  }
+});
+
 // @route   PUT /api/onboarding/renumber
 // @desc    Renumber all onboarding tasks sequentially starting from 1
 // @access  Private
@@ -689,6 +709,17 @@ router.post('/', async (req, res) => {
       message: 'Onboarding created successfully'
     });
   } catch (error) {
+    // Mongoose validation errors are user-input errors, not server crashes — log compactly + return 400.
+    if (error?.name === 'ValidationError') {
+      const fields = Object.keys(error.errors || {});
+      console.warn(`[Onboarding] Validation failed (${fields.join(', ')})`);
+      const friendly = fields.map(f => `${f} is required`).join(', ');
+      return res.status(400).json({
+        success: false,
+        message: friendly || 'Validation failed',
+        fields
+      });
+    }
     console.error('Error creating onboarding:', error);
     res.status(500).json({
       success: false,
@@ -817,17 +848,23 @@ router.patch('/:id/step1', async (req, res) => {
 router.patch('/:id/l1-questionnaire', async (req, res) => {
   try {
     const l1Data = req.body;
-    
+
+    // Mirror address ↔ cityCountry so both stay in sync (Member.location is the canonical source).
+    if (l1Data) {
+      if (l1Data.address && !l1Data.cityCountry) l1Data.cityCountry = l1Data.address;
+      else if (l1Data.cityCountry && !l1Data.address) l1Data.address = l1Data.cityCountry;
+    }
+
     // Find the onboarding to get the member ID
     const onboarding = await Onboarding.findById(req.params.id);
-    
+
     if (!onboarding) {
       return res.status(404).json({
         success: false,
         message: 'Onboarding not found'
       });
     }
-    
+
     // Update the onboarding with L1 data
     const updatedOnboarding = await Onboarding.findByIdAndUpdate(
       req.params.id,
@@ -852,7 +889,9 @@ router.patch('/:id/l1-questionnaire', async (req, res) => {
       if (l1Data.primaryContact) memberUpdate.contactName = l1Data.primaryContact;
       if (l1Data.email) memberUpdate.email = l1Data.email;
       if (l1Data.phone) memberUpdate.phone = l1Data.phone;
-      if (l1Data.cityCountry) memberUpdate.location = l1Data.cityCountry;
+      // Address is the canonical full-address; cityCountry is its alias. Prefer address.
+      if (l1Data.address) memberUpdate.location = l1Data.address;
+      else if (l1Data.cityCountry) memberUpdate.location = l1Data.cityCountry;
       if (l1Data.primaryRole) memberUpdate.primaryRole = l1Data.primaryRole;
       if (l1Data.primaryGenres) memberUpdate.primaryGenres = l1Data.primaryGenres;
       if (l1Data.artistBio) memberUpdate.biography = l1Data.artistBio;
@@ -884,6 +923,12 @@ router.patch('/:id/l1-questionnaire/save-progress', async (req, res) => {
   try {
     const l1Data = req.body;
 
+    // Mirror address ↔ cityCountry so both stay in sync.
+    if (l1Data) {
+      if (l1Data.address && !l1Data.cityCountry) l1Data.cityCountry = l1Data.address;
+      else if (l1Data.cityCountry && !l1Data.address) l1Data.address = l1Data.cityCountry;
+    }
+
     const onboarding = await Onboarding.findById(req.params.id);
     if (!onboarding) {
       return res.status(404).json({ success: false, message: 'Onboarding not found' });
@@ -903,7 +948,9 @@ router.patch('/:id/l1-questionnaire/save-progress', async (req, res) => {
       if (l1Data.primaryContact) memberUpdate.contactName = l1Data.primaryContact;
       if (l1Data.email) memberUpdate.email = l1Data.email;
       if (l1Data.phone) memberUpdate.phone = l1Data.phone;
-      if (l1Data.cityCountry) memberUpdate.location = l1Data.cityCountry;
+      // Address is the canonical full-address; cityCountry is its alias. Prefer address.
+      if (l1Data.address) memberUpdate.location = l1Data.address;
+      else if (l1Data.cityCountry) memberUpdate.location = l1Data.cityCountry;
       if (l1Data.primaryRole) memberUpdate.primaryRole = l1Data.primaryRole;
       if (l1Data.primaryGenres) memberUpdate.primaryGenres = l1Data.primaryGenres;
       if (l1Data.artistBio) memberUpdate.biography = l1Data.artistBio;

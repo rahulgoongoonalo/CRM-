@@ -1,12 +1,14 @@
-import { RiCloseLine, RiSearchLine, RiUserLine } from 'react-icons/ri';
-import { useState, useEffect, useRef } from 'react';
+import { RiCloseLine, RiSearchLine, RiUserLine, RiAlertLine } from 'react-icons/ri';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Step1Modal from './Step1Modal';
-import { membersAPI } from '../services/api';
+import { membersAPI, onboardingAPI } from '../services/api';
 import { usePicklist } from '../hooks/usePicklist';
+import { useToast } from './ToastNotification';
 
 const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
   const { items: spocOptions } = usePicklist('spoc');
   const { items: onboardingStatuses } = usePicklist('onboardingStatus');
+  const toast = useToast();
 
   const [formData, setFormData] = useState({
     member: '',
@@ -21,21 +23,42 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
   const [savedMemberName, setSavedMemberName] = useState('');
   const [createdOnboardingId, setCreatedOnboardingId] = useState('');
   const [members, setMembers] = useState([]);
+  const [onboardedMap, setOnboardedMap] = useState({}); // { memberId: { artistName, taskNumber } }
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
   const searchRef = useRef(null);
 
-  // Fetch members from MongoDB
+  // Fetch members + onboarded IDs from MongoDB
   useEffect(() => {
     if (isOpen) {
       fetchMembers();
+      fetchOnboardedIds();
       setSearchQuery('');
       setSelectedMember(null);
       setShowDropdown(false);
     }
   }, [isOpen]);
+
+  const fetchOnboardedIds = async () => {
+    try {
+      const res = await onboardingAPI.getOnboardedMemberIds();
+      if (res.success) {
+        const map = {};
+        res.data.forEach(r => { map[r.memberId] = { artistName: r.artistName, taskNumber: r.taskNumber }; });
+        setOnboardedMap(map);
+      }
+    } catch (e) {
+      console.error('Failed to fetch onboarded member IDs:', e);
+    }
+  };
+
+  const isMemberOnboarded = (memberId) => Boolean(onboardedMap[memberId]);
+  const selectedDuplicate = useMemo(() => {
+    return selectedMember ? onboardedMap[selectedMember._id] : null;
+  }, [selectedMember, onboardedMap]);
 
   // Click outside to close search dropdown
   useEffect(() => {
@@ -55,6 +78,11 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
   }).slice(0, 20);
 
   const handleSelectMember = (member) => {
+    const dup = onboardedMap[member._id];
+    if (dup) {
+      toast.error(`"${member.artistName}" already has an onboarding entry (Task #${dup.taskNumber}). Open it from the list instead.`);
+      return;
+    }
     setSelectedMember(member);
     setFormData(prev => ({ ...prev, member: member._id }));
     setSearchQuery('');
@@ -83,21 +111,29 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    if (submitting) return;
+
+    if (!selectedMember) {
+      toast.error('Please select an artist.');
+      return;
+    }
+    if (!formData.spoc) {
+      toast.error('Please assign a SPOC.');
+      return;
+    }
+    // Final client-side guard before backend dup-check
+    if (onboardedMap[selectedMember._id]) {
+      toast.error(`"${selectedMember.artistName}" already has an onboarding entry. Cannot create duplicate.`);
+      return;
+    }
+
     try {
-      // Get the artist name before submitting
-      const artistName = selectedMember?.artistName || '';
-      
-      // Call onSubmit which returns the created onboarding ID
-      const createdId = await onSubmit({
-        ...formData,
-        artistName
-      });
-      
+      setSubmitting(true);
+      const artistName = selectedMember.artistName || '';
+      const createdId = await onSubmit({ ...formData, artistName });
+
       if (createdId) {
         const taskId = `ONB-${createdId.slice(-4).toUpperCase()}`;
-        
-        // Set state and open Step1Modal
         setCreatedOnboardingId(createdId);
         setSavedMemberName(artistName);
         setNewTaskId(taskId);
@@ -105,6 +141,8 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
       }
     } catch (error) {
       console.error('Error in handleSubmit:', error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -140,6 +178,17 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
 
         {/* Content */}
         <div className="p-6">
+          {selectedDuplicate && (
+            <div className="flex items-start gap-2 p-3 mb-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-300 text-sm">
+              <RiAlertLine className="text-lg flex-shrink-0 mt-0.5" />
+              <div>
+                <div className="font-semibold mb-0.5">Already onboarded</div>
+                <div className="text-red-300/90">
+                  An onboarding entry for this artist already exists (Task #{selectedDuplicate.taskNumber}). Open it from the list instead of creating a duplicate.
+                </div>
+              </div>
+            </div>
+          )}
           <form onSubmit={handleSubmit}>
             {/* Select Member - Searchable */}
             <div className="mb-4" ref={searchRef}>
@@ -184,16 +233,33 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
                       ) : filteredMembers.length === 0 ? (
                         <div className="px-4 py-3 text-sm text-text-muted text-center">No artists found</div>
                       ) : (
-                        filteredMembers.map((member) => (
-                          <div
-                            key={member._id}
-                            onClick={() => handleSelectMember(member)}
-                            className="px-4 py-2.5 hover:bg-brand-primary/10 cursor-pointer transition-colors border-b border-border/50 last:border-b-0"
-                          >
-                            <p className="text-sm font-medium text-text-primary">{member.artistName}</p>
-                            <p className="text-xs text-text-muted">{member.email}</p>
-                          </div>
-                        ))
+                        filteredMembers.map((member) => {
+                          const onboarded = isMemberOnboarded(member._id);
+                          return (
+                            <div
+                              key={member._id}
+                              onClick={() => !onboarded && handleSelectMember(member)}
+                              className={`px-4 py-2.5 transition-colors border-b border-border/50 last:border-b-0 ${
+                                onboarded
+                                  ? 'opacity-50 cursor-not-allowed bg-surface-light/30'
+                                  : 'hover:bg-brand-primary/10 cursor-pointer'
+                              }`}
+                              title={onboarded ? `Already onboarded (Task #${onboardedMap[member._id].taskNumber})` : ''}
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium text-text-primary truncate">{member.artistName}</p>
+                                  <p className="text-xs text-text-muted truncate">{member.email}</p>
+                                </div>
+                                {onboarded && (
+                                  <span className="flex-shrink-0 text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                    Already Onboarded
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })
                       )}
                     </div>
                   )}
@@ -222,12 +288,13 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
               {/* Assign SPOC */}
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Assign SPOC
+                  Assign SPOC <span className="text-red-400">*</span>
                 </label>
                 <select
                   name="spoc"
                   value={formData.spoc}
                   onChange={handleChange}
+                  required
                   className="select w-full cursor-pointer"
                 >
                   <option value="">Select SPOC</option>
@@ -295,9 +362,10 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
               </button>
               <button
                 type="submit"
-                className="btn-primary px-6 py-2.5 shadow-lg shadow-brand-primary/30"
+                disabled={submitting || !selectedMember || Boolean(selectedDuplicate)}
+                className="btn-primary px-6 py-2.5 shadow-lg shadow-brand-primary/30 disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                Create & Continue to Step 1
+                {submitting ? 'Creating...' : 'Create & Continue to Step 1'}
               </button>
             </div>
           </form>

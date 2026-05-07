@@ -129,7 +129,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                   Email Address
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   name="email"
                   placeholder="Enter email address"
                   value={formData.email}

@@ -52,6 +52,10 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
     ifscCode: '',
     panNumber: '',
     aadharNumber: '',
+    gstNumber: '',
+    accountName: '',
+    branchName: '',
+    address: '',
     // Agreements
     confirmRights: false,
     acceptTerms: false,
@@ -116,6 +120,10 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
           ifscCode: data.ifscCode || member.ifscCode || '',
           panNumber: data.panNumber || member.panNumber || '',
           aadharNumber: data.aadharNumber || member.aadharNumber || '',
+          gstNumber: data.gstNumber || '',
+          accountName: data.accountName || '',
+          branchName: data.branchName || '',
+          address: data.address || data.cityCountry || member.location || '',
           confirmRights: data.confirmRights || false,
           acceptTerms: data.acceptTerms || false,
           consentEditorial: data.consentEditorial || false,
@@ -135,10 +143,13 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    setFormData(prev => {
+      const next = { ...prev, [name]: type === 'checkbox' ? checked : value };
+      // Keep address ↔ cityCountry in sync (Member.location is the canonical full address).
+      if (name === 'address') next.cityCountry = value;
+      else if (name === 'cityCountry') next.address = value;
+      return next;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -240,7 +251,7 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
                     Email Address
                   </label>
                   <input
-                    type="email"
+                    type="text"
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
@@ -844,6 +855,64 @@ const EditL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
                     className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1.5">
+                    GST Number
+                  </label>
+                  <input
+                    type="text"
+                    name="gstNumber"
+                    value={formData.gstNumber}
+                    onChange={handleChange}
+                    placeholder="Enter GST number"
+                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1.5">
+                    Account Name
+                  </label>
+                  <input
+                    type="text"
+                    name="accountName"
+                    value={formData.accountName}
+                    onChange={handleChange}
+                    placeholder="Enter account holder name"
+                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1.5">
+                    Branch Name
+                  </label>
+                  <input
+                    type="text"
+                    name="branchName"
+                    value={formData.branchName}
+                    onChange={handleChange}
+                    placeholder="Enter branch name"
+                    className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">
+                  Address <span className="text-gray-500 text-xs">(synced with City &amp; Country / Member Location)</span>
+                </label>
+                <textarea
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  placeholder="Enter full address"
+                  rows={2}
+                  className="w-full bg-slate-900 text-white px-4 py-2.5 rounded-lg border border-slate-700 focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+                />
               </div>
             </div>
 

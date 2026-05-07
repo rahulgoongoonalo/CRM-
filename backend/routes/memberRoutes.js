@@ -18,7 +18,10 @@ const syncMemberToOnboardingL1 = async (memberId, memberData) => {
     if (memberData.contactName) updates['l1QuestionnaireData.primaryContact'] = memberData.contactName;
     if (memberData.email) updates['l1QuestionnaireData.email'] = memberData.email;
     if (memberData.phone) updates['l1QuestionnaireData.phone'] = memberData.phone;
-    if (memberData.location) updates['l1QuestionnaireData.cityCountry'] = memberData.location;
+    if (memberData.location) {
+      updates['l1QuestionnaireData.cityCountry'] = memberData.location;
+      updates['l1QuestionnaireData.address'] = memberData.location;
+    }
     if (memberData.primaryRole) updates['l1QuestionnaireData.primaryRole'] = memberData.primaryRole;
     if (memberData.primaryGenres) updates['l1QuestionnaireData.primaryGenres'] = memberData.primaryGenres;
     if (memberData.biography) updates['l1QuestionnaireData.artistBio'] = memberData.biography;
@@ -246,7 +249,7 @@ router.get('/:id', async (req, res) => {
 // @access  Private
 router.post('/', [
   body('artistName').trim().notEmpty().withMessage('Artist name is required'),
-  body('email').optional({ checkFalsy: true }).isEmail().withMessage('Valid email is required'),
+  body('email').optional({ checkFalsy: true }).trim(),
   body('phone').optional().trim(),
   body('location').optional().trim(),
   body('status').optional().trim()
@@ -278,16 +281,8 @@ router.post('/', [
       return res.status(400).json({ message: `Member "${duplicateName.artistName}" already exists` });
     }
 
-    // Convert empty email to null to avoid unique constraint issues
+    // Email is no longer required and not unique — multiple artists can share contact info.
     const emailValue = email && email.trim() !== '' ? email : null;
-
-    // Check if member with email already exists (only if email is provided)
-    if (emailValue) {
-      const memberExists = await Member.findOne({ email: emailValue });
-      if (memberExists) {
-        return res.status(400).json({ message: 'Member with this email already exists' });
-      }
-    }
 
     const member = await Member.create({
       artistName,
@@ -340,9 +335,11 @@ router.post('/', [
       });
     }
     if (error.code === 11000) {
-      return res.status(400).json({ 
-        message: 'Duplicate email', 
-        error: 'A member with this email already exists' 
+      // Generic duplicate-key (only artistName is enforced uniquely at app layer; this is
+      // a defensive fallback for any future unique index).
+      return res.status(400).json({
+        message: 'Duplicate value',
+        error: error.message
       });
     }
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -369,11 +366,15 @@ router.put('/:id', async (req, res) => {
       aadharNumber, status, notes
     } = req.body;
 
-    // Check if email is being changed and if it's already taken
-    if (email && email !== member.email) {
-      const emailExists = await Member.findOne({ email });
-      if (emailExists) {
-        return res.status(400).json({ message: 'Email already in use' });
+    // Enforce artistName uniqueness (case-insensitive) when the name changes.
+    if (artistName && artistName.trim().toLowerCase() !== (member.artistName || '').trim().toLowerCase()) {
+      const escaped = artistName.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const duplicateName = await Member.findOne({
+        _id: { $ne: req.params.id },
+        artistName: { $regex: new RegExp(`^${escaped}$`, 'i') }
+      });
+      if (duplicateName) {
+        return res.status(400).json({ message: `Member "${duplicateName.artistName}" already exists` });
       }
     }
 

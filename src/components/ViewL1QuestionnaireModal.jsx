@@ -576,15 +576,65 @@ const ViewL1QuestionnaireModal = ({ isOpen, onClose, onboarding }) => {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Aadhar Number
+                </label>
+                <input
+                  type="text"
+                  value={data.aadharNumber || 'N/A'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  GST Number
+                </label>
+                <input
+                  type="text"
+                  value={data.gstNumber || 'N/A'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Account Name
+                </label>
+                <input
+                  type="text"
+                  value={data.accountName || 'N/A'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Branch Name
+                </label>
+                <input
+                  type="text"
+                  value={data.branchName || 'N/A'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-2">
-                Aadhar Number
+                Address
               </label>
-              <input
-                type="text"
-                value={data.aadharNumber || 'N/A'}
+              <textarea
+                value={data.address || 'N/A'}
                 disabled
-                className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                rows={2}
+                className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed resize-none"
               />
             </div>
           </div>

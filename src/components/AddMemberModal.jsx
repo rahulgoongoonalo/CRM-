@@ -38,29 +38,31 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Pass form data to parent component
-    onSubmit(formData);
-    // Reset form
-    setFormData({
-      fullName: '',
-      aliasName: '',
-      email: '',
-      contactNumber: '',
-      alternateNumber: '',
-      country: '',
-      category: '',
-      tier: '',
-      talentRole: '',
-      talentType: '',
-      genre: '',
-      source: '',
-      notes: '',
-      status: 'Pending',
-      biography: '',
-      digitalPayout: false,
-    });
+    // Pass form data to parent — keep typed values if creation fails so user can fix the
+    // duplicate name / fields without re-entering everything.
+    const ok = await onSubmit(formData);
+    if (ok) {
+      setFormData({
+        fullName: '',
+        aliasName: '',
+        email: '',
+        contactNumber: '',
+        alternateNumber: '',
+        country: '',
+        category: '',
+        tier: '',
+        talentRole: '',
+        talentType: '',
+        genre: '',
+        source: '',
+        notes: '',
+        status: 'Pending',
+        biography: '',
+        digitalPayout: false,
+      });
+    }
   };
 
   return (
@@ -123,7 +125,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   Email Address
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   name="email"
                   placeholder="Enter email address"
                   value={formData.email}

@@ -113,6 +113,10 @@ export const onboardingAPI = {
     const response = await api.get(`/onboarding/${id}`);
     return response.data;
   },
+  getOnboardedMemberIds: async () => {
+    const response = await api.get('/onboarding/onboarded-member-ids');
+    return response.data;
+  },
   create: async (onboardingData) => {
     const response = await api.post('/onboarding', onboardingData);
     return response.data;

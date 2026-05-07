@@ -94,6 +94,11 @@ const onboardingSchema = new mongoose.Schema({
       ifscCode: String,
       panNumber: String,
       aadharNumber: String,
+      // Agreement-document KYC extras
+      gstNumber: String,
+      address: String,
+      accountName: String,
+      branchName: String,
       // Agreements
       confirmRights: Boolean,
       acceptTerms: Boolean,

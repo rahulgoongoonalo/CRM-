@@ -12,13 +12,13 @@ const phoneDigits = (value) => normText(value).replace(/\D/g, '');
 const compactName = (value) => normText(value).toLowerCase().replace(/[^a-z0-9]+/g, '');
 const escapeRegex = (value) => normText(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-async function findStrictAppMatch(artistName, email) {
+async function findStrictAppMatch(artistName /* email kept in signature for callers but unused */) {
+  // artistName is the unique business identity — match purely on case-insensitive name.
   const cleanName = normText(artistName);
-  const cleanEmail = normEmail(email);
-  if (!cleanName || !cleanEmail) return null;
+  if (!cleanName) return null;
 
   const nameRegex = new RegExp(`^${escapeRegex(cleanName)}$`, 'i');
-  const member = await Member.findOne({ email: cleanEmail, artistName: { $regex: nameRegex } });
+  const member = await Member.findOne({ artistName: { $regex: nameRegex } });
   if (!member) return null;
 
   const onboarding = await Onboarding.findOne({ member: member._id, artistName: { $regex: nameRegex } });
@@ -26,21 +26,14 @@ async function findStrictAppMatch(artistName, email) {
 }
 
 function looseMatchReasons(row, member) {
-  const rowEmail = normEmail(row.email || row.fields?.Email);
-  const memberEmail = normEmail(member.email);
-  const rowPhone = phoneDigits(row.phone || row.fields?.Phone);
-  const memberPhone = phoneDigits(member.phone);
+  // Identity is artistName ONLY. Email/phone are explicitly NOT identifiers — multiple
+  // artists may share contact info (managers, family, shared inboxes). We never auto-merge
+  // on email/phone overlap.
   const rowName = compactName(row.artistName || row.fields?.Artist_Name);
   const memberName = compactName(member.artistName);
-  const nameLooksSame = rowName && memberName && (rowName.includes(memberName) || memberName.includes(rowName));
-  const reasons = [];
-
-  if (rowEmail && memberEmail && rowEmail === memberEmail) reasons.push('email');
-  if (rowPhone && memberPhone && rowPhone === memberPhone) reasons.push('phone');
-  if (nameLooksSame) reasons.push('name');
-
-  if (reasons.includes('email')) return reasons;
-  if (reasons.includes('phone') && reasons.includes('name')) return reasons;
+  if (!rowName || !memberName) return [];
+  // Only an exact compact-name match (case + punctuation insensitive) counts as a loose link.
+  if (rowName === memberName) return ['name'];
   return [];
 }
 
@@ -374,17 +367,13 @@ export async function promoteStagingRow(stagingId) {
 
   const email = (fields.Email || staging.email || '').trim().toLowerCase();
 
-  // Match by (email + artistName) — never email alone (multiple artists may share contact info).
+  // Match by artistName ONLY (case-insensitive). Email/phone are NOT identity — multiple
+  // artists may legitimately share a contact (manager, family, shared inbox).
   const escapedName = artistName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const nameRegex = new RegExp(`^${escapedName}$`, 'i');
 
-  let member = null;
-  if (email && artistName) {
-    member = await Member.findOne({ email, artistName: { $regex: nameRegex } });
-  }
-  if (!member && artistName) {
-    member = await Member.findOne({ artistName: { $regex: nameRegex } });
-  }
+  const member0 = await Member.findOne({ artistName: { $regex: nameRegex } });
+  let member = member0;
 
   if (member) {
     const duplicateSynced = await GristStaging.findOne({
@@ -419,10 +408,7 @@ export async function promoteStagingRow(stagingId) {
     if (fields.Email) {
       const newEmail = fields.Email.toLowerCase().trim();
       if (newEmail && newEmail !== (member.email || '').toLowerCase().trim()) {
-        const conflict = await Member.findOne({ email: newEmail, _id: { $ne: member._id } });
-        if (conflict) {
-          throw new Error(`Duplicate email not allowed — "${newEmail}" already belongs to "${conflict.artistName}". Update the email in Grist or in Member Management before syncing.`);
-        }
+        // Email is no longer unique; just update it.
         updateFields.email = newEmail;
       }
     }
@@ -432,14 +418,8 @@ export async function promoteStagingRow(stagingId) {
       await Member.findByIdAndUpdate(member._id, updateFields);
     }
   } else {
-    // Creating a new member — pre-check email uniqueness so we can return a clear error
-    // instead of letting the unique index throw a generic duplicate-key error.
-    if (email) {
-      const conflict = await Member.findOne({ email });
-      if (conflict) {
-        throw new Error(`Duplicate email not allowed — "${email}" already belongs to "${conflict.artistName}" (#${conflict.memberNumber}). Cannot create "${artistName}" with the same email.`);
-      }
-    }
+    // Email no longer enforced as unique — create a new member directly. Identity is by
+    // artistName, which we've already searched for above and not found.
     member = new Member(mapToMemberData(fields));
     await member.save();
   }
