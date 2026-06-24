@@ -232,7 +232,9 @@ export const ToastProvider = ({ children }) => {
 
   const addToast = useCallback((type, message, duration = 4500) => {
     const id = Date.now() + Math.random();
-    setToasts((prev) => [...prev, { id, type, message, duration }]);
+    // Keep only a single toast on screen — a new one replaces any currently showing,
+    // so rapid actions (e.g. auto-saves) don't stack notifications.
+    setToasts([{ id, type, message, duration }]);
   }, []);
 
   const removeToast = useCallback((id) => {
