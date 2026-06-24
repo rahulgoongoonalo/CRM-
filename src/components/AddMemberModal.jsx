@@ -22,6 +22,7 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
     talentType: '',
     genre: '',
     source: '',
+    talentScout: 'No',
     notes: '',
     status: 'Pending',
     biography: '',
@@ -305,6 +306,24 @@ const AddMemberModal = ({ isOpen, onClose, onSubmit }) => {
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  Talent Scout
+                </label>
+                <select
+                  name="talentScout"
+                  value={formData.talentScout}
+                  onChange={handleChange}
+                  className="select w-full"
+                >
+                  <option value="No">No</option>
+                  <option value="Yes">Yes</option>
+                </select>
+              </div>
+              <div></div>
             </div>
 
             <div>

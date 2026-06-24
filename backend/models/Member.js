@@ -65,6 +65,12 @@ const memberSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  talentScout: {
+    type: String,
+    trim: true,
+    enum: ['Yes', 'No', ''],
+    default: 'No'
+  },
   biography: {
     type: String,
     trim: true

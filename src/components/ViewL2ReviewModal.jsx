@@ -16,6 +16,9 @@ const INVESTMENT_INTEREST_ITEMS = [
   { key: 'received', label: 'Interested in Investment', type: 'yesno' },
 ];
 
+// Sentinel for an undecided item (the default state). 'NA' is now a real choice.
+const UNSET = 'Not updated';
+
 const isNumberItem = (item) => item.type === 'number';
 const isDecisionItem = (item) => !isNumberItem(item);
 
@@ -23,16 +26,16 @@ const getStageStatus = (stageData, stageItems, customType) => {
   if (!stageData || !stageItems || stageItems.length === 0) return { status: 'Open', color: 'gray' };
   if (customType === 'investmentInterest') {
     const amt = Number(stageData.amount) || 0;
-    const rec = stageData.received || 'NA';
-    if (rec === 'No') return { status: 'Closed', color: 'green' };
+    const rec = stageData.received || UNSET;
+    if (rec === 'No' || rec === 'NA') return { status: 'Closed', color: 'green' };
     if (rec === 'Yes' && amt > 0) return { status: 'Closed', color: 'green' };
-    if (rec === 'NA' && amt === 0) return { status: 'Open', color: 'gray' };
+    if (rec === UNSET && amt === 0) return { status: 'Open', color: 'gray' };
     return { status: 'In Progress', color: 'yellow' };
   }
-  const values = stageItems.filter(isDecisionItem).map(item => stageData[item.key] || 'NA');
-  const nonNA = values.filter(v => v !== 'NA');
-  if (nonNA.length === 0) return { status: 'Open', color: 'gray' };
-  if (nonNA.length === values.length) return { status: 'Closed', color: 'green' };
+  const values = stageItems.filter(isDecisionItem).map(item => stageData[item.key] || UNSET);
+  const decided = values.filter(v => v !== UNSET);
+  if (decided.length === 0) return { status: 'Open', color: 'gray' };
+  if (decided.length === values.length) return { status: 'Closed', color: 'green' };
   return { status: 'In Progress', color: 'yellow' };
 };
 
@@ -72,7 +75,8 @@ const stageAccentClass = (color) => {
 const valueBadge = (val) => {
   if (val === 'Yes') return 'bg-green-600 text-white';
   if (val === 'No') return 'bg-red-600 text-white';
-  return 'bg-slate-600 text-slate-300';
+  if (val === UNSET) return 'bg-amber-600 text-white';
+  return 'bg-slate-600 text-slate-300'; // NA
 };
 
 const StageHeading = ({ title, description, color }) => (
@@ -236,8 +240,8 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
                 const stageData = stages[stage.key] || {};
                 const { status, color } = getStageStatus(stageData, stage.items, stage.customType);
                 const completedCount = stage.customType === 'investmentInterest'
-                  ? ((Number(stageData.amount) > 0 ? 1 : 0) + ((stageData.received || 'NA') !== 'NA' ? 1 : 0))
-                  : stage.items.filter(isDecisionItem).filter(item => (stageData[item.key] || 'NA') !== 'NA').length;
+                  ? ((Number(stageData.amount) > 0 ? 1 : 0) + ((stageData.received || UNSET) !== UNSET ? 1 : 0))
+                  : stage.items.filter(isDecisionItem).filter(item => (stageData[item.key] || UNSET) !== UNSET).length;
                 const decisionItems = stage.items.filter(isDecisionItem);
 
                 return (
@@ -265,13 +269,13 @@ const ViewL2ReviewModal = ({ isOpen, onClose, onboarding }) => {
                           </div>
                           <div className="flex items-center justify-between py-2 px-3 bg-slate-800/30 rounded-lg">
                             <span className="text-gray-300 text-sm">Interested in Investment</span>
-                            <span className={`px-3 py-0.5 rounded-md text-xs font-medium ${valueBadge(stageData.received || 'NA')}`}>
-                              {stageData.received || 'NA'}
+                            <span className={`px-3 py-0.5 rounded-md text-xs font-medium ${valueBadge(stageData.received || UNSET)}`}>
+                              {stageData.received || UNSET}
                             </span>
                           </div>
                         </>
                       ) : decisionItems.map((item) => {
-                        const val = stageData[item.key] || 'NA';
+                        const val = stageData[item.key] || UNSET;
                         const dependentNumberItems = stage.items.filter(numberItem =>
                           isNumberItem(numberItem) &&
                           numberItem.dependsOn === item.key &&

@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import Onboarding from '../models/Onboarding.js';
 import Member from '../models/Member.js';
+import { classifyStageDecision } from '../utils/stageClassification.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -216,32 +217,32 @@ router.get('/reports/full-export', async (req, res) => {
         l2ContentIngestion: l2.checklist?.contentIngestion ? 'Yes' : 'No',
         l2Notes: l2.notes || '',
         // Closure Stages
-        l2BasicOnboarding_firstCallCompleted: l2.stages?.basicOnboarding?.firstCallCompleted || 'NA',
-        l2BasicOnboarding_artistInfoUpdated: l2.stages?.basicOnboarding?.artistInfoUpdated || 'NA',
-        l2BasicOnboarding_whatsappGroupCreated: l2.stages?.basicOnboarding?.whatsappGroupCreated || 'NA',
-        l2BasicOnboarding_introEmailSent: l2.stages?.basicOnboarding?.introEmailSent || 'NA',
-        l2BasicOnboarding_notInterested: l2.stages?.basicOnboarding?.notInterested || 'NA',
-        l2ArtistInvestment_ssaShaShared: l2.stages?.artistInvestment?.ssaShaShared || 'NA',
-        l2ArtistInvestment_kycReceived: l2.stages?.artistInvestment?.kycReceived || 'NA',
-        l2ArtistInvestment_investmentReceived: l2.stages?.artistInvestment?.investmentReceived || 'NA',
-        l2ArtistInvestment_shareCertificateSent: l2.stages?.artistInvestment?.shareCertificateSent || 'NA',
-        l2Distribution_agreementSent: l2.stages?.distributionAgreement?.distributionAgreementSent || 'NA',
-        l2Distribution_contentReceived: l2.stages?.distributionAgreement?.contentReceivedForUpload || 'NA',
-        l2Distribution_contentSentToDevi: l2.stages?.distributionAgreement?.contentSentToDevi || 'NA',
+        l2BasicOnboarding_firstCallCompleted: l2.stages?.basicOnboarding?.firstCallCompleted || 'Not updated',
+        l2BasicOnboarding_artistInfoUpdated: l2.stages?.basicOnboarding?.artistInfoUpdated || 'Not updated',
+        l2BasicOnboarding_whatsappGroupCreated: l2.stages?.basicOnboarding?.whatsappGroupCreated || 'Not updated',
+        l2BasicOnboarding_introEmailSent: l2.stages?.basicOnboarding?.introEmailSent || 'Not updated',
+        l2BasicOnboarding_notInterested: l2.stages?.basicOnboarding?.notInterested || 'Not updated',
+        l2ArtistInvestment_ssaShaShared: l2.stages?.artistInvestment?.ssaShaShared || 'Not updated',
+        l2ArtistInvestment_kycReceived: l2.stages?.artistInvestment?.kycReceived || 'Not updated',
+        l2ArtistInvestment_investmentReceived: l2.stages?.artistInvestment?.investmentReceived || 'Not updated',
+        l2ArtistInvestment_shareCertificateSent: l2.stages?.artistInvestment?.shareCertificateSent || 'Not updated',
+        l2Distribution_agreementSent: l2.stages?.distributionAgreement?.distributionAgreementSent || 'Not updated',
+        l2Distribution_contentReceived: l2.stages?.distributionAgreement?.contentReceivedForUpload || 'Not updated',
+        l2Distribution_contentSentToDevi: l2.stages?.distributionAgreement?.contentSentToDevi || 'Not updated',
         l2Distribution_totalSongsReceivedByArtist: l2.stages?.distributionAgreement?.totalSongsReceivedByArtist ?? 'N/A',
-        l2Distribution_contentVisible: l2.stages?.distributionAgreement?.contentVisibleOnGoongoonalo || 'NA',
-        l2NonExclusive_streamingAgreementSent: l2.stages?.nonExclusiveLicense?.streamingAgreementSent || 'NA',
-        l2NonExclusive_contentReceived: l2.stages?.nonExclusiveLicense?.contentReceivedForUpload || 'NA',
-        l2NonExclusive_contentSentToDevi: l2.stages?.nonExclusiveLicense?.contentSentToDevi || 'NA',
+        l2Distribution_contentVisible: l2.stages?.distributionAgreement?.contentVisibleOnGoongoonalo || 'Not updated',
+        l2NonExclusive_streamingAgreementSent: l2.stages?.nonExclusiveLicense?.streamingAgreementSent || 'Not updated',
+        l2NonExclusive_contentReceived: l2.stages?.nonExclusiveLicense?.contentReceivedForUpload || 'Not updated',
+        l2NonExclusive_contentSentToDevi: l2.stages?.nonExclusiveLicense?.contentSentToDevi || 'Not updated',
         l2NonExclusive_totalSongsReceivedByArtist: l2.stages?.nonExclusiveLicense?.totalSongsReceivedByArtist ?? 'N/A',
-        l2NonExclusive_contentVisible: l2.stages?.nonExclusiveLicense?.contentVisibleOnGoongoonalo || 'NA',
-        l2NonExclusive_artistReviewMeeting: l2.stages?.nonExclusiveLicense?.artistReviewMeeting || 'NA',
-        l2NonExclusive_subscriptionActivated: l2.stages?.nonExclusiveLicense?.subscriptionActivated || 'NA',
-        l2FinalClosure_notInterested: l2.stages?.finalClosure?.notInterested || 'NA',
-        l2FinalClosure_investmentClosed: l2.stages?.finalClosure?.investmentClosed || 'NA',
-        l2FinalClosure_distributionClosed: l2.stages?.finalClosure?.distributionClosed || 'NA',
-        l2FinalClosure_licensingClosed: l2.stages?.finalClosure?.licensingClosed || 'NA',
-        l2FinalClosure_ayushDemoCompleted: l2.stages?.finalClosure?.ayushDemoCompleted || 'NA',
+        l2NonExclusive_contentVisible: l2.stages?.nonExclusiveLicense?.contentVisibleOnGoongoonalo || 'Not updated',
+        l2NonExclusive_artistReviewMeeting: l2.stages?.nonExclusiveLicense?.artistReviewMeeting || 'Not updated',
+        l2NonExclusive_subscriptionActivated: l2.stages?.nonExclusiveLicense?.subscriptionActivated || 'Not updated',
+        l2FinalClosure_notInterested: l2.stages?.finalClosure?.notInterested || 'Not updated',
+        l2FinalClosure_investmentClosed: l2.stages?.finalClosure?.investmentClosed || 'Not updated',
+        l2FinalClosure_distributionClosed: l2.stages?.finalClosure?.distributionClosed || 'Not updated',
+        l2FinalClosure_licensingClosed: l2.stages?.finalClosure?.licensingClosed || 'Not updated',
+        l2FinalClosure_ayushDemoCompleted: l2.stages?.finalClosure?.ayushDemoCompleted || 'Not updated',
         l2DocumentsCount: Array.isArray(l2.documents) ? l2.documents.length : 0,
         l2DocumentTitles: Array.isArray(l2.documents) ? l2.documents.map(d => d.title || d.fileName).join(', ') : 'N/A',
       };
@@ -294,29 +295,11 @@ router.get('/reports/l2-review', async (req, res) => {
           })),
     }));
 
-    // Classify a stage for one onboarding into Yes / No / Not Updated buckets
-    const classifyYesNo = (sd, items, customType) => {
-      if (!sd || !items || items.length === 0) return 'Not Updated';
-      if (customType === 'investmentInterest') {
-        const rec = sd.received || 'NA';
-        if (rec === 'Yes') return 'Yes';
-        if (rec === 'No') return 'No';
-        return 'Not Updated';
-      }
-      // Only yes/no decision items count toward stage status. Number fields
-      // (e.g. totalSongsReceivedByArtist) are excluded. Conditional items
-      // hidden by dependsOn/showWhen are also excluded.
-      const decisionItems = items.filter(i => {
-        if (i.type && i.type !== 'yesno') return false;
-        if (i.dependsOn && i.showWhen && sd[i.dependsOn] !== i.showWhen) return false;
-        return true;
-      });
-      if (decisionItems.length === 0) return 'Not Updated';
-      const values = decisionItems.map(i => sd[i.key] || 'NA');
-      if (values.some(v => v === 'NA')) return 'Not Updated';
-      if (values.every(v => v === 'Yes')) return 'Yes';
-      if (values.every(v => v === 'No')) return 'No';
-      return 'Not Updated'; // mixed Yes/No falls here
+    // Stage decision (Yes / No / NA / NotUpdated) uses the shared classifier so the
+    // report and the daily email stay in lock-step. Stages 1/4/5 are key-field driven.
+    const classifyYesNo = (sd, items, customType, stageKey) => {
+      const token = classifyStageDecision(stageKey, sd, items, customType);
+      return token === 'NotUpdated' ? 'Not Updated' : token;
     };
 
     // Only onboardings whose CURRENT status is review-l2 (matches both casings present in DB).
@@ -330,14 +313,14 @@ router.get('/reports/l2-review', async (req, res) => {
 
     // Per-stage counters + per-onboarding decision
     const stageSummary = STAGES.map(s => ({
-      key: s.key, title: s.title, color: s.color, Yes: 0, No: 0, 'Not Updated': 0
+      key: s.key, title: s.title, color: s.color, Yes: 0, No: 0, NA: 0, 'Not Updated': 0
     }));
 
     const clients = onboardings.map(ob => {
       const stagesData = ob.l2ReviewData?.stages || {};
       const stageStatuses = {};
       STAGES.forEach((s, idx) => {
-        const decision = classifyYesNo(stagesData[s.key], s.items, s.customType);
+        const decision = classifyYesNo(stagesData[s.key], s.items, s.customType, s.key);
         stageStatuses[s.key] = decision;
         stageSummary[idx][decision] += 1;
       });
@@ -408,7 +391,14 @@ router.get('/reports/l2-weekly-analytics', async (req, res) => {
       const snap = weekMap[wk];
       const stageMap = {};
       (snap.counts || []).forEach(c => {
-        stageMap[c.stageKey] = { New: c.New, 'In Progress': c.inProgress, Closed: c.Closed };
+        stageMap[c.stageKey] = {
+          Yes: c.Yes ?? 0,
+          No: c.No ?? 0,
+          NA: c.NA ?? 0,
+          'Not Updated': c.notUpdated ?? 0,
+          // Legacy keys kept for any old consumers
+          New: c.New, 'In Progress': c.inProgress, Closed: c.Closed,
+        };
       });
       const sundayDate = new Date(wk + 'T00:00:00Z');
       const saturdayDate = new Date(sundayDate);

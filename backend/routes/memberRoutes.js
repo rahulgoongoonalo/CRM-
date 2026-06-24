@@ -267,6 +267,7 @@ router.post('/', [
     const {
       artistName, email, phone, alternateNumber, location, contactName,
       category, tier, primaryRole, talentType, primaryGenres, source, spoc,
+      talentScout,
       biography, instagramFollowers, spotifyMonthlyListeners, youtubeSubscribers,
       facebookFollowers, twitterFollowers, soundcloudFollowers,
       bankName, accountNumber, ifscCode, panNumber,
@@ -298,6 +299,7 @@ router.post('/', [
       primaryGenres,
       source,
       spoc,
+      talentScout,
       biography,
       instagramFollowers,
       spotifyMonthlyListeners,
@@ -360,6 +362,7 @@ router.put('/:id', async (req, res) => {
     const {
       artistName, email, phone, alternateNumber, location, contactName,
       category, tier, primaryRole, talentType, primaryGenres, source, spoc,
+      talentScout,
       biography, instagramFollowers, spotifyMonthlyListeners, youtubeSubscribers,
       facebookFollowers, twitterFollowers, soundcloudFollowers,
       bankName, accountNumber, ifscCode, panNumber,
@@ -383,6 +386,7 @@ router.put('/:id', async (req, res) => {
       {
         artistName, email, phone, alternateNumber, location, contactName,
         category, tier, primaryRole, talentType, primaryGenres, source, spoc,
+        talentScout,
         biography, instagramFollowers, spotifyMonthlyListeners, youtubeSubscribers,
         facebookFollowers, twitterFollowers, soundcloudFollowers,
         bankName, accountNumber, ifscCode, panNumber,

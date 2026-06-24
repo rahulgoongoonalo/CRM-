@@ -202,6 +202,21 @@ const ViewMemberModal = ({ isOpen, onClose, member }) => {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  Talent Scout
+                </label>
+                <input
+                  type="text"
+                  value={member.talentScout || 'No'}
+                  disabled
+                  className="w-full bg-surface-light/50 text-text-muted px-4 py-2.5 rounded-lg border border-border cursor-not-allowed"
+                />
+              </div>
+              <div></div>
+            </div>
+
             <div>
               <label className="block text-sm font-semibold text-text-secondary mb-2">
                 Biography based on Spotify

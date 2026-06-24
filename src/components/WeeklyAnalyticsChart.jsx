@@ -13,7 +13,8 @@ const STAGE_COLORS = {
 const STATUS_OPTIONS = [
   { key: 'Yes', label: 'Yes', hint: 'Stage fully Yes' },
   { key: 'No', label: 'No', hint: 'Stage fully No' },
-  { key: 'Not Updated', label: 'Not Updated', hint: 'Has NA or mixed' },
+  { key: 'NA', label: 'NA', hint: 'Stage fully NA' },
+  { key: 'Not Updated', label: 'Not Updated', hint: 'Has untouched or mixed items' },
 ];
 
 const WeeklyAnalyticsChart = ({ weeks, stages }) => {

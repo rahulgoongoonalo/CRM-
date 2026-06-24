@@ -22,6 +22,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
     talentType: '',
     genre: '',
     source: '',
+    talentScout: 'No',
     notes: '',
     status: 'Pending',
     biography: '',
@@ -47,6 +48,7 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
         talentType: member.talentType || '',
         genre: member.primaryGenres || '',
         source: member.source || source,
+        talentScout: member.talentScout || 'No',
         notes: member.notes || '',
         status: member.status?.charAt(0).toUpperCase() + member.status?.slice(1) || 'Updated',
         biography: member.biography || '',
@@ -309,6 +311,24 @@ const EditMemberModal = ({ isOpen, onClose, onSubmit, member }) => {
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  Talent Scout
+                </label>
+                <select
+                  name="talentScout"
+                  value={formData.talentScout}
+                  onChange={handleChange}
+                  className="select w-full"
+                >
+                  <option value="No">No</option>
+                  <option value="Yes">Yes</option>
+                </select>
+              </div>
+              <div></div>
             </div>
 
             <div>

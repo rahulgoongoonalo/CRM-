@@ -22,6 +22,21 @@ const INVESTMENT_INTEREST_ITEMS = [
 const CONTENT_SENT_TO_DEVI_KEY = 'contentSentToDevi';
 const TOTAL_SONGS_RECEIVED_KEY = 'totalSongsReceivedByArtist';
 
+// Sentinel for an item that hasn't been decided yet. This is the default state
+// (replaces the old 'NA' default — 'NA' is now a real, deliberate choice).
+const UNSET = 'Not updated';
+// Order of the selectable buttons for every decision item.
+const DECISION_OPTIONS = ['Yes', 'No', 'NA', UNSET];
+
+// Tailwind classes for a decision button given its value and whether it's selected.
+const decisionButtonClass = (val, selected) => {
+  if (!selected) return 'bg-slate-700/50 text-gray-400 hover:bg-slate-600/50 border border-slate-600';
+  if (val === 'Yes') return 'bg-green-600 text-white shadow-lg shadow-green-600/30';
+  if (val === 'No') return 'bg-red-600 text-white shadow-lg shadow-red-600/30';
+  if (val === 'NA') return 'bg-slate-500 text-white shadow-lg shadow-slate-500/30';
+  return 'bg-amber-600 text-white shadow-lg shadow-amber-600/30'; // Not updated
+};
+
 const isNumberItem = (item) => item.type === 'number';
 const isDecisionItem = (item) => !isNumberItem(item);
 
@@ -29,16 +44,16 @@ const getStageStatus = (stageData, stageItems, customType) => {
   if (!stageData || !stageItems || stageItems.length === 0) return { status: 'Open', color: 'gray' };
   if (customType === 'investmentInterest') {
     const amt = Number(stageData.amount) || 0;
-    const rec = stageData.received || 'NA';
-    if (rec === 'No') return { status: 'Closed', color: 'green' };
+    const rec = stageData.received || UNSET;
+    if (rec === 'No' || rec === 'NA') return { status: 'Closed', color: 'green' };
     if (rec === 'Yes' && amt > 0) return { status: 'Closed', color: 'green' };
-    if (rec === 'NA' && amt === 0) return { status: 'Open', color: 'gray' };
+    if (rec === UNSET && amt === 0) return { status: 'Open', color: 'gray' };
     return { status: 'In Progress', color: 'yellow' };
   }
-  const values = stageItems.filter(isDecisionItem).map(i => stageData[i.key] || 'NA');
-  const nonNA = values.filter(v => v !== 'NA');
-  if (nonNA.length === 0) return { status: 'Open', color: 'gray' };
-  if (nonNA.length === values.length) return { status: 'Closed', color: 'green' };
+  const values = stageItems.filter(isDecisionItem).map(i => stageData[i.key] || UNSET);
+  const decided = values.filter(v => v !== UNSET);
+  if (decided.length === 0) return { status: 'Open', color: 'gray' };
+  if (decided.length === values.length) return { status: 'Closed', color: 'green' };
   return { status: 'In Progress', color: 'yellow' };
 };
 
@@ -117,10 +132,10 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
       stages[stage.key] = {};
       if (stage.customType === 'investmentInterest') {
         stages[stage.key].amount = '';
-        stages[stage.key].received = 'NA';
+        stages[stage.key].received = UNSET;
       } else {
         stage.items.forEach(item => {
-          stages[stage.key][item.key] = 'NA';
+          stages[stage.key][item.key] = UNSET;
         });
       }
     });
@@ -199,11 +214,11 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
           if (!updatedStages[stage.key]) updatedStages[stage.key] = {};
           if (stage.customType === 'investmentInterest') {
             if (updatedStages[stage.key].amount === undefined) updatedStages[stage.key].amount = '';
-            if (updatedStages[stage.key].received === undefined) updatedStages[stage.key].received = 'NA';
+            if (updatedStages[stage.key].received === undefined) updatedStages[stage.key].received = UNSET;
           } else {
             stage.items.forEach(item => {
               if (updatedStages[stage.key][item.key] === undefined) {
-                updatedStages[stage.key][item.key] = isNumberItem(item) ? '' : 'NA';
+                updatedStages[stage.key][item.key] = isNumberItem(item) ? '' : UNSET;
               }
             });
           }
@@ -474,13 +489,13 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                 const isExpanded = expandedStages[stage.key];
                 const completedCount = stage.customType === 'investmentInterest'
                   ? (() => {
-                      const rec = stageData.received || 'NA';
-                      if (rec === 'No') return 2; // No → stage is fully decided
+                      const rec = stageData.received || UNSET;
+                      if (rec === 'No' || rec === 'NA') return 2; // decided → stage fully resolved
                       const amtFilled = Number(stageData.amount) > 0 ? 1 : 0;
-                      const recFilled = rec !== 'NA' ? 1 : 0;
+                      const recFilled = rec !== UNSET ? 1 : 0;
                       return amtFilled + recFilled;
                     })()
-                  : stageItems.filter(isDecisionItem).filter(i => (stageData[i.key] || 'NA') !== 'NA').length;
+                  : stageItems.filter(isDecisionItem).filter(i => (stageData[i.key] || UNSET) !== UNSET).length;
                 const decisionItems = stageItems.filter(isDecisionItem);
 
                 return (
@@ -516,8 +531,8 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                             <div className="flex items-center justify-between py-2.5 px-4 bg-slate-800/40 rounded-lg border border-slate-700/50">
                               <span className="text-white text-sm">Interested in Investment</span>
                               <div className="flex items-center gap-1">
-                                {['Yes', 'No', 'NA'].map(val => {
-                                  const currentValue = stageData.received || 'NA';
+                                {DECISION_OPTIONS.map(val => {
+                                  const currentValue = stageData.received || UNSET;
                                   return (
                                     <button key={val} type="button"
                                       onClick={async () => {
@@ -527,13 +542,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                                         }
                                         await handleStageItemChange(stage.key, 'received', val);
                                       }}
-                                      className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
-                                        currentValue === val
-                                          ? val === 'Yes' ? 'bg-green-600 text-white shadow-lg shadow-green-600/30'
-                                            : val === 'No' ? 'bg-red-600 text-white shadow-lg shadow-red-600/30'
-                                              : 'bg-slate-500 text-white shadow-lg shadow-slate-500/30'
-                                          : 'bg-slate-700/50 text-gray-400 hover:bg-slate-600/50 border border-slate-600'
-                                      }`}>
+                                      className={`px-3 py-1 rounded-md text-xs font-medium transition-all whitespace-nowrap ${decisionButtonClass(val, currentValue === val)}`}>
                                       {val}
                                     </button>
                                   );
@@ -543,7 +552,7 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                           </>
                         ) : (
                           decisionItems.map((item) => {
-                            const currentValue = stageData[item.key] || 'NA';
+                            const currentValue = stageData[item.key] || UNSET;
                             const dependentNumberItems = stageItems.filter(numberItem =>
                               isNumberItem(numberItem) &&
                               numberItem.dependsOn === item.key &&
@@ -554,16 +563,10 @@ const L2ReviewModal = ({ isOpen, onClose, onboarding, onSubmit }) => {
                                 <div className="flex items-center justify-between">
                                   <span className="text-white text-sm">{item.label}</span>
                                   <div className="flex items-center gap-1">
-                                    {['Yes', 'No', 'NA'].map(val => (
+                                    {DECISION_OPTIONS.map(val => (
                                       <button key={val} type="button"
                                         onClick={() => handleStageItemChange(stage.key, item.key, val)}
-                                        className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
-                                          currentValue === val
-                                            ? val === 'Yes' ? 'bg-green-600 text-white shadow-lg shadow-green-600/30'
-                                              : val === 'No' ? 'bg-red-600 text-white shadow-lg shadow-red-600/30'
-                                                : 'bg-slate-500 text-white shadow-lg shadow-slate-500/30'
-                                            : 'bg-slate-700/50 text-gray-400 hover:bg-slate-600/50 border border-slate-600'
-                                        }`}>
+                                        className={`px-3 py-1 rounded-md text-xs font-medium transition-all whitespace-nowrap ${decisionButtonClass(val, currentValue === val)}`}>
                                         {val}
                                       </button>
                                     ))}

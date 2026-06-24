@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import Picklist from '../models/Picklist.js';
 import ClosureReportSnapshot from '../models/ClosureReportSnapshot.js';
+import { classifyStageDecision } from './stageClassification.js';
 
 const createTransporter = () => {
   return nodemailer.createTransport({
@@ -76,16 +77,16 @@ const getStageStatus = (stageData, stageItems, customType) => {
   if (!stageData || !stageItems || stageItems.length === 0) return 'Open';
   if (customType === 'investmentInterest') {
     const amt = Number(stageData.amount) || 0;
-    const rec = stageData.received || 'NA';
-    if (rec === 'No') return 'Closed';
+    const rec = stageData.received || 'Not updated';
+    if (rec === 'No' || rec === 'NA') return 'Closed';
     if (rec === 'Yes' && amt > 0) return 'Closed';
-    if (rec === 'NA' && amt === 0) return 'Open';
+    if (rec === 'Not updated' && amt === 0) return 'Open';
     return 'In Progress';
   }
-  const values = stageItems.filter(isDecisionItem).map(i => stageData[i.key] || 'NA');
-  const nonNA = values.filter(v => v !== 'NA');
-  if (nonNA.length === 0) return 'Open';
-  if (nonNA.length === values.length) return 'Closed';
+  const values = stageItems.filter(isDecisionItem).map(i => stageData[i.key] || 'Not updated');
+  const decided = values.filter(v => v !== 'Not updated');
+  if (decided.length === 0) return 'Open';
+  if (decided.length === values.length) return 'Closed';
   return 'In Progress';
 };
 
@@ -125,26 +126,10 @@ export const sendDailyClosureReport = async (to, onboardings, options = {}) => {
   const today = formatShortDate(new Date());
   const todayKey = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
-  // Classify a stage for one onboarding into Yes / No / Not Updated buckets
-  const classifyYesNo = (sd, items, customType) => {
-    if (!sd || !items || items.length === 0) return 'NotUpdated';
-    if (customType === 'investmentInterest') {
-      const rec = sd.received || 'NA';
-      if (rec === 'Yes') return 'Yes';
-      if (rec === 'No') return 'No';
-      return 'NotUpdated';
-    }
-    const values = items.filter(isDecisionItem).map(i => sd[i.key] || 'NA');
-    if (values.some(v => v === 'NA')) return 'NotUpdated';
-    if (values.every(v => v === 'Yes')) return 'Yes';
-    if (values.every(v => v === 'No')) return 'No';
-    return 'NotUpdated'; // mixed Yes/No falls here
-  };
-
-  // Per-stage counts: New / In Progress / Closed   AND   Yes / No / Not Updated
+  // Per-stage counts: New / In Progress / Closed   AND   Yes / No / NA / Not Updated
   const stageCounts = STAGES_CONFIG.map(sc => {
     let newCount = 0, inProgressCount = 0, closedCount = 0;
-    let yesCount = 0, noCount = 0, notUpdatedCount = 0;
+    let yesCount = 0, noCount = 0, naCount = 0, notUpdatedCount = 0;
     onboardings.forEach(ob => {
       const sd = ob.l2ReviewData?.stages?.[sc.key] || {};
       const status = getStageStatus(sd, sc.items, sc.customType);
@@ -152,12 +137,13 @@ export const sendDailyClosureReport = async (to, onboardings, options = {}) => {
       else if (status === 'In Progress') inProgressCount++;
       else newCount++;
 
-      const yn = classifyYesNo(sd, sc.items, sc.customType);
+      const yn = classifyStageDecision(sc.key, sd, sc.items, sc.customType);
       if (yn === 'Yes') yesCount++;
       else if (yn === 'No') noCount++;
+      else if (yn === 'NA') naCount++;
       else notUpdatedCount++;
     });
-    return { ...sc, newCount, inProgressCount, closedCount, yesCount, noCount, notUpdatedCount };
+    return { ...sc, newCount, inProgressCount, closedCount, yesCount, noCount, naCount, notUpdatedCount };
   });
 
   const totalArtists = onboardings.length;
@@ -173,6 +159,7 @@ export const sendDailyClosureReport = async (to, onboardings, options = {}) => {
       prevMap[c.stageKey] = {
         Yes: c.Yes ?? 0,
         No: c.No ?? 0,
+        NA: c.NA ?? 0,
         'Not Updated': c.notUpdated ?? 0,
       };
     });
@@ -212,7 +199,10 @@ export const sendDailyClosureReport = async (to, onboardings, options = {}) => {
         ${renderCell(sc.noCount, prev.No, '#ef4444', '#ffffff')}
       </td>
       <td style="padding: 14px 18px; text-align: center; border-bottom: 1px solid #e5e7eb;">
-        ${renderCell(sc.notUpdatedCount, prev['Not Updated'], '#e2e8f0', '#475569')}
+        ${renderCell(sc.naCount, prev.NA, '#64748b', '#ffffff')}
+      </td>
+      <td style="padding: 14px 18px; text-align: center; border-bottom: 1px solid #e5e7eb;">
+        ${renderCell(sc.notUpdatedCount, prev['Not Updated'], '#fbbf24', '#7c2d12')}
       </td>
     </tr>
   `;
@@ -225,15 +215,16 @@ export const sendDailyClosureReport = async (to, onboardings, options = {}) => {
       <p style="margin: 8px 0 0; color: #fed7aa; font-size: 14px;">${formatDate(new Date())} &bull; ${totalArtists} artist onboarding(s)</p>
     </div>
     <div style="padding: 28px 32px;">
-      <p style="color: #6b7280; font-size: 14px; margin: 0 0 20px;">Per-stage decision breakdown — onboardings where the stage is fully <strong style="color:#10b981;">Yes</strong>, fully <strong style="color:#ef4444;">No</strong>, or has any item left as <strong>NA</strong> / mixed (<strong>Not Updated</strong>).${prevDateLabel ? ` Each cell shows <strong>today + delta</strong> vs ${prevDateLabel}.` : ' (No prior snapshot — deltas will appear from next run.)'}</p>
+      <p style="color: #6b7280; font-size: 14px; margin: 0 0 20px;">Per-stage decision breakdown — onboardings where the stage is fully <strong style="color:#10b981;">Yes</strong>, fully <strong style="color:#ef4444;">No</strong>, fully <strong style="color:#475569;">NA</strong>, or still has untouched / mixed items (<strong style="color:#b45309;">Not Updated</strong>).${prevDateLabel ? ` Each cell shows <strong>today + delta</strong> vs ${prevDateLabel}.` : ' (No prior snapshot — deltas will appear from next run.)'}</p>
 
       <table style="width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
         <thead>
           <tr style="background: #1e293b;">
             <th style="padding: 14px 18px; text-align: left; color: #f97316; font-size: 13px; font-weight: 700; letter-spacing: 0.3px;">Stages</th>
             <th style="padding: 14px 18px; text-align: center; color: #34d399; font-size: 12px; font-weight: 600; width: 130px;">${today}<br/><span style="color: #6ee7b7; font-size: 11px; font-weight: 500;">Yes</span></th>
-            <th style="padding: 14px 18px; text-align: center; color: #f87171; font-size: 12px; font-weight: 600; width: 130px;">${today}<br/><span style="color: #fca5a5; font-size: 11px; font-weight: 500;">No</span></th>
-            <th style="padding: 14px 18px; text-align: center; color: #cbd5e1; font-size: 12px; font-weight: 600; width: 130px;">${today}<br/><span style="color: #94a3b8; font-size: 11px; font-weight: 500;">Not Updated</span></th>
+            <th style="padding: 14px 18px; text-align: center; color: #f87171; font-size: 12px; font-weight: 600; width: 120px;">${today}<br/><span style="color: #fca5a5; font-size: 11px; font-weight: 500;">No</span></th>
+            <th style="padding: 14px 18px; text-align: center; color: #cbd5e1; font-size: 12px; font-weight: 600; width: 120px;">${today}<br/><span style="color: #94a3b8; font-size: 11px; font-weight: 500;">NA</span></th>
+            <th style="padding: 14px 18px; text-align: center; color: #fcd34d; font-size: 12px; font-weight: 600; width: 120px;">${today}<br/><span style="color: #fde68a; font-size: 11px; font-weight: 500;">Not Updated</span></th>
           </tr>
         </thead>
         <tbody>
@@ -242,7 +233,7 @@ export const sendDailyClosureReport = async (to, onboardings, options = {}) => {
         <tfoot>
           <tr style="background: #f1f5f9;">
             <td style="padding: 12px 18px; font-weight: 700; color: #1e293b; font-size: 13px;">Total Onboardings</td>
-            <td colspan="3" style="padding: 12px 18px; text-align: center; font-weight: 700; color: #1e293b; font-size: 13px;">
+            <td colspan="4" style="padding: 12px 18px; text-align: center; font-weight: 700; color: #1e293b; font-size: 13px;">
               ${totalArtists}
               <span style="margin-left: 8px; font-size: 12px; font-weight: 700; color: ${totalDeltaColor};">${totalSign}${totalDelta}</span>
             </td>
@@ -277,6 +268,7 @@ export const sendDailyClosureReport = async (to, onboardings, options = {}) => {
         stageKey: sc.key,
         Yes: sc.yesCount,
         No: sc.noCount,
+        NA: sc.naCount,
         notUpdated: sc.notUpdatedCount,
       }));
       await ClosureReportSnapshot.findOneAndUpdate(

@@ -6,10 +6,11 @@ import WeeklyAnalyticsChart from '../components/WeeklyAnalyticsChart';
 const STATUS_STYLES = {
   'Yes': { bg: 'bg-emerald-500/20', text: 'text-emerald-300', dot: 'bg-emerald-400' },
   'No': { bg: 'bg-red-500/20', text: 'text-red-300', dot: 'bg-red-400' },
-  'Not Updated': { bg: 'bg-slate-700', text: 'text-slate-200', dot: 'bg-slate-400' },
+  'NA': { bg: 'bg-slate-500/20', text: 'text-slate-300', dot: 'bg-slate-400' },
+  'Not Updated': { bg: 'bg-amber-500/20', text: 'text-amber-300', dot: 'bg-amber-400' },
 };
 
-const STATUS_KEYS = ['Yes', 'No', 'Not Updated'];
+const STATUS_KEYS = ['Yes', 'No', 'NA', 'Not Updated'];
 
 const L2ReviewReport = () => {
   const [stages, setStages] = useState([]);
@@ -151,7 +152,7 @@ const L2ReviewReport = () => {
           <div className="space-y-3 mb-8">
             <h2 className="text-yellow-500 font-bold text-sm uppercase tracking-wider">Stage Summary</h2>
             {summary.map((s, idx) => {
-              const filteredCounts = { Yes: 0, No: 0, 'Not Updated': 0 };
+              const filteredCounts = { Yes: 0, No: 0, NA: 0, 'Not Updated': 0 };
               filteredClients.forEach(c => {
                 const st = c.stageStatuses?.[s.key];
                 if (st && filteredCounts[st] !== undefined) filteredCounts[st]++;

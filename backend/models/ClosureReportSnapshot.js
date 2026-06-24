@@ -9,6 +9,7 @@ const stageCountSchema = new mongoose.Schema({
   // Current decision counts
   Yes: { type: Number, default: 0 },
   No: { type: Number, default: 0 },
+  NA: { type: Number, default: 0 },
   notUpdated: { type: Number, default: 0 },
 }, { _id: false });
 
