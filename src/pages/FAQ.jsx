@@ -189,10 +189,11 @@ const FAQ = () => {
 
               {/* Answer (Expandable) */}
               <div
-                className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                  expandedId === faq._id ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+                className={`grid transition-all duration-300 ease-in-out ${
+                  expandedId === faq._id ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
                 }`}
               >
+                <div className="overflow-hidden min-h-0">
                 <div className="px-5 pb-4">
                   <div className="flex gap-3">
                     <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center flex-shrink-0">
@@ -202,6 +203,7 @@ const FAQ = () => {
                       {faq.answer}
                     </p>
                   </div>
+                </div>
                 </div>
               </div>
             </div>

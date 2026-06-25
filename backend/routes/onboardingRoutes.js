@@ -6,6 +6,7 @@ import fs from 'fs';
 import Onboarding from '../models/Onboarding.js';
 import Member from '../models/Member.js';
 import { classifyStageDecision } from '../utils/stageClassification.js';
+import { buildStatusSummary } from '../utils/statusSummary.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -355,40 +356,21 @@ router.get('/reports/l2-review', async (req, res) => {
 });
 
 // Get weekly analytics from closure-report snapshots (Sun → Sat buckets)
-router.get('/reports/l2-weekly-analytics', async (req, res) => {
+router.get('/reports/l2-daily-analytics', async (req, res) => {
   try {
     const ClosureReportSnapshot = (await import('../models/ClosureReportSnapshot.js')).default;
 
-    // Pull last ~12 weeks of snapshots
+    // Pull up to a year of daily snapshots so the UI can navigate across weeks/months.
     const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 84);
+    cutoff.setDate(cutoff.getDate() - 365);
     const cutoffKey = cutoff.toISOString().split('T')[0];
 
     const snapshots = await ClosureReportSnapshot.find({
       dateKey: { $gte: cutoffKey }
     }).sort({ dateKey: 1 }).lean();
 
-    // Helper: get Sunday of the week containing this date (UTC-safe)
-    const sundayOf = (dateKey) => {
-      const d = new Date(dateKey + 'T00:00:00Z');
-      const day = d.getUTCDay(); // 0=Sun
-      d.setUTCDate(d.getUTCDate() - day);
-      return d.toISOString().split('T')[0];
-    };
-
-    // Bucket snapshots by week-start. For each week keep the LATEST snapshot
-    // in that week (best representation of week-end state).
-    const weekMap = {};
-    snapshots.forEach(s => {
-      const wk = sundayOf(s.dateKey);
-      if (!weekMap[wk] || weekMap[wk].dateKey < s.dateKey) {
-        weekMap[wk] = s;
-      }
-    });
-
-    const weekKeys = Object.keys(weekMap).sort();
-    const weeks = weekKeys.map(wk => {
-      const snap = weekMap[wk];
+    // One point per day.
+    const days = snapshots.map(snap => {
       const stageMap = {};
       (snap.counts || []).forEach(c => {
         stageMap[c.stageKey] = {
@@ -396,26 +378,16 @@ router.get('/reports/l2-weekly-analytics', async (req, res) => {
           No: c.No ?? 0,
           NA: c.NA ?? 0,
           'Not Updated': c.notUpdated ?? 0,
-          // Legacy keys kept for any old consumers
-          New: c.New, 'In Progress': c.inProgress, Closed: c.Closed,
         };
       });
-      const sundayDate = new Date(wk + 'T00:00:00Z');
-      const saturdayDate = new Date(sundayDate);
-      saturdayDate.setUTCDate(saturdayDate.getUTCDate() + 6);
-      const fmt = (d) => `${String(d.getUTCDate()).padStart(2, '0')}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
-      return {
-        weekStart: wk,
-        weekLabel: `${fmt(sundayDate)} – ${fmt(saturdayDate)}`,
-        snapshotDate: snap.dateKey,
-        totalArtists: snap.totalArtists,
-        stages: stageMap,
-      };
+      const d = new Date(snap.dateKey + 'T00:00:00Z');
+      const label = `${String(d.getUTCDate()).padStart(2, '0')}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
+      return { dateKey: snap.dateKey, label, totalArtists: snap.totalArtists, stages: stageMap };
     });
 
-    res.json({ success: true, data: { weeks } });
+    res.json({ success: true, data: { days } });
   } catch (error) {
-    console.error('Error building weekly analytics:', error);
+    console.error('Error building daily analytics:', error);
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 });
@@ -528,6 +500,18 @@ router.get('/reports/onboarding-status', async (req, res) => {
       message: 'Failed to fetch onboarding status report',
       error: error.message
     });
+  }
+});
+
+// Cross-area overview analytics: how Members + Onboardings are distributed.
+// Read-only aggregation — never writes. Normalizes mixed-case status values.
+router.get('/reports/overview-analytics', async (req, res) => {
+  try {
+    const data = await buildStatusSummary();
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('Error building overview analytics:', error);
+    res.status(500).json({ success: false, message: 'Failed to build overview analytics', error: error.message });
   }
 });
 
@@ -723,17 +707,18 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { member, description, spoc, etaClosure, notes, status } = req.body;
-    
+
+    const update = { member, description, spoc, etaClosure, notes, status };
+    // Once the user changes the pipeline status here, lock it so member-form edits
+    // can no longer auto-drive it.
+    if (status !== undefined) {
+      const current = await Onboarding.findById(req.params.id).select('status').lean();
+      if (current && status !== current.status) update.statusLocked = true;
+    }
+
     const updatedOnboarding = await Onboarding.findByIdAndUpdate(
       req.params.id,
-      {
-        member,
-        description,
-        spoc,
-        etaClosure,
-        notes,
-        status
-      },
+      update,
       { new: true, runValidators: true }
     ).populate('member', 'artistName email phone primaryGenres source tier');
     
@@ -807,7 +792,8 @@ router.patch('/:id/step1', async (req, res) => {
       req.params.id,
       {
         step1Data: { source, contactStatus, step1Notes },
-        status: 'spoc-assigned'
+        status: 'spoc-assigned',
+        statusLocked: true
       },
       { new: true, runValidators: true }
     ).populate('member', 'artistName email phone primaryGenres source tier');
@@ -860,7 +846,8 @@ router.patch('/:id/l1-questionnaire', async (req, res) => {
       req.params.id,
       {
         l1QuestionnaireData: l1Data,
-        status: 'review-l2'
+        status: 'review-l2',
+        statusLocked: true
       },
       { new: true, runValidators: true }
     ).populate('member', 'artistName email phone primaryGenres source tier');
@@ -1011,7 +998,8 @@ router.patch('/:id/l2-review', async (req, res) => {
       req.params.id,
       {
         l2ReviewData,
-        status: status || 'review-l2'
+        status: status || 'review-l2',
+        statusLocked: true
       },
       { new: true, runValidators: true }
     ).populate('member', 'artistName email phone primaryGenres source tier');

@@ -35,6 +35,13 @@ const onboardingSchema = new mongoose.Schema({
     // enum managed via Picklist collection
     default: 'warm'
   },
+  // True once a user manually changes the onboarding status (in the onboarding/L2 flow).
+  // While false, the linked member's status auto-drives this (Pending→cold, Updated/On Hold→warm).
+  // Once true, member edits no longer touch the onboarding status — the user owns it.
+  statusLocked: {
+    type: Boolean,
+    default: false
+  },
   // Step 1: Initial Contact Data
   step1Data: {
     type: {

@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { RiArrowDownSLine, RiArrowUpSLine, RiSearchLine, RiCloseLine, RiBarChart2Line, RiRefreshLine } from 'react-icons/ri';
-import { getL2ReviewReport, getL2WeeklyAnalytics } from '../services/api';
+import { getL2ReviewReport, getL2DailyAnalytics, getOverviewAnalytics } from '../services/api';
 import WeeklyAnalyticsChart from '../components/WeeklyAnalyticsChart';
+import StatusSummaryCard from '../components/StatusSummaryCard';
 
 const STATUS_STYLES = {
   'Yes': { bg: 'bg-emerald-500/20', text: 'text-emerald-300', dot: 'bg-emerald-400' },
@@ -16,7 +17,8 @@ const L2ReviewReport = () => {
   const [stages, setStages] = useState([]);
   const [summary, setSummary] = useState([]);
   const [clients, setClients] = useState([]);
-  const [weeklyData, setWeeklyData] = useState([]);
+  const [dailyData, setDailyData] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastFetchedAt, setLastFetchedAt] = useState(null);
@@ -32,17 +34,21 @@ const L2ReviewReport = () => {
     try {
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
-      const [report, weekly] = await Promise.all([
+      const [report, daily, overview] = await Promise.all([
         getL2ReviewReport(),
-        getL2WeeklyAnalytics().catch(() => ({ success: false, data: { weeks: [] } })),
+        getL2DailyAnalytics().catch(() => ({ success: false, data: { days: [] } })),
+        getOverviewAnalytics().catch(() => ({ success: false, data: null })),
       ]);
       if (report.success) {
         setStages(report.data.stages || []);
         setSummary(report.data.summary || []);
         setClients(report.data.clients || []);
       }
-      if (weekly.success) {
-        setWeeklyData(weekly.data.weeks || []);
+      if (daily.success) {
+        setDailyData(daily.data.days || []);
+      }
+      if (overview.success) {
+        setAnalytics(overview.data);
       }
       setLastFetchedAt(new Date());
     } catch (e) {
@@ -245,8 +251,30 @@ const L2ReviewReport = () => {
             })}
           </div>
 
-          {/* Weekly Analytics Chart */}
-          <WeeklyAnalyticsChart weeks={weeklyData} stages={stages} />
+          {/* Status Summary — Members + Onboarding by status */}
+          {analytics && (
+            <div className="mb-8">
+              <h2 className="text-yellow-500 font-bold text-sm uppercase tracking-wider mb-1">Status Summary</h2>
+              <p className="text-text-muted text-xs mb-4">All member and onboarding records grouped by status</p>
+              <div className="grid grid-cols-1 gap-3">
+                <StatusSummaryCard
+                  title="Member Status"
+                  total={analytics.members.total}
+                  items={analytics.members.byStatus}
+                  showDescriptions
+                />
+                <StatusSummaryCard
+                  title="Onboarding Status"
+                  total={analytics.onboardings.total}
+                  items={analytics.onboardings.byStatus}
+                  showDescriptions
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Daily Trend Chart */}
+          <WeeklyAnalyticsChart days={dailyData} stages={stages} />
 
         </>
       )}

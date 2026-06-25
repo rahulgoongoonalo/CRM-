@@ -2,6 +2,7 @@ import nodemailer from 'nodemailer';
 import Picklist from '../models/Picklist.js';
 import ClosureReportSnapshot from '../models/ClosureReportSnapshot.js';
 import { classifyStageDecision } from './stageClassification.js';
+import { buildStatusSummary } from './statusSummary.js';
 
 const createTransporter = () => {
   return nodemailer.createTransport({
@@ -148,6 +149,44 @@ export const sendDailyClosureReport = async (to, onboardings, options = {}) => {
 
   const totalArtists = onboardings.length;
 
+  // Member + Onboarding status summary (ascending by count) — mirrors the L2 Review Report.
+  const statusSummary = await buildStatusSummary();
+  const renderStatusTable = (title, total, items, accent) => {
+    const safeTotal = total || 0;
+    const rows = items.map(it => {
+      const pct = safeTotal ? Math.round((it.count / safeTotal) * 100) : 0;
+      return `
+        <tr style="border-bottom:1px solid #e5e7eb;">
+          <td style="padding:10px 14px;">
+            <div style="font-weight:600;color:#1e293b;font-size:13px;">${it.label}</div>
+            ${it.description ? `<div style="color:#64748b;font-size:11px;margin-top:2px;">${it.description}</div>` : ''}
+          </td>
+          <td style="padding:10px 14px;text-align:right;white-space:nowrap;font-weight:700;color:#1e293b;font-size:13px;">
+            ${it.count.toLocaleString()} <span style="color:#94a3b8;font-weight:500;font-size:11px;">(${pct}%)</span>
+          </td>
+        </tr>`;
+    }).join('');
+    return `
+      <div style="width:100%;margin-bottom:16px;">
+        <table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+          <thead>
+            <tr style="background:#1e293b;">
+              <th style="padding:12px 14px;text-align:left;color:${accent};font-size:12px;font-weight:700;letter-spacing:0.3px;">${title}</th>
+              <th style="padding:12px 14px;text-align:right;color:#94a3b8;font-size:11px;font-weight:600;">${safeTotal.toLocaleString()} total</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  };
+  const statusSummaryHtml = `
+    <h2 style="color:#1e293b;font-size:16px;font-weight:700;margin:28px 0 6px;">Status Summary</h2>
+    <p style="color:#6b7280;font-size:13px;margin:0 0 14px;">All member and onboarding records grouped by status (highest count first).</p>
+    <div>
+      ${renderStatusTable('Member Status', statusSummary.members.total, statusSummary.members.byStatus, '#34d399')}
+      ${renderStatusTable('Onboarding Status', statusSummary.onboardings.total, statusSummary.onboardings.byStatus, '#f97316')}
+    </div>`;
+
   // Load most-recent prior snapshot (any date before today) for delta comparison
   const previousSnapshot = await ClosureReportSnapshot.findOne({
     dateKey: { $lt: todayKey }
@@ -240,6 +279,8 @@ export const sendDailyClosureReport = async (to, onboardings, options = {}) => {
           </tr>
         </tfoot>
       </table>
+
+      ${statusSummaryHtml}
 
       <p style="color: #9ca3af; font-size: 12px; margin: 24px 0 0; text-align: center;">
         Generated on ${new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}

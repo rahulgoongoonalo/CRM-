@@ -26,6 +26,26 @@ const syncMemberToOnboardingL1 = async (memberId, memberData) => {
     if (memberData.primaryGenres) updates['l1QuestionnaireData.primaryGenres'] = memberData.primaryGenres;
     if (memberData.biography) updates['l1QuestionnaireData.artistBio'] = memberData.biography;
 
+    // Member status → onboarding pipeline status:
+    //   Pending → cold,  Updated → warm,  On Hold → warm.
+    // This auto-drive only applies while the user has NOT taken over the onboarding status:
+    //   - `statusLocked` is set the moment a user changes the status in the onboarding/L2 flow.
+    //   - The early-stage guard additionally protects legacy records (no lock flag yet) that
+    //     are already in Review L2 / Closed / Cold Storage, so we never knock them back down.
+    const memberStatus = (memberData.status || '').toString().trim().toLowerCase();
+    const statusToPipeline = { pending: 'cold', updated: 'warm', 'on hold': 'warm', inactive: 'warm' };
+    const mappedStatus = statusToPipeline[memberStatus];
+    const EARLY_STAGES = ['hot', 'warm', 'cold'];
+    const currentOnbStatus = (onboarding.status || '').toLowerCase();
+    if (
+      mappedStatus &&
+      !onboarding.statusLocked &&
+      EARLY_STAGES.includes(currentOnbStatus) &&
+      currentOnbStatus !== mappedStatus
+    ) {
+      updates['status'] = mappedStatus;
+    }
+
     if (Object.keys(updates).length > 0) {
       await Onboarding.findByIdAndUpdate(onboarding._id, { $set: updates });
     }
@@ -45,7 +65,7 @@ const router = express.Router();
 // @access  Private
 router.get('/list', async (req, res) => {
   try {
-    const members = await Member.find({}, { artistName: 1 }).sort({ artistName: 1 }).lean();
+    const members = await Member.find({}, { artistName: 1, email: 1, status: 1 }).sort({ artistName: 1 }).lean();
     res.json({ success: true, data: members });
   } catch (error) {
     console.error('Error in GET /api/members/list:', error);
@@ -320,7 +340,7 @@ router.post('/', [
     // Sync overlapping fields to linked onboarding L1 questionnaire
     await syncMemberToOnboardingL1(member._id, {
       artistName, contactName, email: emailValue, phone, location,
-      primaryRole, primaryGenres, biography
+      primaryRole, primaryGenres, biography, status: status || 'pending'
     });
 
     res.status(201).json({
@@ -398,7 +418,7 @@ router.put('/:id', async (req, res) => {
     // Sync overlapping fields to linked onboarding L1 questionnaire
     await syncMemberToOnboardingL1(req.params.id, {
       artistName, contactName, email, phone, location,
-      primaryRole, primaryGenres, biography
+      primaryRole, primaryGenres, biography, status
     });
 
     res.json({

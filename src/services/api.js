@@ -273,8 +273,13 @@ export const getL2ReviewReport = async () => {
   return response.data;
 };
 
-export const getL2WeeklyAnalytics = async () => {
-  const response = await api.get('/onboarding/reports/l2-weekly-analytics');
+export const getL2DailyAnalytics = async () => {
+  const response = await api.get('/onboarding/reports/l2-daily-analytics');
+  return response.data;
+};
+
+export const getOverviewAnalytics = async () => {
+  const response = await api.get('/onboarding/reports/overview-analytics');
   return response.data;
 };
 

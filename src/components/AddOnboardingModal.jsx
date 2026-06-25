@@ -60,6 +60,24 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
     return selectedMember ? onboardedMap[selectedMember._id] : null;
   }, [selectedMember, onboardedMap]);
 
+  // Onboarding status is locked to "Cold" until the selected artist's member status is
+  // "Updated" (matches the member → onboarding rule). Once Updated, all options open up.
+  const isMemberUpdated = (selectedMember?.status || '').toString().trim().toLowerCase() === 'updated';
+  const availableStatuses = useMemo(() => {
+    if (isMemberUpdated) return onboardingStatuses;
+    const coldOnly = onboardingStatuses.filter(s => (s.value || '').toLowerCase() === 'cold');
+    return coldOnly.length ? coldOnly : [{ _id: 'cold', value: 'cold', label: 'Cold' }];
+  }, [isMemberUpdated, onboardingStatuses]);
+
+  // Keep the chosen status valid for the selected artist: force Cold when not Updated;
+  // when Updated, default to Warm (but keep any non-Cold pick the user already made).
+  useEffect(() => {
+    setFormData(prev => ({
+      ...prev,
+      status: isMemberUpdated ? (prev.status === 'cold' ? 'warm' : prev.status) : 'cold',
+    }));
+  }, [isMemberUpdated]);
+
   // Click outside to close search dropdown
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -328,12 +346,18 @@ const AddOnboardingModal = ({ isOpen, onClose, onSubmit }) => {
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="select w-full cursor-pointer"
+                disabled={!isMemberUpdated}
+                className="select w-full cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {onboardingStatuses.map(item => (
+                {availableStatuses.map(item => (
                   <option key={item._id} value={item.value}>{item.label}</option>
                 ))}
               </select>
+              {!isMemberUpdated && (
+                <p className="mt-1.5 text-xs text-amber-300/80">
+                  Locked to <span className="font-semibold">Cold</span> until this artist's member status is set to <span className="font-semibold">Updated</span>.
+                </p>
+              )}
             </div>
 
             {/* Notes */}

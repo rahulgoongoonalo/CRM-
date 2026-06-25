@@ -120,7 +120,7 @@ const Onboarding = () => {
         spoc: formData.spoc,
         etaClosure: formData.etaClosure,
         notes: formData.notes,
-        status: 'warm'
+        status: formData.status || 'warm'
       });
       
       if (response.success) {
